@@ -104,7 +104,7 @@ jobs:
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Dark-Downloader-v${version}-windows-x64.zip"
           
           # Create MSIX (Installer)
-          flutter pub run msix:create --version "${version}.0"
+          flutter pub run msix:create --version "${version}.0" --no-install-certificate
           Move-Item -Path "build\windows\x64\runner\Release\dark_downloader.msix" -Destination "Dark-Downloader-v${version}-windows-x64.msix"
         shell: pwsh
 
