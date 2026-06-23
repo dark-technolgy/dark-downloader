@@ -213,7 +213,7 @@ jobs:
           {
             "version": "v${VERSION}",
             "published_at": "${PUBLISHED}",
-            "html_url": "https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}",
+            "html_url": "https://keenx.net/#apps",
             "notes": "تتوفر نسخة جديدة v${VERSION}.",
             "assets": [${assets_json}]
           }
