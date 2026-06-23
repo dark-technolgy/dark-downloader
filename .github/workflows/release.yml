@@ -134,28 +134,6 @@ jobs:
             build/app/outputs/flutter-apk/Dark-Downloader-*.apk
           retention-days: 30
 
-  # ── Publish GitHub Release ───────────────────────────────────
-  github-release:
-    name: Publish GitHub Release
-    needs: build-release
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: |
-            artifacts/**/*.apk
-            artifacts/**/*.zip
-            artifacts/**/*.tar.gz
-
   # ── Upload to Cloudflare R2 ───────────────────────────────────
   upload-r2:
     name: Upload to Cloudflare R2
@@ -238,7 +216,7 @@ jobs:
   # ── Update Supabase remote_config automatically ──────────────
   update-remote-config:
     name: Update Supabase remote_config
-    needs: [github-release, upload-r2]
+    needs: [upload-r2]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
