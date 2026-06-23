@@ -1,0 +1,7 @@
+# Transitive unmaintained crates via librqbit; re-check when upgrading librqbit.
+[advisories]
+ignore = [
+  "RUSTSEC-2025-0012",
+  "RUSTSEC-2025-0141",
+  "RUSTSEC-2024-0384",
+]

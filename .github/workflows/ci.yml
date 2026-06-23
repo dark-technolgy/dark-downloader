@@ -1,0 +1,196 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.44.2"
+  RUST_TOOLCHAIN: "stable"
+
+jobs:
+  # ────────────────────────────────────────────────────────────────
+  # 1. Quality gates — fast feedback for every PR.
+  # ────────────────────────────────────────────────────────────────
+  analyze:
+    name: Analyze & Test (Dart)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      - name: Test with coverage
+        run: flutter test --coverage --reporter=expanded
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+          retention-days: 14
+
+  rust-check:
+    name: Rust clippy & test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Check formatting
+        working-directory: rust
+        run: cargo fmt --all --check
+
+      - name: Clippy (deny warnings)
+        working-directory: rust
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Test
+        working-directory: rust
+        run: cargo test --all-features
+
+  supabase-check:
+    name: Supabase functions typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: "1.45.x"
+
+      - name: Type-check edge functions
+        run: |
+          for fn in supabase/functions/*/index.ts; do
+            echo "::group::$fn"
+            deno check --no-config "$fn"
+            echo "::endgroup::"
+          done
+
+  # ────────────────────────────────────────────────────────────────
+  # 2. Platform-specific build matrix — smoke test the release path.
+  # ────────────────────────────────────────────────────────────────
+  build:
+    name: Build ${{ matrix.target }}
+    needs: [analyze, rust-check]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: android
+            flutter_cmd: build apk --profile --target-platform android-arm64
+          - os: ubuntu-latest
+            target: linux
+            flutter_cmd: build linux --release
+          - os: windows-latest
+            target: windows
+            flutter_cmd: build windows --release
+          - os: macos-latest
+            target: macos
+            flutter_cmd: build macos --release
+          - os: macos-latest
+            target: ios
+            flutter_cmd: build ios --release --no-codesign
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        if: matrix.target == 'android'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Install Linux deps
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev libayatana-appindicator3-dev
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'placeholder' }}
+          APP_URL: ${{ secrets.APP_URL || 'https://darkdownloader.app' }}
+        run: |
+          flutter ${{ matrix.flutter_cmd }} \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --dart-define=APP_URL=$APP_URL
+        shell: bash
+
+  # ────────────────────────────────────────────────────────────────
+  # 3. Security — audit dependencies, scan for leaked secrets.
+  # ────────────────────────────────────────────────────────────────
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for leaked secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.before || github.event.pull_request.base.sha }}
+          head: ${{ github.sha }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install --locked cargo-audit
+
+      - name: Rust dependency audit
+        working-directory: rust
+        run: cargo audit --deny warnings
+        continue-on-error: true

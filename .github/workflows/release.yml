@@ -1,0 +1,263 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 1.0.0)"
+        required: true
+
+concurrency:
+  group: release-${{ github.ref }}
+
+env:
+  FLUTTER_VERSION: "3.44.2"
+
+jobs:
+  build-release:
+    name: Build release for ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: android-apk
+            flutter_cmd: build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols
+            artifact_path: build/app/outputs/flutter-apk/*.apk
+          - os: ubuntu-latest
+            target: linux
+            flutter_cmd: build linux --release --obfuscate --split-debug-info=build/app/outputs/symbols
+            artifact_path: build/linux/x64/release/bundle
+          - os: windows-latest
+            target: windows
+            flutter_cmd: build windows --release --obfuscate --split-debug-info=build/app/outputs/symbols
+            artifact_path: build/windows/x64/runner/Release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        if: startsWith(matrix.target, 'android')
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Install Linux deps
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev libayatana-appindicator3-dev
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Fetch FFmpeg Kit for Android
+        if: startsWith(matrix.target, 'android')
+        run: pwsh ./scripts/fetch_ffmpeg_kit_android_maven_repo.ps1
+        shell: pwsh
+
+      - name: Decode Android Keystore
+        if: startsWith(matrix.target, 'android')
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_PROPERTIES_CONTENT: ${{ secrets.KEY_PROPERTIES_CONTENT }}
+        run: |
+          mkdir -p android/app
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          echo "$KEY_PROPERTIES_CONTENT" > android/key.properties
+        shell: bash
+
+      - name: Build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          flutter ${{ matrix.flutter_cmd }} \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --dart-define=APP_URL=$APP_URL
+        shell: bash
+
+      # ── Package artifacts with clear names ─────────────────────
+      - name: Package Windows release
+        if: matrix.target == 'windows'
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Dark-Downloader-v${version}-windows-x64.zip"
+        shell: pwsh
+
+      - name: Package Linux release
+        if: matrix.target == 'linux'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cd build/linux/x64/release
+          tar -czf "../../../../Dark-Downloader-v${VERSION}-linux-x64.tar.gz" bundle/
+
+      - name: Rename Android APKs
+        if: matrix.target == 'android-apk'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cd build/app/outputs/flutter-apk/
+          for apk in *.apk; do
+            # e.g. app-arm64-v8a-release.apk → Dark-Downloader-v1.0.1-android-arm64.apk
+            arch=$(echo "$apk" | sed -E 's/app-(.+)-release\.apk/\1/')
+            if [ "$arch" = "$apk" ]; then
+              arch="universal"
+            fi
+            mv "$apk" "Dark-Downloader-v${VERSION}-android-${arch}.apk"
+          done
+
+      # ── Upload artifacts ───────────────────────────────────────
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dark-downloader-${{ matrix.target }}
+          path: |
+            Dark-Downloader-*.zip
+            Dark-Downloader-*.tar.gz
+            build/app/outputs/flutter-apk/Dark-Downloader-*.apk
+          retention-days: 30
+
+  # ── Publish GitHub Release ───────────────────────────────────
+  github-release:
+    name: Publish GitHub Release
+    needs: build-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.apk
+            artifacts/**/*.zip
+            artifacts/**/*.tar.gz
+
+  # ── Upload to Cloudflare R2 ───────────────────────────────────
+  upload-r2:
+    name: Upload to Cloudflare R2
+    needs: build-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Sync to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # Upload all artifacts to R2 under the /releases/v{VERSION}/ prefix
+          aws s3 sync artifacts/ s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+
+      - name: Generate latest.json manifest
+        env:
+          R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BASE="${R2_PUBLIC_BASE_URL%/}/releases/v${VERSION}"
+          PUBLISHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          detect_platform() {
+            local f
+            f="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+            case "$f" in
+              *windows*|*.exe) echo windows ;;
+              *android*|*.apk) echo android ;;
+              *linux*|*.tar.gz|*.deb|*.appimage) echo linux ;;
+              *) echo unknown ;;
+            esac
+          }
+
+          assets_json=""
+          while IFS= read -r filepath; do
+            rel="${filepath#artifacts/}"
+            name="$(basename "$filepath")"
+            size="$(stat -c%s "$filepath")"
+            platform="$(detect_platform "$name")"
+            [ "$platform" = "unknown" ] && continue
+            entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel}\"}"
+            if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="${assets_json},${entry}"; fi
+          done < <(find artifacts -type f \( -name '*.apk' -o -name '*.zip' -o -name '*.tar.gz' \))
+
+          cat > latest.json <<EOF
+          {
+            "version": "v${VERSION}",
+            "published_at": "${PUBLISHED}",
+            "html_url": "https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}",
+            "notes": "تتوفر نسخة جديدة v${VERSION}.",
+            "assets": [${assets_json}]
+          }
+          EOF
+
+          echo "── Generated latest.json ──"
+          cat latest.json
+
+      - name: Upload latest.json to R2 root
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          aws s3 cp latest.json s3://${R2_BUCKET_NAME}/latest.json \
+            --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com \
+            --content-type application/json \
+            --cache-control "public, max-age=300"
+
+  # ── Update Supabase remote_config automatically ──────────────
+  update-remote-config:
+    name: Update Supabase remote_config
+    needs: [github-release, upload-r2]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Update latest_version in Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          
+          curl -s -X PATCH "${SUPABASE_URL}/rest/v1/remote_config?id=eq.1" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{
+              \"latest_version\": \"${VERSION}\",
+              \"download_url\": \"https://keenx.net/#apps\",
+              \"release_notes\": \"تتوفر نسخة جديدة ${VERSION}. زر الموقع الرسمي للتحميل.\",
+              \"updated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+            }"
+          echo "✅ Updated remote_config: latest_version=${VERSION}"

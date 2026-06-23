@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 320px;
+      padding: 20px;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 15px;
+    }
+    .brand {
+      color: #00A3FF;
+      font-weight: 900;
+      letter-spacing: 2px;
+      font-size: 18px;
+    }
+    .status-container {
+      background-color: #0A0A0A;
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid #333;
+      margin-bottom: 20px;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .online { background-color: #00FF85; box-shadow: 0 0 10px #00FF8555; }
+    .offline { background-color: #FF3B30; }
+
+    button {
+      width: 100%;
+      background-color: #00A3FF;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    button:hover { background-color: #0082CC; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { background-color: #222; color: #555; cursor: not_allowed; }
+
+    .footer {
+      font-size: 11px;
+      color: #444;
+      text-align: center;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">DARK DOWNLOADER</div>
+    <div style="font-size: 10px; color: #666; margin-top: 4px;">SYSTEM BRIDGE v2.0</div>
+  </div>
+
+  <div class="status-container">
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+      <span id="statusDot" class="status-dot offline"></span>
+      <span id="statusText" style="font-size: 13px; color: #888;">Checking app connection...</span>
+    </div>
+    <div id="urlDisplay" style="font-size: 11px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+  </div>
+
+  <button id="downloadBtn" disabled>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    SEND TO DARK
+  </button>
+
+  <div class="footer">
+    &copy; 2026 Dark Technology Global.
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

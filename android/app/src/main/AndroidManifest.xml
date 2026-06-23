@@ -1,0 +1,168 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ─── صلاحيات الشبكة (أساسية) ─── -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+
+    <!-- ─── صلاحيات التخزين (Android <= 12) ─── -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+
+    <!-- ─── صلاحيات الوسائط (Android 13+) ─── -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- ─── الإشعارات (Android 13+) ─── -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- ─── الخدمة الأمامية للتحميل المستمر ─── -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <!-- ─── BitTorrent ─── -->
+    <!-- مطلوب لفتح منافذ TCP/UDP للأقران واستخدام DHT/PEX/LSD -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <!-- يمنع نظام Android من تجميد سوكتات الجلسة عند الخلفية -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING"/>
+
+    <!-- ─── منع النوم أثناء التحميلات الطويلة ─── -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+
+    <!-- ─── Overlay (floating download bubble) ─── -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+
+    <application
+        android:label="دارك"
+        android:name="${applicationName}"
+        android:icon="@mipmap/launcher_icon"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- ─── استقبال روابط من تطبيقات أخرى (مشاركة) ─── -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+
+            <!-- ─── فتح magnet من المتصفح / تطبيقات أخرى ─── -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="magnet"/>
+            </intent-filter>
+
+            <!-- ─── مخطط التطبيق (روابط من مواقع أو إشارات مرجعية) ─── -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="darkdownloader"/>
+                <data android:scheme="com.darkdownloader"/>
+            </intent-filter>
+
+            <!-- ─── Deep Links شائعة للفيديو (فتح في التطبيق عند اختيار المستخدم) ─── -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="youtube.com"/>
+                <data android:scheme="https" android:host="www.youtube.com"/>
+                <data android:scheme="https" android:host="m.youtube.com"/>
+                <data android:scheme="https" android:host="music.youtube.com"/>
+                <data android:scheme="https" android:host="youtu.be"/>
+                <data android:scheme="https" android:host="tiktok.com"/>
+                <data android:scheme="https" android:host="www.tiktok.com"/>
+                <data android:scheme="https" android:host="vm.tiktok.com"/>
+                <data android:scheme="https" android:host="instagram.com"/>
+                <data android:scheme="https" android:host="www.instagram.com"/>
+                <data android:scheme="https" android:host="twitter.com"/>
+                <data android:scheme="https" android:host="www.twitter.com"/>
+                <data android:scheme="https" android:host="x.com"/>
+                <data android:scheme="https" android:host="www.x.com"/>
+                <data android:scheme="https" android:host="facebook.com"/>
+                <data android:scheme="https" android:host="www.facebook.com"/>
+                <data android:scheme="https" android:host="m.facebook.com"/>
+                <data android:scheme="https" android:host="fb.watch"/>
+                <data android:scheme="https" android:host="vimeo.com"/>
+                <data android:scheme="https" android:host="www.vimeo.com"/>
+                <data android:scheme="https" android:host="dailymotion.com"/>
+                <data android:scheme="https" android:host="www.dailymotion.com"/>
+                <data android:scheme="https" android:host="soundcloud.com"/>
+                <data android:scheme="https" android:host="twitch.tv"/>
+                <data android:scheme="https" android:host="www.twitch.tv"/>
+                <data android:scheme="https" android:host="reddit.com"/>
+                <data android:scheme="https" android:host="www.reddit.com"/>
+                <data android:scheme="https" android:host="old.reddit.com"/>
+                <data android:scheme="https" android:host="pinterest.com"/>
+                <data android:scheme="https" android:host="www.pinterest.com"/>
+                <data android:scheme="https" android:host="rumble.com"/>
+                <data android:scheme="https" android:host="www.rumble.com"/>
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <service
+            android:name="flutter.overlay.window.flutter_overlay_window.OverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Floating download control for دارك while using browsers or social apps; user-enabled in settings." />
+        </service>
+
+        <!-- ─── FileProvider لفتح الملفات المحمّلة ─── -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:mimeType="video/*"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:mimeType="audio/*"/>
+        </intent>
+    </queries>
+</manifest>

@@ -1,0 +1,44 @@
+{
+  "db": {
+    "tables": [
+      {
+        "name": "profiles",
+        "description": "User profiles and subscription info"
+      },
+      {
+        "name": "subscriptions",
+        "description": "Subscription plans and status"
+      },
+      {
+        "name": "download_history",
+        "description": "User download history"
+      },
+      {
+        "name": "payment_events",
+        "description": "Stripe webhook events log"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "name": "create-checkout-session",
+      "description": "Create Stripe checkout session for subscription",
+      "environment": ["STRIPE_SECRET_KEY", "STRIPE_PREMIUM_PRICE_ID", "STRIPE_PRO_PRICE_ID", "APP_URL"]
+    },
+    {
+      "name": "cancel-subscription",
+      "description": "Cancel user subscription in Stripe",
+      "environment": ["STRIPE_SECRET_KEY"]
+    },
+    {
+      "name": "stripe-webhook",
+      "description": "Handle Stripe webhook events",
+      "environment": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"]
+    }
+  ],
+  "auth": {
+    "providers": ["email", "google", "apple"],
+    "enableEmailConfirmation": true,
+    "enablePhoneConfirmation": false
+  }
+}

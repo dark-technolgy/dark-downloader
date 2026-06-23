@@ -1,0 +1,5 @@
+{
+  "version": 4,
+  "use_remote_bootstrap": false,
+  "note": "ضع ثنائيات FFmpeg عبر scripts/fetch_ffmpeg_bundles قبل بناء الإصدار؛ راجع bundled_ffmpeg/README_BUNDLE.txt"
+}
