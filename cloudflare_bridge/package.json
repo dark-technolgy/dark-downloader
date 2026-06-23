@@ -11,6 +11,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@cloudflare/puppeteer": "^1.1.0"
+    "@cloudflare/puppeteer": "^1.1.0",
+    "cloudflare": "^6.4.0",
+    "dotenv": "^17.4.2"
   }
 }
