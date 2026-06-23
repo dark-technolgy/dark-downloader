@@ -100,7 +100,12 @@ jobs:
         if: matrix.target == 'windows'
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
+          # Create ZIP (Portable)
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Dark-Downloader-v${version}-windows-x64.zip"
+          
+          # Create MSIX (Installer)
+          flutter pub run msix:create --version "${version}.0"
+          Move-Item -Path "build\windows\x64\runner\Release\dark_downloader.msix" -Destination "Dark-Downloader-v${version}-windows-x64.msix"
         shell: pwsh
 
       - name: Package Linux release
@@ -130,6 +135,7 @@ jobs:
           name: dark-downloader-${{ matrix.target }}
           path: |
             Dark-Downloader-*.zip
+            Dark-Downloader-*.msix
             Dark-Downloader-*.tar.gz
             build/app/outputs/flutter-apk/Dark-Downloader-*.apk
           retention-days: 30
@@ -169,7 +175,7 @@ jobs:
             local f
             f="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
             case "$f" in
-              *windows*|*.exe) echo windows ;;
+              *windows*|*.exe|*.msix) echo windows ;;
               *android*|*.apk) echo android ;;
               *linux*|*.tar.gz|*.deb|*.appimage) echo linux ;;
               *) echo unknown ;;
@@ -185,7 +191,7 @@ jobs:
             [ "$platform" = "unknown" ] && continue
             entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel}\"}"
             if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="${assets_json},${entry}"; fi
-          done < <(find artifacts -type f \( -name '*.apk' -o -name '*.zip' -o -name '*.tar.gz' \))
+          done < <(find artifacts -type f \( -name '*.apk' -o -name '*.zip' -o -name '*.tar.gz' -o -name '*.msix' \))
 
           cat > latest.json <<EOF
           {
