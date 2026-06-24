@@ -87,36 +87,88 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showUpdateDialog(Map<String, dynamic> update) {
+    double downloadProgress = 0;
+    bool isDownloading = false;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0A0A0A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: Color(0xFF00A3FF), width: 0.5)),
-        title: const Row(
-          children: [
-            Icon(Icons.system_update_rounded, color: Color(0xFF00A3FF)),
-            SizedBox(width: 12),
-            Text("تحديث جديد متاح! 🚀", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("إصدار جديد: ${update['version']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
-            Text(update['changelog'] ?? "", style: const TextStyle(color: Colors.grey, fontSize: 13)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("لاحقاً", style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            onPressed: () => UpdateService.launchUpdateUrl(update['url']),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00A3FF), foregroundColor: Colors.white),
-            child: const Text("تحديث الآن"),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF0A0A0A),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: Color(0xFF00A3FF), width: 0.5),
           ),
-        ],
+          title: Row(
+            children: [
+              Icon(
+                isDownloading ? Icons.downloading_rounded : Icons.system_update_rounded,
+                color: const Color(0xFF00A3FF),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                isDownloading ? "جارٍ التحديث..." : "تحديث جديد متاح! 🚀",
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "إصدار جديد: ${update['version']}",
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              if (!isDownloading)
+                Text(
+                  update['notes'] ?? "",
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+              if (isDownloading) ...[
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: downloadProgress,
+                  backgroundColor: Colors.white10,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00A3FF)),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "${(downloadProgress * 100).toStringAsFixed(0)}%",
+                  style: const TextStyle(color: Color(0xFF00A3FF), fontWeight: FontWeight.bold),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            if (!isDownloading)
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("لاحقاً", style: TextStyle(color: Colors.grey)),
+              ),
+            if (!isDownloading)
+              ElevatedButton(
+                onPressed: () async {
+                  setDialogState(() => isDownloading = true);
+                  final extension = Platform.isAndroid ? 'apk' : (Platform.isWindows ? 'msix' : 'tar.gz');
+                  final fileName = "Dark-Downloader-${update['version']}.$extension";
+                  
+                  await UpdateService.downloadAndInstallUpdate(
+                    url: update['url'],
+                    fileName: fileName,
+                    onProgress: (p) => setDialogState(() => downloadProgress = p),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00A3FF),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("تحديث الآن"),
+              ),
+          ],
+        ),
       ),
     );
   }
