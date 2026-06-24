@@ -203,7 +203,22 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
   void _startProgressTimer() {
     _progressTimer?.cancel();
     _progressTimer =
-        Timer.periodic(const Duration(milliseconds: 500), (_) => _pollProgress());
+        Timer.periodic(const Duration(seconds: 1), (_) {
+          _pollProgress();
+          _checkScheduled();
+        });
+  }
+
+  Future<void> _checkScheduled() async {
+    if (state.queuePaused) return;
+    final now = DateTime.now();
+    for (final item in state.items) {
+      if (item.status == DownloadStatus.queued && 
+          item.scheduledAt != null && 
+          item.scheduledAt!.isBefore(now)) {
+        unawaited(_startDownload(item));
+      }
+    }
   }
 
   Future<void> _pollProgress() async {
@@ -393,19 +408,30 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         try {
           if (ffmpegPath == 'ffmpeg' && (Platform.isAndroid || Platform.isIOS)) {
             // Mobile fallback extraction
-            final session = await FFmpegKit.execute(
-                '-y -i "${result.filePath}" -vn -c:a copy "$finalAudioPath"');
+            final cmd = audioExt == 'mp3' 
+                ? '-y -i "${result.filePath}" -vn -c:a libmp3lame -q:a 2 "$finalAudioPath"'
+                : '-y -i "${result.filePath}" -vn -c:a copy "$finalAudioPath"';
+            
+            final session = await FFmpegKit.execute(cmd);
             final returnCode = await session.getReturnCode();
             if (!ReturnCode.isSuccess(returnCode)) {
                final logs = await session.getLogsAsString();
-               throw Exception('FFmpegKit failed to extract audio: $logs');
+               throw Exception('FFmpegKit failed to extract/convert audio: $logs');
             }
           } else if (ffmpegPath != 'ffmpeg' || Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-            rust_video_processor.extractAudio(
-              videoPath: result.filePath,
-              outputPath: finalAudioPath,
-              ffmpegPath: ffmpegPath,
-            );
+            if (audioExt == 'mp3') {
+               rust_video_processor.convertToMp3(
+                 inputPath: result.filePath,
+                 outputPath: finalAudioPath,
+                 ffmpegPath: ffmpegPath,
+               );
+            } else {
+              rust_video_processor.extractAudio(
+                videoPath: result.filePath,
+                outputPath: finalAudioPath,
+                ffmpegPath: ffmpegPath,
+              );
+            }
           }
           finalPath = finalAudioPath;
           try {

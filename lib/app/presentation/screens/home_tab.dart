@@ -17,6 +17,7 @@ import '../widgets/responsive_scaffold.dart';
 
 import 'advanced_download_screen.dart';
 import 'playlist_screen.dart';
+import 'browser_screen.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   const HomeTab({super.key});
@@ -502,12 +503,14 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: _pasteFromClipboard,
-                                icon: const Icon(
-                                  Icons.content_paste_rounded,
-                                  size: 18,
-                                ),
-                                label: Text(t('paste_url', locale)),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const BrowserScreen()),
+                                  );
+                                },
+                                icon: const Icon(Icons.explore_rounded, size: 18),
+                                label: Text(t('browse_web', locale)),
                                 style: OutlinedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),

@@ -40,6 +40,18 @@ class DownloadHistoryScreen extends ConsumerWidget {
             ],
           ),
           actions: [
+            if (state.items.any((i) => i.status == DownloadStatus.paused))
+              TextButton.icon(
+                onPressed: () {
+                   for (final item in state.items) {
+                     if (item.status == DownloadStatus.paused) {
+                        ref.read(downloadManagerProvider.notifier).resumeDownload(item.id);
+                     }
+                   }
+                },
+                icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                label: const Text("استئناف الكل"),
+              ),
             if (failedRetryable > 0)
               TextButton.icon(
                 onPressed: () =>

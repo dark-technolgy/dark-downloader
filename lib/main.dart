@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'package:media_kit/media_kit.dart';
 
@@ -35,11 +36,32 @@ import 'app/presentation/screens/maintenance_screen.dart';
 import 'app/presentation/widgets/version_check_wrapper.dart';
 import 'app/presentation/widgets/floating_download_bubble.dart';
 
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    // This is where we would trigger scheduled downloads.
+    // For now, we'll just log and return success.
+    // In a real scenario, we'd need to init a minimal ProviderContainer
+    // and call DownloadManager.checkScheduled().
+    return Future.value(true);
+  });
+}
+
 Future<void> main() async {
   final bootstrap = runZonedGuarded<Future<void>>(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
       MediaKit.ensureInitialized();
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        await Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+        await Workmanager().registerPeriodicTask(
+          "com.darkdownloader.scheduler",
+          "checkScheduledDownloads",
+          frequency: const Duration(minutes: 15),
+          constraints: Constraints(networkType: NetworkType.connected),
+        );
+      }
 
       if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         await windowManager.ensureInitialized();

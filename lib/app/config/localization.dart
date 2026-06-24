@@ -67,6 +67,7 @@ class AppLocalization {
 
     // الرئيسية
     'paste_url': 'الصق رابط الفيديو هنا',
+    'browse_web': 'تصفح المواقع',
     'enter_url': 'أدخل رابط الفيديو',
     'analyze': 'تحليل',
     'analyzing': 'جاري التحليل...',
@@ -700,6 +701,7 @@ class AppLocalization {
 
     // Home
     'paste_url': 'Paste video URL here',
+    'browse_web': 'Browse Websites',
     'enter_url': 'Enter video URL',
     'analyze': 'Analyze',
     'analyzing': 'Analyzing...',

@@ -46,6 +46,28 @@ pub fn extract_audio(video_path: String, output_path: String, ffmpeg_path: Strin
 }
 
 #[frb(sync)]
+pub fn convert_to_mp3(input_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
+    let status = Command::new(&ffmpeg_path)
+        .arg("-i")
+        .arg(&input_path)
+        .arg("-vn")
+        .arg("-c:a")
+        .arg("libmp3lame")
+        .arg("-q:a")
+        .arg("2")
+        .arg("-y")
+        .arg(&output_path)
+        .status()
+        .context("Failed to execute FFmpeg process for MP3 conversion")?;
+
+    if !status.success() {
+        return Err(anyhow::anyhow!("FFmpeg MP3 conversion failed"));
+    }
+
+    Ok(())
+}
+
+#[frb(sync)]
 pub fn compress_video(input_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
     let status = Command::new(&ffmpeg_path)
         .arg("-i")
