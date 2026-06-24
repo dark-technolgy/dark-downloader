@@ -165,7 +165,7 @@ jobs:
 
       - name: Generate latest.json manifest
         env:
-          R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL }}
+          R2_PUBLIC_BASE_URL: https://releases.keenx.net
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           BASE="${R2_PUBLIC_BASE_URL%/}/releases/v${VERSION}"
