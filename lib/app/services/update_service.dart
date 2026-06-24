@@ -9,19 +9,22 @@ class UpdateService {
       final info = await PackageInfo.fromPlatform();
       final currentVersion = info.version;
 
-      // Query Supabase app_config
+      // Query Supabase remote_config (updated by CI)
       final response = await supabase
-          .from('app_config')
-          .select('value')
-          .eq('key', 'latest_version')
+          .from('remote_config')
+          .select('latest_version, download_url, release_notes')
+          .eq('id', 1)
           .maybeSingle();
 
       if (response != null) {
-        final data = response['value'] as Map<String, dynamic>;
-        final latestVersion = data['version'] as String;
+        final latestVersion = response['latest_version'] as String;
         
         if (_isNewer(latestVersion, currentVersion)) {
-          return data;
+          return {
+            'version': latestVersion,
+            'url': response['download_url'],
+            'notes': response['release_notes'],
+          };
         }
       }
     } catch (e) {

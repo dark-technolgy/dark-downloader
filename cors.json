@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "id": "allow-all",
+      "allowed": {
+        "methods": ["GET", "HEAD", "OPTIONS"],
+        "origins": ["*"],
+        "headers": ["*"]
+      },
+      "max_age_seconds": 3600
+    }
+  ]
+}
