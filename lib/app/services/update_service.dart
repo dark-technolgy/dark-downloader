@@ -14,7 +14,7 @@ class UpdateService {
       final info = await PackageInfo.fromPlatform();
       final currentVersion = info.version;
 
-      // Query Supabase remote_config (updated by CI)
+      // Query Supabase remote_config for the latest version
       final response = await supabase
           .from('remote_config')
           .select('latest_version, download_url, release_notes')
@@ -25,6 +25,35 @@ class UpdateService {
         final latestVersion = response['latest_version'] as String;
         
         if (_isNewer(latestVersion, currentVersion)) {
+          // Attempt to find direct download link from the manifest
+          try {
+            final manifestRes = await _dio.get('https://releases.keenx.net/latest.json');
+            if (manifestRes.statusCode == 200) {
+              final manifest = manifestRes.data as Map<String, dynamic>;
+              final assets = manifest['assets'] as List<dynamic>;
+              
+              String? directUrl;
+              if (Platform.isWindows) {
+                // Prefer MSIX for Windows
+                directUrl = assets.firstWhere((a) => a['name'].toString().endsWith('.msix'), orElse: () => null)?['url'];
+              } else if (Platform.isAndroid) {
+                // Prefer universal APK for Android
+                directUrl = assets.firstWhere((a) => a['name'].toString().contains('universal'), orElse: () => null)?['url'];
+              }
+
+              if (directUrl != null) {
+                return {
+                  'version': latestVersion,
+                  'url': directUrl,
+                  'notes': response['release_notes'],
+                };
+              }
+            }
+          } catch (e) {
+            debugPrint('Direct manifest fetch failed: $e');
+          }
+
+          // Fallback to website URL
           return {
             'version': latestVersion,
             'url': response['download_url'],

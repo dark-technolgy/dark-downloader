@@ -124,23 +124,35 @@ Future<void> main() async {
       runApp(const ColdStartShell());
       await _waitForFirstFrame();
 
-      // Rust MUST init before Supabase — SupabaseConfig.init() calls
-      // rustGetSupabaseConfig() which requires the Rust bridge.
+      // Rust MUST init before Supabase
       try {
-        await initRustLibBundledFirst();
+        await initRustLibBundledFirst().timeout(const Duration(seconds: 10));
       } catch (e, st) {
         Telemetry.instance.recordError(
           'bootstrap.rust_init_failed',
           e,
           stackTrace: st,
         );
-        runApp(BootstrapFatalApp(error: e));
-        return;
+        if (kReleaseMode) {
+          // In release, try to continue even if Rust init timed out, 
+          // though many features will be broken.
+          debugPrint('Rust init timed out or failed, continuing anyway...');
+        } else {
+          runApp(BootstrapFatalApp(error: e));
+          return;
+        }
       }
 
-      await SupabaseConfig.init();
-
-
+      try {
+        await SupabaseConfig.init().timeout(const Duration(seconds: 15));
+      } catch (e, st) {
+        Telemetry.instance.recordError(
+          'bootstrap.supabase_init_failed',
+          e,
+          stackTrace: st,
+        );
+        debugPrint('Supabase init timed out or failed: $e');
+      }
 
       try {
         await NotificationService.init();

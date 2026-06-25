@@ -29,16 +29,18 @@ class SupabaseConfig {
   static Future<void> init() async {
     // Fetch obfuscated keys securely from Rust
     try {
-      final config = await rustGetSupabaseConfig();
+      final config = await rustGetSupabaseConfig().timeout(const Duration(seconds: 5));
       _defaultUrl = config.url;
       _defaultAnonKey = config.anonKey;
     } catch (e) {
       debugPrint('Failed to load secure config from Rust: $e');
-      // Fallback or panic, but we should not crash the whole app just yet
     }
 
     try {
-      await Supabase.initialize(url: url, anonKey: anonKey);
+      await Supabase.initialize(
+        url: url, 
+        anonKey: anonKey,
+      ).timeout(const Duration(seconds: 10));
     } catch (e) {
       debugPrint('Supabase initialization warning: $e');
       try {
