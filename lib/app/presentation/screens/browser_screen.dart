@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart' as mobile;
+import 'package:webview_windows/webview_windows.dart' as win;
 import '../../providers/incoming_link_provider.dart';
 
 class BrowserScreen extends ConsumerStatefulWidget {
@@ -12,29 +14,79 @@ class BrowserScreen extends ConsumerStatefulWidget {
 }
 
 class _BrowserScreenState extends ConsumerState<BrowserScreen> {
-  late final WebViewController _controller;
+  // Mobile Controller
+  mobile.WebViewController? _mobileController;
+  
+  // Windows Controller
+  final _winController = win.WebviewController();
+  
   bool _canDownload = false;
   String? _currentUrl;
   double _loadingProgress = 0;
+  bool _isWindows = false;
+  bool _winInited = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+    _currentUrl = widget.initialUrl;
+    _isWindows = Platform.isWindows;
+    
+    if (_isWindows) {
+      _initWindowsWebview();
+    } else {
+      _initMobileWebview();
+    }
+  }
+
+  Future<void> _initWindowsWebview() async {
+    try {
+      await _winController.initialize();
+      await _winController.setPopupWindowPolicy(win.WebviewPopupWindowPolicy.deny);
+      
+      _winController.url.listen((url) {
+        if (mounted) {
+          setState(() {
+            _currentUrl = url;
+            _canDownload = _isSupportedPlatform(url);
+          });
+        }
+      });
+
+      _winController.loadingState.listen((state) {
+        if (state == win.LoadingState.loading) {
+          if (mounted) setState(() => _loadingProgress = 0.5);
+        } else {
+          if (mounted) setState(() => _loadingProgress = 1.0);
+          _winSniffer();
+        }
+      });
+
+      await _winController.loadUrl(widget.initialUrl);
+      if (mounted) setState(() => _winInited = true);
+    } catch (e) {
+      debugPrint('Windows Webview Error: $e');
+    }
+  }
+
+  void _initMobileWebview() {
+    _mobileController = mobile.WebViewController()
+      ..setJavaScriptMode(mobile.JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
-        NavigationDelegate(
+        mobile.NavigationDelegate(
           onProgress: (int progress) {
-            setState(() => _loadingProgress = progress / 100);
+            if (mounted) setState(() => _loadingProgress = progress / 100);
           },
           onPageStarted: (String url) {
-            setState(() {
-              _currentUrl = url;
-              _canDownload = _isSupportedPlatform(url);
-            });
+            if (mounted) {
+              setState(() {
+                _currentUrl = url;
+                _canDownload = _isSupportedPlatform(url);
+              });
+            }
           },
           onPageFinished: (String url) {
-            _sniffer();
+            _mobileSniffer();
           },
         ),
       )
@@ -53,27 +105,46 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
         u.contains('vimeo.com');
   }
 
-  Future<void> _sniffer() async {
-    // Basic JS sniffer to find video tags
-    final hasVideo = await _controller.runJavaScriptReturningResult(
-      "document.getElementsByTagName('video').length > 0"
-    );
-    if (hasVideo == true) {
-      setState(() => _canDownload = true);
-    }
+  Future<void> _mobileSniffer() async {
+    if (_mobileController == null) return;
+    try {
+      final hasVideo = await _mobileController!.runJavaScriptReturningResult(
+        "document.getElementsByTagName('video').length > 0"
+      );
+      if (hasVideo == true && mounted) {
+        setState(() => _canDownload = true);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _winSniffer() async {
+    try {
+      final hasVideo = await _winController.executeScript(
+        "document.getElementsByTagName('video').length > 0"
+      );
+      if (hasVideo == true && mounted) {
+        setState(() => _canDownload = true);
+      }
+    } catch (_) {}
   }
 
   void _triggerDownload() {
     if (_currentUrl == null) return;
     ref.read(pendingExtractorUrlProvider.notifier).set(_currentUrl);
-    Navigator.pop(context); // Close browser and start analysis on home
+    Navigator.pop(context);
+  }
+
+  @override
+  void dispose() {
+    if (_isWindows) _winController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_currentUrl ?? 'Browser'),
+        title: Text(_currentUrl ?? 'Browser', style: const TextStyle(fontSize: 14)),
         bottom: _loadingProgress < 1.0
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(2),
@@ -83,11 +154,23 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => _controller.reload(),
+            onPressed: () {
+              if (_isWindows) {
+                _winController.reload();
+              } else {
+                _mobileController?.reload();
+              }
+            },
           ),
         ],
       ),
-      body: WebViewWidget(controller: _controller),
+      body: _isWindows 
+          ? (_winInited 
+              ? win.Webview(_winController) 
+              : const Center(child: CircularProgressIndicator()))
+          : (_mobileController != null 
+              ? mobile.WebViewWidget(controller: _mobileController!)
+              : const Center(child: CircularProgressIndicator())),
       floatingActionButton: _canDownload
           ? FloatingActionButton.extended(
               onPressed: _triggerDownload,

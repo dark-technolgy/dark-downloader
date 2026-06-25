@@ -418,19 +418,20 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
                final logs = await session.getLogsAsString();
                throw Exception('FFmpegKit failed to extract/convert audio: $logs');
             }
-          } else if (ffmpegPath != 'ffmpeg' || Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-            // Desktop: call extractAudio (copy)
-            // If MP3 was requested, we might need a separate conversion via Process.run
-            // For now, let's just do extractAudio to avoid build error
-            rust_video_processor.extractAudio(
-              videoPath: result.filePath,
-              outputPath: finalAudioPath,
-              ffmpegPath: ffmpegPath,
-            );
-            
+          } else {
+            // Desktop: Use Rust processor (Commercial quality)
             if (audioExt == 'mp3') {
-               // Optional: perform actual MP3 conversion on desktop via Process.run
-               // For now, we'll keep it as is to fix the build
+               rust_video_processor.convertToMp3(
+                 inputPath: result.filePath,
+                 outputPath: finalAudioPath,
+                 ffmpegPath: ffmpegPath,
+               );
+            } else {
+              rust_video_processor.extractAudio(
+                videoPath: result.filePath,
+                outputPath: finalAudioPath,
+                ffmpegPath: ffmpegPath,
+              );
             }
           }
           finalPath = finalAudioPath;

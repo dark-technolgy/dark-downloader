@@ -28,6 +28,16 @@ void extractAudio({
   ffmpegPath: ffmpegPath,
 );
 
+void convertToMp3({
+  required String inputPath,
+  required String outputPath,
+  required String ffmpegPath,
+}) => RustLib.instance.api.crateApiVideoProcessorConvertToMp3(
+  inputPath: inputPath,
+  outputPath: outputPath,
+  ffmpegPath: ffmpegPath,
+);
+
 void compressVideo({
   required String inputPath,
   required String outputPath,

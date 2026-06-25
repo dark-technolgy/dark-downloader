@@ -16,6 +16,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   speech_to_text_windows
   tray_manager
   url_launcher_windows
+  webview_windows
   window_manager
 )
 

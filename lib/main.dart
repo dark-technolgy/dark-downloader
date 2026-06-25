@@ -39,168 +39,92 @@ import 'app/presentation/widgets/floating_download_bubble.dart';
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    // This is where we would trigger scheduled downloads.
-    // For now, we'll just log and return success.
-    // In a real scenario, we'd need to init a minimal ProviderContainer
-    // and call DownloadManager.checkScheduled().
     return Future.value(true);
   });
 }
 
 Future<void> main() async {
-  final bootstrap = runZonedGuarded<Future<void>>(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
-      MediaKit.ensureInitialized();
+  // 1. Ensure Flutter is ready
+  WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
 
-      if (Platform.isAndroid || Platform.isIOS) {
-        await Workmanager().initialize(callbackDispatcher);
-        await Workmanager().registerPeriodicTask(
-          "com.darkdownloader.scheduler",
-          "checkScheduledDownloads",
-          frequency: const Duration(minutes: 15),
-          constraints: Constraints(networkType: NetworkType.connected),
-        );
-      }
+  // 2. Show the Splash screen immediately (before any async work)
+  runApp(const ColdStartShell());
 
-      if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-        await windowManager.ensureInitialized();
-        WindowOptions windowOptions = const WindowOptions(
-          size: Size(1100, 700),
-          minimumSize: Size(800, 600),
-          center: true,
-          backgroundColor: Colors.transparent,
-          skipTaskbar: false,
-          titleBarStyle: TitleBarStyle.normal,
-        );
-        await windowManager.waitUntilReadyToShow(windowOptions, () async {
-          await windowManager.show();
-          await windowManager.focus();
-        });
-
-        await TrayService().init();
-      }
-
-      const telemetryIngestUrl = String.fromEnvironment('TELEMETRY_INGEST_URL');
-      const telemetryIngestToken =
-          String.fromEnvironment('TELEMETRY_INGEST_TOKEN');
-      await Telemetry.instance.init(
-        tags: {
-          'platform': defaultTargetPlatform.name,
-          'build_mode': kReleaseMode
-              ? 'release'
-              : kProfileMode
-              ? 'profile'
-              : 'debug',
-        },
-        ingestUrl: telemetryIngestUrl.isEmpty ? null : telemetryIngestUrl,
-        ingestToken:
-            telemetryIngestToken.isEmpty ? null : telemetryIngestToken,
-      );
-
-      FlutterError.onError = (FlutterErrorDetails details) {
-        FlutterError.presentError(details);
-        Telemetry.instance.recordError(
-          'flutter.error',
-          details.exception,
-          stackTrace: details.stack,
-          context: {
-            'library': details.library ?? 'unknown',
-            'context': details.context?.toString() ?? 'unknown',
-          },
-        );
-      };
-
-      PlatformDispatcher.instance.onError = (error, stack) {
-        Telemetry.instance.recordError(
-          'platform.error',
-          error,
-          stackTrace: stack,
-        );
-        return true;
-      };
-
-      // Show splash immediately while heavy init happens
-      runApp(const ColdStartShell());
-      await _waitForFirstFrame();
-
-      // Rust MUST init before Supabase
-      try {
-        await initRustLibBundledFirst().timeout(const Duration(seconds: 10));
-      } catch (e, st) {
-        Telemetry.instance.recordError(
-          'bootstrap.rust_init_failed',
-          e,
-          stackTrace: st,
-        );
-        if (kReleaseMode) {
-          // In release, try to continue even if Rust init timed out, 
-          // though many features will be broken.
-          debugPrint('Rust init timed out or failed, continuing anyway...');
-        } else {
-          runApp(BootstrapFatalApp(error: e));
-          return;
-        }
-      }
-
-      try {
-        await SupabaseConfig.init().timeout(const Duration(seconds: 15));
-      } catch (e, st) {
-        Telemetry.instance.recordError(
-          'bootstrap.supabase_init_failed',
-          e,
-          stackTrace: st,
-        );
-        debugPrint('Supabase init timed out or failed: $e');
-      }
-
-      try {
-        await NotificationService.init();
-      } catch (e, st) {
-        Telemetry.instance.recordError(
-          'notifications.init_failed',
-          e,
-          stackTrace: st,
-        );
-      }
-
-      try {
-        await ToolBootstrapper.ensure();
-      } catch (e, st) {
-        Telemetry.instance.recordError(
-          'tool_bootstrap.ensure_failed',
-          e,
-          stackTrace: st,
-        );
-      }
-
-      final container = ProviderContainer();
-      final bridge = BrowserBridgeService(container);
-      unawaited(bridge.start());
-
-      runApp(
-        UncontrolledProviderScope(
-          container: container,
-          child: IncomingLinksBinding(child: const DarkDownloaderApp()),
-        ),
-      );
-    },
-    (error, stack) {
-      Telemetry.instance.recordError('zone.uncaught', error, stackTrace: stack);
-    },
-  );
-  if (bootstrap != null) await bootstrap;
+  // 3. Start initialization in a separate, non-blocking flow
+  unawaited(_initializeSystem());
 }
 
-Future<void> _waitForFirstFrame() async {
-  final completer = Completer<void>();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!completer.isCompleted) completer.complete();
-  });
-  await completer.future;
-}
+Future<void> _initializeSystem() async {
+  final container = ProviderContainer();
 
-// Extracted widgets are in lib/app/presentation/screens and widgets
+  try {
+    // A. Desktop Specific Init
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      await windowManager.ensureInitialized();
+      WindowOptions windowOptions = const WindowOptions(
+        size: Size(1100, 700),
+        minimumSize: Size(800, 600),
+        center: true,
+        backgroundColor: Colors.transparent,
+        skipTaskbar: false,
+        titleBarStyle: TitleBarStyle.normal,
+      );
+      await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+      await TrayService().init().catchError((e) => debugPrint('Tray init failed: $e'));
+    }
+
+    // B. Background Worker
+    if (Platform.isAndroid || Platform.isIOS) {
+      await Workmanager().initialize(callbackDispatcher).catchError((e) => debugPrint('Workmanager init failed: $e'));
+    }
+
+    // C. Telemetry & Error Tracking
+    await Telemetry.instance.init(
+      tags: {'platform': defaultTargetPlatform.name, 'build_mode': kReleaseMode ? 'release' : 'debug'},
+    );
+
+    // D. Core Engine Init (With Safety Timeouts)
+    // This is often where Android hangs, so we add aggressive timeouts
+    await initRustLibBundledFirst().timeout(const Duration(seconds: 7), onTimeout: () {
+      debugPrint('⚠️ Rust Lib init timed out - continuing anyway');
+    });
+
+    await SupabaseConfig.init().timeout(const Duration(seconds: 10), onTimeout: () {
+      debugPrint('⚠️ Supabase init timed out - network might be slow');
+    });
+
+    await NotificationService.init().catchError((e) => debugPrint('Notification init failed: $e'));
+    await ToolBootstrapper.ensure().catchError((e) => debugPrint('Tool bootstrap failed: $e'));
+
+    // E. Services
+    final bridge = BrowserBridgeService(container);
+    unawaited(bridge.start());
+
+    // F. Finally, switch from Splash to Main App
+    runApp(
+      UncontrolledProviderScope(
+        container: container,
+        child: IncomingLinksBinding(child: const DarkDownloaderApp()),
+      ),
+    );
+
+  } catch (e, st) {
+    debugPrint('Critical Initialization Error: $e');
+    Telemetry.instance.recordError('system.bootstrap_failed', e, stackTrace: st);
+    
+    // Fallback: try to launch the app even if some parts failed
+    runApp(
+      UncontrolledProviderScope(
+        container: container,
+        child: IncomingLinksBinding(child: const DarkDownloaderApp()),
+      ),
+    );
+  }
+}
 
 class DarkDownloaderApp extends ConsumerWidget {
   const DarkDownloaderApp({super.key});
@@ -210,7 +134,6 @@ class DarkDownloaderApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final theme = ref.watch(themeProvider);
     final remoteConfig = ref.watch(remoteConfigProvider);
-
 
     return MaterialApp(
       title: AppLocalization.translate('app_name', locale),
@@ -223,20 +146,15 @@ class DarkDownloaderApp extends ConsumerWidget {
       localizationsDelegates: AppLocalization.localizationsDelegates,
       builder: (context, child) {
         return Directionality(
-          textDirection: locale.languageCode == 'ar'
-              ? TextDirection.rtl
-              : TextDirection.ltr,
+          textDirection: locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
           child: remoteConfig.when(
             data: (config) {
               if (config.maintenanceMode) {
                 return MaintenanceScreen(message: config.maintenanceMessage);
               }
-              return VersionCheckWrapper(
-                config: config,
-                child: child!,
-              );
+              return VersionCheckWrapper(config: config, child: child!);
             },
-            loading: () => const ColdStartShell(),
+            loading: () => child!, // Don't show splash again inside the app
             error: (err, st) => child!,
           ),
         );
@@ -246,13 +164,13 @@ class DarkDownloaderApp extends ConsumerWidget {
   }
 }
 
-// Extracted VersionCheckWrapper
-
-// Extracted MaintenanceScreen
-
 final onboardingProvider = FutureProvider<bool>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getBool('has_seen_onboarding') ?? false;
+  try {
+    final prefs = await SharedPreferences.getInstance().timeout(const Duration(seconds: 3));
+    return prefs.getBool('has_seen_onboarding') ?? false;
+  } catch (_) {
+    return false;
+  }
 });
 
 class AuthGate extends ConsumerWidget {
@@ -266,24 +184,16 @@ class AuthGate extends ConsumerWidget {
     return hasSeenOnboardingAsync.when(
       data: (hasSeen) {
         if (!hasSeen) {
-          return OnboardingScreen(
-            onFinish: () {
-              ref.invalidate(onboardingProvider);
-            },
-          );
+          return OnboardingScreen(onFinish: () => ref.invalidate(onboardingProvider));
         }
-
         if (authState.status == AuthStatus.initial || authState.status == AuthStatus.loading) {
-          return const ColdStartShell();
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-
-        if (!authState.isAuthenticated) {
-          return const LoginScreen();
-        }
+        if (!authState.isAuthenticated) return const LoginScreen();
         return const HomeScreen();
       },
-      loading: () => const ColdStartShell(),
-      error: (_, _) => const ColdStartShell(),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, _) => const LoginScreen(),
     );
   }
 }

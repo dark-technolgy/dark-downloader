@@ -49,8 +49,8 @@ class ToolkitNotifier extends Notifier<ToolkitState> {
 
     final ffmpegPath = await resolveDesktopFfmpegPath();
     try {
-      rust_video_processor.extractAudio(
-        videoPath: inputPath,
+      rust_video_processor.convertToMp3(
+        inputPath: inputPath,
         outputPath: outputPath,
         ffmpegPath: ffmpegPath,
       );
