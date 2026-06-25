@@ -139,13 +139,6 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _pasteFromClipboard() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    if (data?.text != null) {
-      _urlController.text = data!.text!;
-    }
-  }
-
   Future<void> _analyze() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) return;

@@ -54,7 +54,7 @@ Future<void> main() async {
       MediaKit.ensureInitialized();
 
       if (Platform.isAndroid || Platform.isIOS) {
-        await Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+        await Workmanager().initialize(callbackDispatcher);
         await Workmanager().registerPeriodicTask(
           "com.darkdownloader.scheduler",
           "checkScheduledDownloads",
