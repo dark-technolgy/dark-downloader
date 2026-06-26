@@ -28,15 +28,12 @@ jobs:
           - os: ubuntu-latest
             target: android-apk
             flutter_cmd: build apk --release --obfuscate --split-debug-info=build/app/outputs/symbols
-            artifact_path: build/app/outputs/flutter-apk/*.apk
           - os: ubuntu-latest
             target: linux
             flutter_cmd: build linux --release --obfuscate --split-debug-info=build/app/outputs/symbols
-            artifact_path: build/linux/x64/release/bundle
           - os: windows-latest
             target: windows
             flutter_cmd: build windows --release --obfuscate --split-debug-info=build/app/outputs/symbols
-            artifact_path: build/windows/x64/runner/Release
     steps:
       - uses: actions/checkout@v4
 
@@ -100,7 +97,6 @@ jobs:
         if: matrix.target == 'windows'
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
-          # Create MSIX (Installer)
           flutter pub run msix:create --version "${version}.0"
           Move-Item -Path "build\windows\x64\runner\Release\dark_downloader.msix" -Destination "Dark-Downloader-v${version}-windows-x64.msix"
         shell: pwsh
@@ -132,6 +128,7 @@ jobs:
           path: |
             Dark-Downloader-*.msix
             Dark-Downloader-*.tar.gz
+            Dark-Downloader-*.zip
             build/app/outputs/flutter-apk/Dark-Downloader-*.apk
           retention-days: 30
 
@@ -142,7 +139,8 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
@@ -155,7 +153,6 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          # Upload all artifacts to R2 under the /releases/v{VERSION}/ prefix
           aws s3 sync artifacts/ s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
 
       - name: Generate latest.json manifest
@@ -179,12 +176,17 @@ jobs:
 
           assets_json=""
           while IFS= read -r filepath; do
-            rel="${filepath#artifacts/}"
             name="$(basename "$filepath")"
             size="$(stat -c%s "$filepath")"
             platform="$(detect_platform "$name")"
             [ "$platform" = "unknown" ] && continue
-            entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel}\"}"
+            
+            # The 'sync' above uploads the WHOLE artifacts/ folder structure.
+            # download-artifact@v4 extracts artifacts/dark-downloader-windows/file.msix
+            # So rel_path is dark-downloader-windows/file.msix
+            rel_path="${filepath#artifacts/}"
+            
+            entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel_path}\"}"
             if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="${assets_json},${entry}"; fi
           done < <(find artifacts -type f \( -name '*.apk' -o -name '*.zip' -o -name '*.tar.gz' -o -name '*.msix' \))
 
@@ -230,9 +232,4 @@ jobs:
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{
-              \"latest_version\": \"${VERSION}\",
-              \"download_url\": \"https://keenx.net/#apps\",
-              \"release_notes\": \"تتوفر نسخة جديدة ${VERSION}.\",
-              \"updated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-            }"
+            -d "{\"latest_version\": \"${VERSION}\", \"download_url\": \"https://keenx.net/#apps\", \"updated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
