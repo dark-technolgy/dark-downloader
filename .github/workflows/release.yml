@@ -130,11 +130,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: dark-downloader-${{ matrix.target }}
-          if-no-files-found: ignore
           path: |
+            Dark-Downloader-*.zip
             Dark-Downloader-*.msix
             Dark-Downloader-*.tar.gz
-            Dark-Downloader-*.zip
             build/app/outputs/flutter-apk/Dark-Downloader-*.apk
           retention-days: 30
 
@@ -150,21 +149,17 @@ jobs:
         with:
           path: artifacts
 
-      - name: Debug Artifacts Structure
-        run: ls -R artifacts/
-
       - name: Sync to Cloudflare R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
+          AWS_DEFAULT_REGION: auto
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          # We want to sync all files inside artifacts/* subdirs directly to the version prefix
-          # artifacts/dark-downloader-windows/file.msix -> releases/vX/file.msix
-          find artifacts -type f -exec aws s3 cp {} s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com --region us-east-1 \;
+          # Flatten structure and sync to R2
+          find artifacts -type f -exec aws s3 cp {} s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com --region auto \;
 
       - name: Generate latest.json manifest
         env:
