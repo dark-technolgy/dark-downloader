@@ -2,6 +2,17 @@
 name = "rust_lib_dark_downloader"
 version = "0.1.0"
 edition = "2021"
+# Disable automatic discovery of src/bin/*.rs. The files there are ad-hoc
+# developer test scripts and must NOT be cross-compiled during the production
+# (Android/iOS/desktop) build performed by cargokit, which runs a plain
+# `cargo build -p <pkg>` that would otherwise build every binary target.
+autobins = false
+
+[features]
+# Developer-only manual test harnesses (src/bin/*.rs). Off by default so release
+# builds skip them. Run locally with e.g.
+#   cargo run --bin test_onetime --features dev-tools
+dev-tools = []
 
 [lints.rust]
 # flutter_rust_bridge proc macros emit `cfg(frb_expand)`; register for check-cfg (Rust 1.80+).
@@ -10,6 +21,72 @@ unexpected_cfgs = { level = "warn", check-cfg = ["cfg(frb_expand)"] }
 [lib]
 name = "rust_lib_dark_downloader"
 crate-type = ["cdylib", "staticlib", "rlib"]
+
+# ── Developer test binaries (gated behind the `dev-tools` feature) ──
+[[bin]]
+name = "test_404"
+path = "src/bin/test_404.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_concurrent"
+path = "src/bin/test_concurrent.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_downloader"
+path = "src/bin/test_downloader.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_extract"
+path = "src/bin/test_extract.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_full"
+path = "src/bin/test_full.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_headers"
+path = "src/bin/test_headers.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_nocookie"
+path = "src/bin/test_nocookie.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_onetime"
+path = "src/bin/test_onetime.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_range"
+path = "src/bin/test_range.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_redirect"
+path = "src/bin/test_redirect.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_redirect_range"
+path = "src/bin/test_redirect_range.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_ref"
+path = "src/bin/test_ref.rs"
+required-features = ["dev-tools"]
+
+[[bin]]
+name = "test_ua"
+path = "src/bin/test_ua.rs"
+required-features = ["dev-tools"]
 
 [dependencies]
 flutter_rust_bridge = "=2.12.0"

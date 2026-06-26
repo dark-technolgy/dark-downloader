@@ -43,87 +43,90 @@ void callbackDispatcher() {
   });
 }
 
+// Global ProviderContainer to access providers during background init
+late final ProviderContainer globalContainer;
+
 Future<void> main() async {
-  // 1. Ensure Flutter is ready
+  // 1. Critical Startup - NO ASYNC AWAIT before runApp
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 
-  // 2. Show the Splash screen immediately (before any async work)
+  // 2. Show Splash immediately - THIS MUST RUN TO UNFREEZE UI
   runApp(const ColdStartShell());
 
-  // 3. Start initialization in a separate, non-blocking flow
-  unawaited(_initializeSystem());
+  // 3. Initialize in background without blocking the thread
+  globalContainer = ProviderContainer();
+  
+  // We use a short delay to let the splash screen render at least once
+  Future.delayed(const Duration(milliseconds: 100), () {
+    _backgroundBootstrap();
+  });
 }
 
-Future<void> _initializeSystem() async {
-  final container = ProviderContainer();
-
+Future<void> _backgroundBootstrap() async {
   try {
-    // A. Desktop Specific Init
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      await windowManager.ensureInitialized();
-      WindowOptions windowOptions = const WindowOptions(
-        size: Size(1100, 700),
-        minimumSize: Size(800, 600),
-        center: true,
-        backgroundColor: Colors.transparent,
-        skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.normal,
-      );
-      await windowManager.waitUntilReadyToShow(windowOptions, () async {
-        await windowManager.show();
-        await windowManager.focus();
-      });
-      await TrayService().init().catchError((e) => debugPrint('Tray init failed: $e'));
-    }
-
-    // B. Background Worker
-    if (Platform.isAndroid || Platform.isIOS) {
-      await Workmanager().initialize(callbackDispatcher).catchError((e) => debugPrint('Workmanager init failed: $e'));
-    }
-
-    // C. Telemetry & Error Tracking
+    // A. Lightweight Init
     await Telemetry.instance.init(
       tags: {'platform': defaultTargetPlatform.name, 'build_mode': kReleaseMode ? 'release' : 'debug'},
     );
 
-    // D. Core Engine Init (With Safety Timeouts)
-    // This is often where Android hangs, so we add aggressive timeouts
-    await initRustLibBundledFirst().timeout(const Duration(seconds: 7), onTimeout: () {
-      debugPrint('⚠️ Rust Lib init timed out - continuing anyway');
-    });
+    // B. Desktop Specific (Non-blocking for Android)
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      await windowManager.ensureInitialized();
+      WindowOptions windowOptions = const WindowOptions(
+        size: Size(1100, 700),
+        center: true,
+      );
+      await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+      });
+      TrayService().init().catchError((e) => debugPrint('Tray error: $e'));
+    }
 
-    await SupabaseConfig.init().timeout(const Duration(seconds: 10), onTimeout: () {
-      debugPrint('⚠️ Supabase init timed out - network might be slow');
-    });
+    // C. Core Engine - With ultra-safe try/catch and timeouts
+    // We try to init Rust, but we DON'T block if it takes too long
+    try {
+      await initRustLibBundledFirst().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('Bootstrap: Rust engine delayed or failed: $e');
+    }
 
-    await NotificationService.init().catchError((e) => debugPrint('Notification init failed: $e'));
-    await ToolBootstrapper.ensure().catchError((e) => debugPrint('Tool bootstrap failed: $e'));
+    try {
+      await SupabaseConfig.init().timeout(const Duration(seconds: 8));
+    } catch (e) {
+      debugPrint('Bootstrap: Cloud connection delayed: $e');
+    }
 
-    // E. Services
-    final bridge = BrowserBridgeService(container);
+    // D. Finalizing Services
+    NotificationService.init().ok();
+    ToolBootstrapper.ensure().ok();
+    
+    final bridge = BrowserBridgeService(globalContainer);
     unawaited(bridge.start());
 
-    // F. Finally, switch from Splash to Main App
+    // E. SWITCH TO MAIN APP
+    // Even if C failed, we launch the app. Providers will handle the "empty" state.
     runApp(
       UncontrolledProviderScope(
-        container: container,
+        container: globalContainer,
         child: IncomingLinksBinding(child: const DarkDownloaderApp()),
       ),
     );
 
   } catch (e, st) {
-    debugPrint('Critical Initialization Error: $e');
-    Telemetry.instance.recordError('system.bootstrap_failed', e, stackTrace: st);
-    
-    // Fallback: try to launch the app even if some parts failed
+    debugPrint('Bootstrap: Fatal fallback triggered: $e');
+    // Absolute fallback - never leave the user on the logo
     runApp(
       UncontrolledProviderScope(
-        container: container,
+        container: globalContainer,
         child: IncomingLinksBinding(child: const DarkDownloaderApp()),
       ),
     );
   }
+}
+
+extension _Ok<T> on Future<T> {
+  void ok() => catchError((_) => null as dynamic);
 }
 
 class DarkDownloaderApp extends ConsumerWidget {
@@ -154,8 +157,8 @@ class DarkDownloaderApp extends ConsumerWidget {
               }
               return VersionCheckWrapper(config: config, child: child!);
             },
-            loading: () => child!, // Don't show splash again inside the app
-            error: (err, st) => child!,
+            loading: () => child ?? const SizedBox(),
+            error: (err, st) => child ?? const SizedBox(),
           ),
         );
       },
