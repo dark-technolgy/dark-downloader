@@ -5,10 +5,6 @@ on:
     tags:
       - "v*.*.*"
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version (e.g. 1.0.0)"
-        required: true
 
 concurrency:
   group: release-${{ github.ref }}
@@ -20,7 +16,6 @@ jobs:
   build-release:
     name: Build release for ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
-        if: startsWith(matrix.target, 'android')
+        if: matrix.target == 'android-apk'
         with:
           distribution: temurin
           java-version: "17"
@@ -65,12 +60,12 @@ jobs:
         run: flutter pub get
 
       - name: Fetch FFmpeg Kit for Android
-        if: startsWith(matrix.target, 'android')
+        if: matrix.target == 'android-apk'
         run: pwsh ./scripts/fetch_ffmpeg_kit_android_maven_repo.ps1
         shell: pwsh
 
       - name: Decode Android Keystore
-        if: startsWith(matrix.target, 'android')
+        if: matrix.target == 'android-apk'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEY_PROPERTIES_CONTENT: ${{ secrets.KEY_PROPERTIES_CONTENT }}
@@ -92,7 +87,6 @@ jobs:
             --dart-define=APP_URL=$APP_URL
         shell: bash
 
-      # ── Package artifacts with clear names ─────────────────────
       - name: Package Windows release
         if: matrix.target == 'windows'
         run: |
@@ -113,34 +107,25 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           cd build/app/outputs/flutter-apk/
-          for apk in *.apk; do
-            arch=$(echo "$apk" | sed -E 's/app-(.+)-release\.apk/\1/')
-            if [ "$arch" = "$apk" ]; then
-              arch="universal"
-            fi
-            mv "$apk" "Dark-Downloader-v${VERSION}-android-${arch}.apk"
-          done
+          mv app-release.apk "Dark-Downloader-v${VERSION}-android-universal.apk"
+        shell: bash
 
-      # ── Upload artifacts ───────────────────────────────────────
       - uses: actions/upload-artifact@v4
         with:
           name: dark-downloader-${{ matrix.target }}
           path: |
             Dark-Downloader-*.msix
             Dark-Downloader-*.tar.gz
-            Dark-Downloader-*.zip
-            build/app/outputs/flutter-apk/Dark-Downloader-*.apk
-          retention-days: 30
+            Dark-Downloader-v*-android-*.apk
+          retention-days: 1
 
-  # ── Upload to Cloudflare R2 ───────────────────────────────────
   upload-r2:
     name: Upload to Cloudflare R2
     needs: build-release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
@@ -148,88 +133,60 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          aws s3 sync artifacts/ s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          aws s3 sync artifacts/ s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com --region auto
 
-      - name: Generate latest.json manifest
+      - name: Generate latest.json
         env:
           R2_PUBLIC_BASE_URL: https://releases.keenx.net
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           BASE="${R2_PUBLIC_BASE_URL%/}/releases/v${VERSION}"
-          PUBLISHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
-          detect_platform() {
-            local f
-            f="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
-            case "$f" in
-              *windows*|*.exe|*.msix) echo windows ;;
-              *android*|*.apk) echo android ;;
-              *linux*|*.tar.gz|*.deb|*.appimage) echo linux ;;
-              *) echo unknown ;;
-            esac
-          }
-
+          
+          # Simplified asset detection
           assets_json=""
-          while IFS= read -r filepath; do
-            name="$(basename "$filepath")"
-            size="$(stat -c%s "$filepath")"
-            platform="$(detect_platform "$name")"
-            [ "$platform" = "unknown" ] && continue
+          for f in $(find artifacts -type f \( -name '*.msix' -o -name '*.tar.gz' -o -name '*.apk' \)); do
+            name=$(basename "$f")
+            size=$(stat -c%s "$f")
+            rel=${f#artifacts/}
+            # Detect platform
+            platform="unknown"
+            [[ "$name" == *".msix"* ]] && platform="windows"
+            [[ "$name" == *".apk"* ]] && platform="android"
+            [[ "$name" == *".tar.gz"* ]] && platform="linux"
             
-            # The 'sync' above uploads the WHOLE artifacts/ folder structure.
-            # download-artifact@v4 extracts artifacts/dark-downloader-windows/file.msix
-            # So rel_path is dark-downloader-windows/file.msix
-            rel_path="${filepath#artifacts/}"
-            
-            entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel_path}\"}"
-            if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="${assets_json},${entry}"; fi
-          done < <(find artifacts -type f \( -name '*.apk' -o -name '*.zip' -o -name '*.tar.gz' -o -name '*.msix' \))
+            entry="{\"name\":\"$name\",\"platform\":\"$platform\",\"size\":$size,\"url\":\"$BASE/$rel\"}"
+            if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="$assets_json,$entry"; fi
+          done
 
-          cat > latest.json <<EOF
-          {
-            "version": "v${VERSION}",
-            "published_at": "${PUBLISHED}",
-            "html_url": "https://keenx.net/#apps",
-            "notes": "تتوفر نسخة جديدة v${VERSION}.",
-            "assets": [${assets_json}]
-          }
-          EOF
-          cat latest.json
+          echo "{\"version\":\"v$VERSION\",\"published_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"html_url\":\"https://keenx.net/#apps\",\"notes\":\"Update v$VERSION\",\"assets\":[$assets_json]}" > latest.json
 
-      - name: Upload latest.json to R2 root
+      - name: Upload manifest
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
-          aws s3 cp latest.json s3://${R2_BUCKET_NAME}/latest.json \
-            --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com \
-            --content-type application/json \
-            --cache-control "public, max-age=300"
+          aws s3 cp latest.json s3://${R2_BUCKET_NAME}/latest.json --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com --region auto --content-type application/json --cache-control "public, max-age=60"
 
-  # ── Update Supabase remote_config automatically ──────────────
-  update-remote-config:
-    name: Update Supabase remote_config
-    needs: [upload-r2]
+  update-supabase:
+    name: Update Supabase
+    needs: upload-r2
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Update latest_version in Supabase
+      - name: PATCH remote_config
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          curl -s -X PATCH "${SUPABASE_URL}/rest/v1/remote_config?id=eq.1" \
+          curl -X PATCH "${SUPABASE_URL}/rest/v1/remote_config?id=eq.1" \
             -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Content-Type: application/json" \
-            -H "Prefer: return=minimal" \
-            -d "{\"latest_version\": \"${VERSION}\", \"download_url\": \"https://keenx.net/#apps\", \"updated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+            -d "{\"latest_version\":\"$VERSION\",\"updated_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
