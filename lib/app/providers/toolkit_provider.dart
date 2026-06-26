@@ -37,7 +37,7 @@ class ToolkitNotifier extends Notifier<ToolkitState> {
 
   Future<void> convertToMp3() async {
 
-    final result = await FilePicker.platform.pickFiles(type: FileType.video);
+    final result = await FilePicker.pickFiles(type: FileType.video);
     if (result == null || result.files.single.path == null) return;
 
     state = state.copyWith(status: ToolkitTaskStatus.processing, statusMessage: 'جاري استخراج الصوت بجودة 320kbps...');
@@ -62,7 +62,7 @@ class ToolkitNotifier extends Notifier<ToolkitState> {
 
   Future<void> compressVideo() async {
 
-    final result = await FilePicker.platform.pickFiles(type: FileType.video);
+    final result = await FilePicker.pickFiles(type: FileType.video);
     if (result == null || result.files.single.path == null) return;
 
     state = state.copyWith(status: ToolkitTaskStatus.processing, statusMessage: 'جاري ضغط الفيديو مع الحفاظ على الجودة...');

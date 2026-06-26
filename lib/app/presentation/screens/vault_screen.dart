@@ -36,7 +36,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
             IconButton(
               icon: const Icon(Icons.add_moderator_rounded, color: Color(0xFF00A3FF)),
               onPressed: () async {
-                final result = await FilePicker.platform.pickFiles();
+                final result = await FilePicker.pickFiles();
                 if (result != null && result.files.single.path != null) {
                   ref.read(vaultProvider.notifier).encryptFile(File(result.files.single.path!));
                 }

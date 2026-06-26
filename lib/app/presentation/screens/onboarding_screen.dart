@@ -27,9 +27,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "icon": "✨"
     },
     {
-      "title": "أمان وخصوصية تامة",
-      "description": "لا نجمع بياناتك الشخصية للبيع، وملفاتك تدار بأمان تام. هل أنت مستعد للبدء؟",
-      "icon": "🛡️"
+      "title": "إدارة متكاملة",
+      "description": "تحكم كامل في جميع تحميلاتك مع واجهة سهلة ومنظمة. هل أنت مستعد للبدء؟",
+      "icon": "⚙️"
     },
   ];
 

@@ -36,6 +36,8 @@ import 'app/presentation/screens/maintenance_screen.dart';
 import 'app/presentation/widgets/version_check_wrapper.dart';
 import 'app/presentation/widgets/floating_download_bubble.dart';
 
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
@@ -47,18 +49,25 @@ void callbackDispatcher() {
 late final ProviderContainer globalContainer;
 
 Future<void> main() async {
-  // 1. Critical Startup - NO ASYNC AWAIT before runApp
-  WidgetsFlutterBinding.ensureInitialized();
+  // 1. Critical Startup - Ensure Flutter is ready
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  
+  // 2. Preserve native splash until we are ready to show ColdStartShell
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  
   MediaKit.ensureInitialized();
 
-  // 2. Show Splash immediately - THIS MUST RUN TO UNFREEZE UI
+  // 3. Show Splash immediately - THIS MUST RUN TO UNFREEZE UI
   runApp(const ColdStartShell());
+  
+  // Remove native splash now that Flutter-side splash is rendering
+  FlutterNativeSplash.remove();
 
-  // 3. Initialize in background without blocking the thread
+  // 4. Initialize in background without blocking the thread
   globalContainer = ProviderContainer();
   
-  // We use a short delay to let the splash screen render at least once
-  Future.delayed(const Duration(milliseconds: 100), () {
+  // Use a minimal delay to ensure the UI has frame to paint the shell
+  Timer(const Duration(milliseconds: 50), () {
     _backgroundBootstrap();
   });
 }
@@ -113,7 +122,7 @@ Future<void> _backgroundBootstrap() async {
       ),
     );
 
-  } catch (e, st) {
+  } catch (e) {
     debugPrint('Bootstrap: Fatal fallback triggered: $e');
     // Absolute fallback - never leave the user on the logo
     runApp(

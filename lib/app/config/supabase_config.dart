@@ -39,14 +39,17 @@ class SupabaseConfig {
     try {
       await Supabase.initialize(
         url: url, 
-        anonKey: anonKey,
+        publishableKey: anonKey,
       ).timeout(const Duration(seconds: 10));
     } catch (e) {
       debugPrint('Supabase initialization warning: $e');
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('supabase.auth.token');
-        await Supabase.initialize(url: url, anonKey: anonKey);
+        await Supabase.initialize(
+          url: url, 
+          publishableKey: anonKey,
+        );
       } catch (e2) {
         debugPrint('Supabase 2nd init failed: $e2');
       }
