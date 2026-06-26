@@ -145,23 +145,18 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           BASE="${R2_PUBLIC_BASE_URL%/}/releases/v${VERSION}"
-          
-          # Simplified asset detection
           assets_json=""
           for f in $(find artifacts -type f \( -name '*.msix' -o -name '*.tar.gz' -o -name '*.apk' \)); do
             name=$(basename "$f")
             size=$(stat -c%s "$f")
             rel=${f#artifacts/}
-            # Detect platform
             platform="unknown"
             [[ "$name" == *".msix"* ]] && platform="windows"
             [[ "$name" == *".apk"* ]] && platform="android"
             [[ "$name" == *".tar.gz"* ]] && platform="linux"
-            
             entry="{\"name\":\"$name\",\"platform\":\"$platform\",\"size\":$size,\"url\":\"$BASE/$rel\"}"
             if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="$assets_json,$entry"; fi
           done
-
           echo "{\"version\":\"v$VERSION\",\"published_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"html_url\":\"https://keenx.net/#apps\",\"notes\":\"Update v$VERSION\",\"assets\":[$assets_json]}" > latest.json
 
       - name: Upload manifest
