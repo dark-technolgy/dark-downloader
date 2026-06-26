@@ -131,9 +131,9 @@ jobs:
         with:
           name: dark-downloader-${{ matrix.target }}
           path: |
-            Dark-Downloader-*.zip
             Dark-Downloader-*.msix
             Dark-Downloader-*.tar.gz
+            Dark-Downloader-*.zip
             build/app/outputs/flutter-apk/Dark-Downloader-*.apk
           retention-days: 30
 
@@ -158,8 +158,8 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          # Flatten structure and sync to R2
-          find artifacts -type f -exec aws s3 cp {} s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com --region auto \;
+          # We want to sync all files inside artifacts/* subdirs directly to the version prefix
+          aws s3 sync artifacts/ s3://${R2_BUCKET_NAME}/releases/v${VERSION}/ --endpoint-url https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com --region auto
 
       - name: Generate latest.json manifest
         env:
@@ -181,13 +181,20 @@ jobs:
           }
 
           assets_json=""
+          # Look for files recursively in artifacts/ and build entries
           while IFS= read -r filepath; do
-            rel="${filepath#artifacts/}"
             name="$(basename "$filepath")"
             size="$(stat -c%s "$filepath")"
             platform="$(detect_platform "$name")"
             [ "$platform" = "unknown" ] && continue
-            entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel}\"}"
+            
+            # Extract the subdirectory name (the artifact name) to build the correct R2 URL
+            # artifacts/dark-downloader-windows/file.msix -> file.msix
+            # The 'sync' above uploads the WHOLE artifacts/ folder. 
+            # So the URL should be ${BASE}/dark-downloader-windows/file.msix
+            rel_path="${filepath#artifacts/}"
+            
+            entry="{\"name\":\"${name}\",\"platform\":\"${platform}\",\"size\":${size},\"url\":\"${BASE}/${rel_path}\"}"
             if [ -z "$assets_json" ]; then assets_json="$entry"; else assets_json="${assets_json},${entry}"; fi
           done < <(find artifacts -type f \( -name '*.apk' -o -name '*.zip' -o -name '*.tar.gz' -o -name '*.msix' \))
 
@@ -231,15 +238,15 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           
-          curl -s -X PATCH "${SUPABASE_URL}/rest/v1/remote_config?id=eq.1" \
+          curl -s -X PATCH "${SUPABASE_URL}/rest/v1/remote_config?id\u003deq.1" \
             -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Content-Type: application/json" \
-            -H "Prefer: return=minimal" \
+            -H "Prefer: return\u003dminal" \
             -d "{
               \"latest_version\": \"${VERSION}\",
               \"download_url\": \"https://keenx.net/#apps\",
               \"release_notes\": \"تتوفر نسخة جديدة ${VERSION}. زر الموقع الرسمي للتحميل.\",
               \"updated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
             }"
-          echo "✅ Updated remote_config: latest_version=${VERSION}"
+          echo "✅ Updated remote_config: latest_version\u003d${VERSION}"
