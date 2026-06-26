@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.7+19
+version: 1.1.8+20
 
 environment:
   sdk: ^3.11.4
@@ -174,14 +174,15 @@ flutter_native_splash:
   # https://flutter.dev/to/asset-from-package
 
 msix_config:
-  display_name: دارك — Dark
+  display_name: Dark Downloader
   publisher_display_name: Dark Technology
   publisher: CN=DarkTechnology, O=Dark, L=Baghdad, C=IQ
-  identity_name: dark.downloader.app
-  msix_version: 1.1.7.0
+  identity_name: com.dark.downloader
+  msix_version: 1.1.8.0
   logo_path: assets/branding/icon.png
-  store: false 
+  execution_alias: dark
   install_certificate: false
+  store: false
   capabilities: internetClient, location, microphone, privateNetworkClientServer
 
 

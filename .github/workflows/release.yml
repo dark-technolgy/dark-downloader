@@ -100,10 +100,7 @@ jobs:
         if: matrix.target == 'windows'
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
-          # Create ZIP (Portable)
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Dark-Downloader-v${version}-windows-x64.zip"
-          
-          # Create MSIX (Installer)
+          # Create MSIX (Installer) - The ONLY way for Windows
           flutter pub run msix:create --version "${version}.0"
           Move-Item -Path "build\windows\x64\runner\Release\dark_downloader.msix" -Destination "Dark-Downloader-v${version}-windows-x64.msix"
         shell: pwsh
