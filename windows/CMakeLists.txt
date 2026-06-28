@@ -10,11 +10,6 @@ set(BINARY_NAME "dark_downloader")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
-# Silence warnings from plugins that use older CMake patterns
-if(POLICY CMP0175)
-  cmake_policy(SET CMP0175 OLD)
-endif()
-
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
@@ -37,10 +32,6 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
-# إسكات تحذيرات coroutines deprecated في MSVC الحديث — بعض plugins
-# (مثل permission_handler_windows) ما زالت تستخدم <experimental/coroutine>.
-add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
-
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
@@ -51,6 +42,7 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
+  target_compile_definitions(${TARGET} PRIVATE "_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
 
@@ -115,14 +107,3 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
-
-# FFmpeg: إن لم يكن تحت bundled_ffmpeg/windows يُحمَّل تلقائياً أثناء تهيئة CMake (أول بناء).
-set(_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
-include("${_REPO_ROOT}/cmake/ffmpeg_bootstrap.cmake")
-dark_ensure_ffmpeg_windows("${_REPO_ROOT}")
-
-set(_BUNDLED_FFMPEG_WIN "${_REPO_ROOT}/bundled_ffmpeg/windows")
-if(EXISTS "${_BUNDLED_FFMPEG_WIN}/ffmpeg.exe")
-  install(DIRECTORY "${_BUNDLED_FFMPEG_WIN}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/ffmpeg"
-    COMPONENT Runtime)
-endif()

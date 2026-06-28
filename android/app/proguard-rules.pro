@@ -1,23 +1,31 @@
-# Flutter Rust Bridge
--keep class com.darkdownloader.dark_downloader.RustLib { *; }
--keep class com.darkdownloader.dark_downloader.RustLib$* { *; }
--keep class com.sun.jna.** { *; }
--keep class com.darkdownloader.dark_downloader.** { *; }
+# Flutter ProGuard Rules
 
-# General Flutter
--keep class io.flutter.app.** { *; }
+# Keep the main activity and any classes used by the platform
+-keep class com.dark.downloader.** { *; }
+
+# Keep Flutter Rust Bridge classes
+-keep class com.flutter_rust_bridge.** { *; }
+
+# Media Kit rules
+-keep class com.sun.jna.** { *; }
+-keep class com.google.android.exoplayer2.** { *; }
+
+# Avoid stripping common libraries
 -keep class io.flutter.plugin.** { *; }
+-keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.util.** { *; }
 -keep class io.flutter.view.** { *; }
--keep class io.flutter.** { *; }
--keep class io.flutter.plugins.** { *; }
+-keep class io.flutter.app.** { *; }
 
-# Play Store Split Install (Fix for R8 errors)
--dontwarn com.google.android.play.core.**
--keep class com.google.android.play.core.** { *; }
+# Support libraries
+-keep class androidx.annotation.** { *; }
 
-# Supabase & Http
+# For Dio/OkHttp if used
 -keep class okhttp3.** { *; }
+-keep class retrofit2.** { *; }
+
+# General optimizations
+-dontwarn com.sun.jna.**
+-dontwarn androidx.**
 -dontwarn okhttp3.**
--keep class com.google.gson.** { *; }
--dontwarn com.google.gson.**
+-dontwarn retrofit2.**

@@ -36,12 +36,6 @@ bool FlutterWindow::OnCreate() {
   // window is shown. It is a no-op if the first frame hasn't completed yet.
   flutter_controller_->ForceRedraw();
 
-  // Show the frame immediately. If Dart spends a long time in native init
-  // before the first rasterized frame (e.g. FFI / Rust bootstrap), deferring
-  // Show() to SetNextFrameCallback alone leaves a hidden window — looks like
-  // `flutter run` succeeded but nothing appeared on screen.
-  Show();
-
   return true;
 }
 

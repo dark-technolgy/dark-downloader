@@ -7,7 +7,7 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "dark_downloader")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.darkdownloader.dark_downloader")
+set(APPLICATION_ID "com.example.dark_downloader")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -124,16 +124,5 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 # Install the AOT library on non-Debug builds only.
 if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
-endif()
-
-# FFmpeg: إن لم يكن تحت bundled_ffmpeg/linux يُحمَّل تلقائياً أثناء تهيئة CMake.
-set(_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
-include("${_REPO_ROOT}/cmake/ffmpeg_bootstrap.cmake")
-dark_ensure_ffmpeg_linux("${_REPO_ROOT}")
-
-set(_BUNDLED_FFMPEG_LINUX "${_REPO_ROOT}/bundled_ffmpeg/linux")
-if(EXISTS "${_BUNDLED_FFMPEG_LINUX}/ffmpeg")
-  install(DIRECTORY "${_BUNDLED_FFMPEG_LINUX}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/ffmpeg"
     COMPONENT Runtime)
 endif()

@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   connectivity_plus
+  ffmpeg_kit_flutter_new_min_gpl
   flutter_secure_storage_windows
   local_notifier
   media_kit_libs_windows_video

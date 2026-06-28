@@ -1,7 +1,20 @@
 {
-  "version": "v1.1.7",
-  "published_at": "2026-06-25T06:48:15Z",
+  "version": "v1.1.27",
+  "published_at": "2026-06-27T10:00:00Z",
   "html_url": "https://keenx.net/#apps",
-  "notes": "تتوفر نسخة جديدة v1.1.7.",
-  "assets": [{"name":"Dark-Downloader-v1.1.7-android-universal.apk","platform":"android","size":197422496,"url":"https://releases.keenx.net/releases/v1.1.7/dark-downloader-android-apk/build/app/outputs/flutter-apk/Dark-Downloader-v1.1.7-android-universal.apk"},{"name":"Dark-Downloader-v1.1.7-linux-x64.tar.gz","platform":"linux","size":70608676,"url":"https://releases.keenx.net/releases/v1.1.7/dark-downloader-linux/Dark-Downloader-v1.1.7-linux-x64.tar.gz"},{"name":"Dark-Downloader-v1.1.7-windows-x64.msix","platform":"windows","size":210644221,"url":"https://releases.keenx.net/releases/v1.1.7/dark-downloader-windows/Dark-Downloader-v1.1.7-windows-x64.msix"},{"name":"Dark-Downloader-v1.1.7-windows-x64.zip","platform":"windows","size":208394166,"url":"https://releases.keenx.net/releases/v1.1.7/dark-downloader-windows/Dark-Downloader-v1.1.7-windows-x64.zip"}]
+  "notes": "إصدار v1.1.27: تحسينات شاملة للأداء وحل مشاكل التشغيل.",
+  "assets": [
+    {
+      "name": "Dark-Downloader-v1.1.27-android-universal.apk",
+      "platform": "android",
+      "size": 276701757,
+      "url": "https://releases.keenx.net/releases/v1.1.27/Dark-Downloader-v1.1.27-android-universal.apk"
+    },
+    {
+      "name": "Dark-Downloader-v1.1.27-windows-x64.zip",
+      "platform": "windows",
+      "size": 277200149,
+      "url": "https://releases.keenx.net/releases/v1.1.27/Dark-Downloader-v1.1.27-windows-x64.zip"
+    }
+  ]
 }
