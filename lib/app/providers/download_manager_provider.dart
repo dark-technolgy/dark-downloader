@@ -17,8 +17,7 @@ import '../services/permission_service.dart';
 import '../utils/download_error_utils.dart';
 import 'locale_provider.dart';
 import 'dart:io';
-import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_full_gpl/return_code.dart';
+
 
 enum DownloadStatus { queued, downloading, paused, completed, failed, cancelled }
 
@@ -352,7 +351,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
       String finalPath = result.filePath;
 
-      // Perform FFmpegKit mobile fallback merging if audio sidecar exists and wasn't merged by Rust
+      // Merge sidecar audio via Rust if Rust downloader left it un-muxed
       if (item.audioStreamUrl != null) {
         final dir = Directory(p.dirname(finalPath));
         final stem = p.basenameWithoutExtension(finalPath);
@@ -366,28 +365,21 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         }
 
         if (sidecarAudio != null) {
-          if (Platform.isAndroid || Platform.isIOS) {
-            state = state.copyWith(
-              items: state.items
-                  .map((i) => i.id == item.id ? i.copyWith(phase: 'merging_mobile') : i)
-                  .toList(),
-            );
+          state = state.copyWith(
+            items: state.items
+                .map((i) => i.id == item.id ? i.copyWith(phase: 'merging') : i)
+                .toList(),
+          );
 
-            final mergedTmp = p.join(dir.path, '$stem.ffmpeg.muxing.mp4');
-            final session = await FFmpegKit.execute(
-                '-y -i "$finalPath" -i "${sidecarAudio.path}" -c copy -map 0:v:0 -map 1:a:0 -shortest "$mergedTmp"');
-            final returnCode = await session.getReturnCode();
-            if (ReturnCode.isSuccess(returnCode)) {
-              await File(mergedTmp).rename(finalPath);
-              await sidecarAudio.delete();
-            } else {
-              final logs = await session.getLogsAsString();
-              throw Exception('FFmpegKit failed to merge: $logs');
-            }
-          } else {
-             // On Windows/Linux/macOS, sidecar exists but Rust failed to merge — FFmpeg is missing or broken.
-             throw Exception('FFmpeg is required on Desktop to merge high-resolution videos. Please install FFmpeg and add it to your system PATH.');
-          }
+          final mergedTmp = p.join(dir.path, '$stem.ffmpeg.muxing.mp4');
+          rust_video_processor.muxVideoAudio(
+            videoPath: finalPath,
+            audioPath: sidecarAudio.path,
+            outputPath: mergedTmp,
+            ffmpegPath: ffmpegPath,
+          );
+          await File(mergedTmp).rename(finalPath);
+          await sidecarAudio.delete();
         }
       }
 
@@ -406,33 +398,19 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         final finalAudioPath = p.join(dirName, '$baseName.$audioExt');
 
         try {
-          if (ffmpegPath == 'ffmpeg' && (Platform.isAndroid || Platform.isIOS)) {
-            // Mobile fallback extraction
-            final cmd = audioExt == 'mp3' 
-                ? '-y -i "${result.filePath}" -vn -c:a libmp3lame -q:a 2 "$finalAudioPath"'
-                : '-y -i "${result.filePath}" -vn -c:a copy "$finalAudioPath"';
-            
-            final session = await FFmpegKit.execute(cmd);
-            final returnCode = await session.getReturnCode();
-            if (!ReturnCode.isSuccess(returnCode)) {
-               final logs = await session.getLogsAsString();
-               throw Exception('FFmpegKit failed to extract/convert audio: $logs');
-            }
+          // Unified Rust processor for all platforms
+          if (audioExt == 'mp3') {
+            rust_video_processor.convertToMp3(
+              inputPath: result.filePath,
+              outputPath: finalAudioPath,
+              ffmpegPath: ffmpegPath,
+            );
           } else {
-            // Desktop: Use Rust processor (Commercial quality)
-            if (audioExt == 'mp3') {
-               rust_video_processor.convertToMp3(
-                 inputPath: result.filePath,
-                 outputPath: finalAudioPath,
-                 ffmpegPath: ffmpegPath,
-               );
-            } else {
-              rust_video_processor.extractAudio(
-                videoPath: result.filePath,
-                outputPath: finalAudioPath,
-                ffmpegPath: ffmpegPath,
-              );
-            }
+            rust_video_processor.extractAudio(
+              videoPath: result.filePath,
+              outputPath: finalAudioPath,
+              ffmpegPath: ffmpegPath,
+            );
           }
           finalPath = finalAudioPath;
           try {

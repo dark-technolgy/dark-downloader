@@ -114,7 +114,6 @@ dependencies:
   local_notifier: ^0.1.6
   window_manager: ^0.5.1
   tray_manager: ^0.5.3
-  ffmpeg_kit_flutter_full_gpl: ^6.0.3-LTS
   webview_flutter: ^4.10.0
   webview_windows: ^0.4.0
 dev_dependencies:

@@ -637,7 +637,7 @@ class AppLocalization {
     'adv_codec_wav': 'WAV',
     'adv_codec_flac': 'FLAC',
 
-    'ffmpeg_kit_session_failed': 'فشلت عملية المعالجة النهائية',
+
 
     // FFmpeg سطح مكتب
     'ffmpeg_desktop_process_failed':
@@ -1272,7 +1272,7 @@ class AppLocalization {
     'adv_codec_wav': 'WAV',
     'adv_codec_flac': 'FLAC',
 
-    'ffmpeg_kit_session_failed': 'Processing failed',
+
 
     // Desktop FFmpeg
     'ffmpeg_desktop_process_failed':

@@ -5,15 +5,17 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-/// Resolves the FFmpeg binary for Windows / Linux desktop.
+/// Resolves the FFmpeg binary for all platforms.
 ///
 /// Order:
-/// 1) Next to [Platform.resolvedExecutable] (CMake copies [bundled_ffmpeg/] here)
-/// 2) [embed_*.zip] inside [assets/bundled_ffmpeg] — فك أوفلاين (من دون إنترنت)
-/// 3) نسخة سابقة تحت application support (أدوات من جلسة سابقة)
-/// 4) ملفات ثنائية مفردة في assets (ffmpeg.exe / ffmpeg)
-/// 5) In debug/profile only: `ffmpeg` on PATH
-/// 6) Fallback: `"ffmpeg"`
+/// 1) Android: nativeLibDir (libffmpeg.so in jniLibs)
+/// 2) Android/iOS: extracted binary under application support
+/// 3) Next to [Platform.resolvedExecutable] (CMake copies [bundled_ffmpeg/] here)
+/// 4) [embed_*.zip] inside [assets/bundled_ffmpeg] — فك أوفلاين (من دون إنترنت)
+/// 5) نسخة سابقة تحت application support (أدوات من جلسة سابقة)
+/// 6) ملفات ثنائية مفردة في assets (ffmpeg.exe / ffmpeg)
+/// 7) `ffmpeg` on PATH
+/// 8) Fallback: `"ffmpeg"`
 Future<String> resolveDesktopFfmpegPath() async {
   final c = _cachedFfmpegPath;
   if (c != null) {
@@ -23,6 +25,20 @@ Future<String> resolveDesktopFfmpegPath() async {
     } catch (_) {}
     _cachedFfmpegPath = null;
   }
+
+  // --- Mobile: Android / iOS ---
+  if (Platform.isAndroid || Platform.isIOS) {
+    final mobilePath = await _resolveMobileFfmpegPath();
+    if (mobilePath != null) {
+      _cachedFfmpegPath = mobilePath;
+      return mobilePath;
+    }
+    // Fallback: 'ffmpeg' (will fail but gives clear error from Rust)
+    _cachedFfmpegPath = 'ffmpeg';
+    return 'ffmpeg';
+  }
+
+  // --- Desktop: Windows / Linux / macOS ---
 
   // 1) Side-by-side with the app (release installs / CMake install)
   final fromInstall = _pathBesideExecutable();
@@ -78,6 +94,57 @@ Future<String> resolveDesktopFfmpegPath() async {
 
   _cachedFfmpegPath = 'ffmpeg';
   return 'ffmpeg';
+}
+
+/// Resolves ffmpeg on Android/iOS.
+///
+/// Search order:
+/// 1) Android: nativeLibDir → libffmpeg.so  (bundled via jniLibs)
+/// 2) Previously extracted binary under app support
+Future<String?> _resolveMobileFfmpegPath() async {
+  if (Platform.isAndroid) {
+    // Check application support for previously extracted ffmpeg
+    try {
+      final sup = await getApplicationSupportDirectory();
+      final extracted = p.join(sup.path, 'dark_downloader', 'tools', 'ffmpeg', 'ffmpeg');
+      if (await File(extracted).exists()) {
+        return extracted;
+      }
+    } catch (_) {}
+
+    // Try to find ffmpeg in the native libs directory
+    // Android apps can load native libs from the app's nativeLibraryDir
+    try {
+      final sup = await getApplicationSupportDirectory();
+      // nativeLibraryDir is typically /data/app/.../lib/<abi>/
+      // We can resolve it relative to the app's data directory
+      final appDir = sup.parent; // applicationSupportDir parent = app data root
+      final nativeLibDirs = [
+        p.join(appDir.path, 'lib'),
+        '/data/data/com.dark.dark_downloader/lib',
+      ];
+      for (final libDir in nativeLibDirs) {
+        final ffmpegSo = p.join(libDir, 'libffmpeg.so');
+        if (await File(ffmpegSo).exists()) {
+          await _ensureExecutable(ffmpegSo);
+          return ffmpegSo;
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (Platform.isIOS) {
+    // On iOS, bundled binaries are in the app Frameworks directory
+    try {
+      final sup = await getApplicationSupportDirectory();
+      final extracted = p.join(sup.path, 'dark_downloader', 'tools', 'ffmpeg', 'ffmpeg');
+      if (await File(extracted).exists()) {
+        return extracted;
+      }
+    } catch (_) {}
+  }
+
+  return null;
 }
 
 /// Same layout as [ToolBootstrapper] on Win/Linux.

@@ -27,9 +27,6 @@
 # Supabase / GoTrue / Realtime
 -keep class io.supabase.** { *; }
 
-# FFmpeg Kit
--keep class com.arthenica.** { *; }
-
 # Sentry
 -keep class io.sentry.** { *; }
 
