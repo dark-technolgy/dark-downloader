@@ -1,7 +1,7 @@
 # Flutter ProGuard Rules
 
 # Keep the main activity and any classes used by the platform
--keep class com.dark.downloader.** { *; }
+-keep class com.dark.dark_downloader.** { *; }
 
 # Keep Flutter Rust Bridge classes
 -keep class com.flutter_rust_bridge.** { *; }
@@ -24,8 +24,23 @@
 -keep class okhttp3.** { *; }
 -keep class retrofit2.** { *; }
 
+# Supabase / GoTrue / Realtime
+-keep class io.supabase.** { *; }
+
+# FFmpeg Kit
+-keep class com.arthenica.** { *; }
+
+# Sentry
+-keep class io.sentry.** { *; }
+
 # General optimizations
 -dontwarn com.sun.jna.**
 -dontwarn androidx.**
 -dontwarn okhttp3.**
 -dontwarn retrofit2.**
+-dontwarn io.sentry.**
+
+# Flutter Play Store Split Application / deferred components
+-dontwarn com.google.android.play.core.splitcompat.**
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**

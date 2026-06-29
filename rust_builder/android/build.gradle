@@ -30,7 +30,7 @@ android {
     }
 
     // Updated to match project SDK version
-    compileSdkVersion 37
+    compileSdkVersion 36
 
     ndkVersion android.ndkVersion
 

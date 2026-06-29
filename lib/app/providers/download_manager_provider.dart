@@ -17,8 +17,8 @@ import '../services/permission_service.dart';
 import '../utils/download_error_utils.dart';
 import 'locale_provider.dart';
 import 'dart:io';
-import 'package:ffmpeg_kit_flutter_new_min_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new_min_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_full_gpl/return_code.dart';
 
 enum DownloadStatus { queued, downloading, paused, completed, failed, cancelled }
 
