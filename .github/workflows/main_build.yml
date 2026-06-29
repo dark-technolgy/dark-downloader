@@ -88,3 +88,80 @@ jobs:
             Dark-Downloader-v*.msix
             build/linux/x64/release/bundle/
           retention-days: 1
+
+  release:
+    name: Release and Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Setup AWS CLI (for R2)
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.R2_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          aws configure set region auto
+      - name: Upload to R2
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ENDPOINT="https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          BUCKET="${{ secrets.R2_BUCKET_NAME }}"
+          
+          # Android
+          aws s3 cp "artifacts/android-artifact/Dark-Downloader-v${VERSION}-android-universal.apk" \
+            "s3://$BUCKET/releases/v$VERSION/Dark-Downloader-v$VERSION-android-universal.apk" \
+            --endpoint-url "$ENDPOINT"
+            
+          # Windows
+          aws s3 cp "artifacts/windows-artifact/Dark-Downloader-v${VERSION}-windows-x64.msix" \
+            "s3://$BUCKET/releases/v$VERSION/Dark-Downloader-v$VERSION-windows-x64.msix" \
+            --endpoint-url "$ENDPOINT"
+            
+      - name: Update latest.json
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BASE_URL="${{ secrets.R2_PUBLIC_BASE_URL }}"
+          
+          # Get sizes
+          AND_SIZE=$(stat -c%s "artifacts/android-artifact/Dark-Downloader-v${VERSION}-android-universal.apk")
+          WIN_SIZE=$(stat -c%s "artifacts/windows-artifact/Dark-Downloader-v${VERSION}-windows-x64.msix")
+          
+          cat <<EOF > latest.json
+          {
+            "version": "v$VERSION",
+            "published_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "html_url": "${{ secrets.APP_URL }}/#apps",
+            "notes": "إصدار v$VERSION: تم التحديث تلقائياً وتفعيل التوقيع الرسمي.",
+            "assets": [
+              {
+                "name": "Dark-Downloader-v$VERSION-android-universal.apk",
+                "platform": "android",
+                "size": $AND_SIZE,
+                "url": "$BASE_URL/releases/v$VERSION/Dark-Downloader-v$VERSION-android-universal.apk"
+              },
+              {
+                "name": "Dark-Downloader-v$VERSION-windows-x64.msix",
+                "platform": "windows",
+                "size": $WIN_SIZE,
+                "url": "$BASE_URL/releases/v$VERSION/Dark-Downloader-v$VERSION-windows-x64.msix"
+              }
+            ]
+          }
+          EOF
+          
+          aws s3 cp latest.json "s3://${{ secrets.R2_BUCKET_NAME }}/latest.json" \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+
+      - name: Update Supabase remote_config
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DOWNLOAD_URL="${{ secrets.R2_PUBLIC_BASE_URL }}/releases/v$VERSION/Dark-Downloader-v$VERSION-android-universal.apk"
+          
+          curl -X PATCH "${{ secrets.SUPABASE_URL }}/rest/v1/remote_config?id=eq.1" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{ \"latest_version\": \"v$VERSION\", \"download_url\": \"$DOWNLOAD_URL\" }"
