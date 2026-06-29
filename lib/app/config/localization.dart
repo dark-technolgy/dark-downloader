@@ -338,7 +338,7 @@ class AppLocalization {
     'platform_banner_web_title': 'أنت تستخدم نسخة الويب',
     'platform_banner_desktop_encoder_title': 'إعداد مكوّن الدمج (مرة واحدة)',
     'platform_banner_desktop_encoder_body':
-        'لا يمكن دمج الفيديو والصوت: أداة الترميز غير جاهزة. إن كنت من فريق التطبيق، نفّذوا scripts/fetch_ffmpeg_bundles ثم أعيدوا بناء إصدار ويندوز/لينكس. يمكنك تجربة «إعادة المحاولة» بعد إصلاح الملفات.',
+        'لا يمكن دمج الفيديو والصوت: المحرك الأسطوري غير جاهز مؤقتاً. يرجى تجربة «إعادة المحاولة» لاحقاً.',
     'platform_banner_desktop_encoder_retry': 'إعادة المحاولة',
     'platform_banner_web_body':
         'قد تكون ميزات مثل BitTorrent والتحميل الاحتياطي محدودة. لأفضل تجربة استخدم تطبيق سطح المكتب أو Android.',
@@ -641,7 +641,7 @@ class AppLocalization {
 
     // FFmpeg سطح مكتب
     'ffmpeg_desktop_process_failed':
-        'تعذّر تشغيل FFmpeg ({path}).\nللمطوّر: شغّل scripts/fetch_ffmpeg_bundles ثم أعد البناء، أو ثبّت ffmpeg في PATH للتطوير.\n\n{detail}',
+        'تعذّر تشغيل المحرك الأسطوري.\nيرجى التواصل مع الدعم الفني أو إعادة المحاولة.\n\n{detail}',
   };
 
   static const Map<String, String> en = {
@@ -972,7 +972,7 @@ class AppLocalization {
     'platform_banner_web_title': 'You are on the web build',
     'platform_banner_desktop_encoder_title': 'One-time encoder setup',
     'platform_banner_desktop_encoder_body':
-        'Video/audio merge is unavailable: the encoder bundle is missing. Maintainers: run scripts/fetch_ffmpeg_bundles then rebuild Windows/Linux. You can tap Retry after fixing the install.',
+        'Video/audio merge is unavailable: the legendary engine is temporarily not ready. Please tap Retry later.',
     'platform_banner_desktop_encoder_retry': 'Retry',
     'platform_banner_web_body':
         'Some features (e.g. BitTorrent) may be limited. For the full experience, use the desktop or Android app.',
@@ -1276,8 +1276,8 @@ class AppLocalization {
 
     // Desktop FFmpeg
     'ffmpeg_desktop_process_failed':
-        'Could not run FFmpeg ({path}).\n'
-        'Developers: run fetch_ffmpeg_bundles then rebuild, or add ffmpeg to PATH for dev.\n\n'
+        'Could not run the Legendary Engine.\n'
+        'Please contact support or try again later.\n\n'
         '{detail}',
   };
 

@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:workmanager/workmanager.dart';
-
 import 'package:media_kit/media_kit.dart';
-
 import 'app/config/localization.dart';
 import 'app/config/theme.dart';
 import 'app/presentation/screens/home_screen.dart';
@@ -19,8 +16,6 @@ import 'app/widgets/incoming_links_binding.dart';
 import 'app/providers/locale_provider.dart';
 import 'app/providers/theme_provider.dart';
 import 'app/services/browser_bridge_service.dart';
-
-
 import 'app/config/supabase_config.dart';
 import 'app/presentation/screens/login_screen.dart';
 import 'app/providers/auth_provider.dart';
@@ -29,13 +24,10 @@ import 'app/bootstrap/rust_lib_init.dart';
 import 'app/services/notification_service.dart';
 import 'app/services/tray_service.dart';
 import 'app/providers/remote_config_provider.dart';
-
-
 import 'app/presentation/screens/cold_start_screen.dart';
 import 'app/presentation/screens/maintenance_screen.dart';
 import 'app/presentation/widgets/version_check_wrapper.dart';
 import 'app/presentation/widgets/floating_download_bubble.dart';
-
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 @pragma('vm:entry-point')
@@ -51,21 +43,21 @@ late final ProviderContainer globalContainer;
 Future<void> main() async {
   // 1. Critical Startup - Ensure Flutter is ready
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 2. Preserve native splash until we are ready to show ColdStartShell
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+
   MediaKit.ensureInitialized();
 
   // 3. Show Splash immediately - THIS MUST RUN TO UNFREEZE UI
   runApp(const ColdStartShell());
-  
+
   // Remove native splash now that Flutter-side splash is rendering
   FlutterNativeSplash.remove();
 
   // 4. Initialize in background without blocking the thread
   globalContainer = ProviderContainer();
-  
+
   // Use a minimal delay to ensure the UI has frame to paint the shell
   Timer(const Duration(milliseconds: 50), () {
     _backgroundBootstrap();
@@ -76,11 +68,15 @@ Future<void> _backgroundBootstrap() async {
   try {
     // A. Lightweight Init
     await Telemetry.instance.init(
-      tags: {'platform': defaultTargetPlatform.name, 'build_mode': kReleaseMode ? 'release' : 'debug'},
+      tags: {
+        'platform': defaultTargetPlatform.name,
+        'build_mode': kReleaseMode ? 'release' : 'debug',
+      },
     );
 
     // B. Desktop Specific (Non-blocking for Android)
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       await windowManager.ensureInitialized();
       WindowOptions windowOptions = const WindowOptions(
         size: Size(1100, 700),
@@ -109,7 +105,7 @@ Future<void> _backgroundBootstrap() async {
     // D. Finalizing Services
     NotificationService.init().ok();
     ToolBootstrapper.ensure().ok();
-    
+
     final bridge = BrowserBridgeService(globalContainer);
     unawaited(bridge.start());
 
@@ -121,7 +117,6 @@ Future<void> _backgroundBootstrap() async {
         child: IncomingLinksBinding(child: const DarkDownloaderApp()),
       ),
     );
-
   } catch (e) {
     debugPrint('Bootstrap: Fatal fallback triggered: $e');
     // Absolute fallback - never leave the user on the logo
@@ -158,7 +153,9 @@ class DarkDownloaderApp extends ConsumerWidget {
       localizationsDelegates: AppLocalization.localizationsDelegates,
       builder: (context, child) {
         return Directionality(
-          textDirection: locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+          textDirection: locale.languageCode == 'ar'
+              ? TextDirection.rtl
+              : TextDirection.ltr,
           child: remoteConfig.when(
             data: (config) {
               if (config.maintenanceMode) {
@@ -178,7 +175,9 @@ class DarkDownloaderApp extends ConsumerWidget {
 
 final onboardingProvider = FutureProvider<bool>((ref) async {
   try {
-    final prefs = await SharedPreferences.getInstance().timeout(const Duration(seconds: 3));
+    final prefs = await SharedPreferences.getInstance().timeout(
+      const Duration(seconds: 3),
+    );
     return prefs.getBool('has_seen_onboarding') ?? false;
   } catch (_) {
     return false;
@@ -196,15 +195,21 @@ class AuthGate extends ConsumerWidget {
     return hasSeenOnboardingAsync.when(
       data: (hasSeen) {
         if (!hasSeen) {
-          return OnboardingScreen(onFinish: () => ref.invalidate(onboardingProvider));
+          return OnboardingScreen(
+            onFinish: () => ref.invalidate(onboardingProvider),
+          );
         }
-        if (authState.status == AuthStatus.initial || authState.status == AuthStatus.loading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        if (authState.status == AuthStatus.initial ||
+            authState.status == AuthStatus.loading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (!authState.isAuthenticated) return const LoginScreen();
         return const HomeScreen();
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (_, _) => const LoginScreen(),
     );
   }
