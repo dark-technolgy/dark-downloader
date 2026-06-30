@@ -1,4 +1,4 @@
-﻿name: MainBuild
+name: MainBuild
 
 on:
   push:
@@ -75,6 +75,12 @@ jobs:
           flutter pub run msix:create --version "${version}.0"
           Move-Item -Path "build\windows\x64\runner\Release\dark_downloader.msix" -Destination "Dark-Downloader-v${version}-windows-x64.msix"
         shell: pwsh
+      - name: Package Linux
+        if: matrix.target == 'linux'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cd build/linux/x64/release/bundle
+          tar -czvf "../../../../../Dark-Downloader-v${VERSION}-linux-x64.tar.gz" .
       - name: Package Android
         if: matrix.target == 'android'
         run: |
@@ -86,7 +92,7 @@ jobs:
           path: |
             Dark-Downloader-v*.apk
             Dark-Downloader-v*.msix
-            build/linux/x64/release/bundle/
+            Dark-Downloader-v*.tar.gz
           retention-days: 1
 
   release:
@@ -120,6 +126,11 @@ jobs:
             "s3://$BUCKET/releases/v$VERSION/Dark-Downloader-v$VERSION-windows-x64.msix" \
             --endpoint-url "$ENDPOINT"
             
+          # Linux
+          aws s3 cp "artifacts/linux-artifact/Dark-Downloader-v${VERSION}-linux-x64.tar.gz" \
+            "s3://$BUCKET/releases/v$VERSION/Dark-Downloader-v$VERSION-linux-x64.tar.gz" \
+            --endpoint-url "$ENDPOINT"
+            
       - name: Update latest.json
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
@@ -128,6 +139,7 @@ jobs:
           # Get sizes
           AND_SIZE=$(stat -c%s "artifacts/android-artifact/Dark-Downloader-v${VERSION}-android-universal.apk")
           WIN_SIZE=$(stat -c%s "artifacts/windows-artifact/Dark-Downloader-v${VERSION}-windows-x64.msix")
+          LIN_SIZE=$(stat -c%s "artifacts/linux-artifact/Dark-Downloader-v${VERSION}-linux-x64.tar.gz")
           
           cat <<EOF > latest.json
           {
@@ -147,6 +159,12 @@ jobs:
                 "platform": "windows",
                 "size": $WIN_SIZE,
                 "url": "$BASE_URL/releases/v$VERSION/Dark-Downloader-v$VERSION-windows-x64.msix"
+              },
+              {
+                "name": "Dark-Downloader-v$VERSION-linux-x64.tar.gz",
+                "platform": "linux",
+                "size": $LIN_SIZE,
+                "url": "$BASE_URL/releases/v$VERSION/Dark-Downloader-v$VERSION-linux-x64.tar.gz"
               }
             ]
           }
@@ -165,3 +183,11 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d "{ \"latest_version\": \"v$VERSION\", \"download_url\": \"$DOWNLOAD_URL\" }"
+
+      - name: Trigger Website Redeploy
+        if: env.DEPLOY_HOOK != ''
+        env:
+          DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Triggering Cloudflare Pages redeploy..."
+          curl -X POST "$DEPLOY_HOOK"
