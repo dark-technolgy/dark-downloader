@@ -185,9 +185,18 @@ jobs:
             -d "{ \"latest_version\": \"v$VERSION\", \"download_url\": \"$DOWNLOAD_URL\" }"
 
       - name: Trigger Website Redeploy
-        if: env.DEPLOY_HOOK != ''
         env:
-          DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
+          WEBSITE_PAT: ${{ secrets.WEBSITE_PAT }}
         run: |
-          echo "Triggering Cloudflare Pages redeploy..."
-          curl -X POST "$DEPLOY_HOOK"
+          if [ -z "$WEBSITE_PAT" ]; then
+            echo "WEBSITE_PAT is not set. Skipping website redeploy trigger."
+          else
+            echo "Triggering keenx-website redeployment via repository_dispatch..."
+            curl -L \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $WEBSITE_PAT" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/dark-technolgy/keenx-website/dispatches \
+              -d '{"event_type": "deploy_website"}'
+          fi
