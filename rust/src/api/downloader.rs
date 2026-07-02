@@ -1653,7 +1653,13 @@ fn audio_ext_from_url(url: &str, video_ext: &str) -> String {
 
 pub fn get_downloads_dir() -> Result<String, String> {
     let path: String = if cfg!(target_os = "android") {
-        "/storage/emulated/0/Download/DarkDownloader".to_string()
+        // NOTE: /storage/emulated/0/Download is NOT writable on Android 10+
+        // without MANAGE_EXTERNAL_STORAGE. Callers on Android should resolve
+        // the path from the Dart side (StorageService.getDownloadsDirectory)
+        // which returns an app-scoped writable directory. This value is kept
+        // only as a legacy fallback for callers that still expect a path.
+        std::env::var("DARK_DOWNLOADER_ANDROID_DOWNLOADS_DIR")
+            .unwrap_or_else(|_| "/storage/emulated/0/Download/DarkDownloader".to_string())
     } else if cfg!(target_os = "ios") {
         dirs::document_dir()
             .map(|p| p.join("DarkDownloader"))

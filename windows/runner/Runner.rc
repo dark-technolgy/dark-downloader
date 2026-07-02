@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.dark" "\0"
-            VALUE "FileDescription", "dark_downloader" "\0"
+            VALUE "CompanyName", "Dark Technology" "\0"
+            VALUE "FileDescription", "Dark Downloader" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "dark_downloader" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.dark. All rights reserved." "\0"
+            VALUE "InternalName", "Dark Downloader" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Dark Technology. All rights reserved." "\0"
             VALUE "OriginalFilename", "dark_downloader.exe" "\0"
-            VALUE "ProductName", "dark_downloader" "\0"
+            VALUE "ProductName", "Dark Downloader" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

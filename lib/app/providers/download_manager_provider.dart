@@ -14,12 +14,19 @@ import '../../src/rust/api/video_processor.dart' as rust_video_processor;
 import '../services/bundled_ffmpeg_path.dart';
 import '../services/notification_service.dart';
 import '../services/permission_service.dart';
+import '../services/storage_service.dart';
 import '../utils/download_error_utils.dart';
 import 'locale_provider.dart';
 import 'dart:io';
 
-
-enum DownloadStatus { queued, downloading, paused, completed, failed, cancelled }
+enum DownloadStatus {
+  queued,
+  downloading,
+  paused,
+  completed,
+  failed,
+  cancelled,
+}
 
 class DownloadItem {
   final String id;
@@ -95,48 +102,48 @@ class DownloadItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'url': url,
-        'filePath': filePath,
-        'thumbnailUrl': thumbnailUrl,
-        'quality': quality,
-        'platform': platform,
-        'progress': progress,
-        'status': status.index,
-        'createdAt': createdAt.toIso8601String(),
-        'scheduledAt': scheduledAt?.toIso8601String(),
-        'audioOutputFormat': audioOutputFormat,
-        'error': error,
-        'pageUrl': pageUrl,
-        'audioStreamUrl': audioStreamUrl,
-        'connections': connections,
-        'retryCount': retryCount,
-        'phase': phase,
-      };
+    'id': id,
+    'title': title,
+    'url': url,
+    'filePath': filePath,
+    'thumbnailUrl': thumbnailUrl,
+    'quality': quality,
+    'platform': platform,
+    'progress': progress,
+    'status': status.index,
+    'createdAt': createdAt.toIso8601String(),
+    'scheduledAt': scheduledAt?.toIso8601String(),
+    'audioOutputFormat': audioOutputFormat,
+    'error': error,
+    'pageUrl': pageUrl,
+    'audioStreamUrl': audioStreamUrl,
+    'connections': connections,
+    'retryCount': retryCount,
+    'phase': phase,
+  };
 
   factory DownloadItem.fromJson(Map<String, dynamic> json) => DownloadItem(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        url: json['url'] as String,
-        filePath: json['filePath'] as String,
-        thumbnailUrl: json['thumbnailUrl'] as String? ?? '',
-        quality: json['quality'] as String? ?? '',
-        platform: json['platform'] as String? ?? '',
-        progress: (json['progress'] as num?)?.toDouble() ?? 0,
-        status: DownloadStatus.values[json['status'] as int? ?? 0],
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        scheduledAt: json['scheduledAt'] != null
-            ? DateTime.parse(json['scheduledAt'] as String)
-            : null,
-        audioOutputFormat: json['audioOutputFormat'] as String?,
-        error: json['error'] as String?,
-        pageUrl: json['pageUrl'] as String? ?? json['url'] as String? ?? '',
-        audioStreamUrl: json['audioStreamUrl'] as String?,
-        connections: json['connections'] as int? ?? 8,
-        retryCount: json['retryCount'] as int? ?? 0,
-        phase: json['phase'] as String?,
-      );
+    id: json['id'] as String,
+    title: json['title'] as String,
+    url: json['url'] as String,
+    filePath: json['filePath'] as String,
+    thumbnailUrl: json['thumbnailUrl'] as String? ?? '',
+    quality: json['quality'] as String? ?? '',
+    platform: json['platform'] as String? ?? '',
+    progress: (json['progress'] as num?)?.toDouble() ?? 0,
+    status: DownloadStatus.values[json['status'] as int? ?? 0],
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    scheduledAt: json['scheduledAt'] != null
+        ? DateTime.parse(json['scheduledAt'] as String)
+        : null,
+    audioOutputFormat: json['audioOutputFormat'] as String?,
+    error: json['error'] as String?,
+    pageUrl: json['pageUrl'] as String? ?? json['url'] as String? ?? '',
+    audioStreamUrl: json['audioStreamUrl'] as String?,
+    connections: json['connections'] as int? ?? 8,
+    retryCount: json['retryCount'] as int? ?? 0,
+    phase: json['phase'] as String?,
+  );
 }
 
 class DownloadManagerState {
@@ -151,7 +158,10 @@ class DownloadManagerState {
   List<DownloadItem> get downloadQueue =>
       items.where((i) => i.status != DownloadStatus.completed).toList();
 
-  DownloadManagerState copyWith({List<DownloadItem>? items, bool? queuePaused}) {
+  DownloadManagerState copyWith({
+    List<DownloadItem>? items,
+    bool? queuePaused,
+  }) {
     return DownloadManagerState(
       items: items ?? this.items,
       queuePaused: queuePaused ?? this.queuePaused,
@@ -181,8 +191,9 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
   void _listenConnectivity() {
     _connectivitySub?.cancel();
-    _connectivitySub =
-        Connectivity().onConnectivityChanged.listen((results) async {
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) async {
       if (results.every((r) => r == ConnectivityResult.none)) return;
       await _retryFailedOnReconnect();
     });
@@ -201,19 +212,18 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
   void _startProgressTimer() {
     _progressTimer?.cancel();
-    _progressTimer =
-        Timer.periodic(const Duration(seconds: 1), (_) {
-          _pollProgress();
-          _checkScheduled();
-        });
+    _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _pollProgress();
+      _checkScheduled();
+    });
   }
 
   Future<void> _checkScheduled() async {
     if (state.queuePaused) return;
     final now = DateTime.now();
     for (final item in state.items) {
-      if (item.status == DownloadStatus.queued && 
-          item.scheduledAt != null && 
+      if (item.status == DownloadStatus.queued &&
+          item.scheduledAt != null &&
           item.scheduledAt!.isBefore(now)) {
         unawaited(_startDownload(item));
       }
@@ -221,8 +231,9 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
   }
 
   Future<void> _pollProgress() async {
-    final active =
-        state.items.where((i) => i.status == DownloadStatus.downloading).toList();
+    final active = state.items
+        .where((i) => i.status == DownloadStatus.downloading)
+        .toList();
     if (active.isEmpty) return;
 
     var updated = false;
@@ -253,11 +264,15 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     final items = list
         .map((e) => DownloadItem.fromJson(e as Map<String, dynamic>))
         .map((item) {
-      if (item.status == DownloadStatus.downloading) {
-        return item.copyWith(status: DownloadStatus.paused, clearPhase: true);
-      }
-      return item;
-    }).toList();
+          if (item.status == DownloadStatus.downloading) {
+            return item.copyWith(
+              status: DownloadStatus.paused,
+              clearPhase: true,
+            );
+          }
+          return item;
+        })
+        .toList();
     state = state.copyWith(items: items);
   }
 
@@ -284,15 +299,23 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     }
 
     final id = const Uuid().v4();
-    final downloadsDir = await rust_downloader.getDownloadsDir();
+    // Resolve a *writable* downloads directory from the Dart side. Rust's
+    // get_downloads_dir() returns the hard-coded public path
+    // (/storage/emulated/0/Download/DarkDownloader) which is not writable on
+    // Android 10+ without MANAGE_EXTERNAL_STORAGE, so downloads silently fail.
+    // StorageService picks the correct app-scoped path on Android and the
+    // native Downloads folder on desktop.
+    final downloadsDir = (await StorageService.getDownloadsDirectory()).path;
     final ext = stream?.format ?? 'mp4';
-    
+
     // When merging video+audio, the final format is always mp4
     // (FFmpeg muxes into mp4 container unless both streams are webm)
     final finalExt = (audioStream != null && ext != 'webm') ? 'mp4' : ext;
-    
-    final safeName =
-        await rust_downloader.safeFilename(title: video.title, format: finalExt);
+
+    final safeName = await rust_downloader.safeFilename(
+      title: video.title,
+      format: finalExt,
+    );
     final outputPath = p.join(downloadsDir, safeName);
 
     final item = DownloadItem(
@@ -339,7 +362,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
     try {
       final ffmpegPath = await resolveDesktopFfmpegPath();
-      
+
       final result = await rust_downloader.downloadFileV2(
         url: item.url,
         outputPath: item.filePath,
@@ -358,7 +381,8 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         final entities = dir.listSync();
         File? sidecarAudio;
         for (final entity in entities) {
-          if (entity is File && p.basename(entity.path).startsWith('$stem.audio.')) {
+          if (entity is File &&
+              p.basename(entity.path).startsWith('$stem.audio.')) {
             sidecarAudio = entity;
             break;
           }
@@ -383,12 +407,14 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         }
       }
 
-
       // Perform FFmpeg post-processing for audio-only extraction if needed
       if (item.audioStreamUrl == null && item.audioOutputFormat != null) {
         state = state.copyWith(
           items: state.items
-              .map((i) => i.id == item.id ? i.copyWith(phase: 'extracting_audio') : i)
+              .map(
+                (i) =>
+                    i.id == item.id ? i.copyWith(phase: 'extracting_audio') : i,
+              )
               .toList(),
         );
 
@@ -414,10 +440,12 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
           }
           finalPath = finalAudioPath;
           try {
-            await File(result.filePath).delete(); // Delete the original video/audio stream file
+            await File(
+              result.filePath,
+            ).delete(); // Delete the original video/audio stream file
           } catch (_) {}
         } catch (e) {
-           throw Exception('Audio extraction failed: $e');
+          throw Exception('Audio extraction failed: $e');
         }
       }
 
@@ -478,7 +506,8 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     final idx = state.items.indexWhere((i) => i.id == id);
     if (idx != -1) {
       final item = state.items[idx];
-      if (isRetryableDownloadError(error) && item.retryCount < _maxAutoRetries) {
+      if (isRetryableDownloadError(error) &&
+          item.retryCount < _maxAutoRetries) {
         _scheduleAutoRetry(id);
       }
     }
@@ -522,13 +551,17 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
   }
 
   void _processQueue() {
-    for (final item in state.items.where((i) => i.status == DownloadStatus.queued)) {
+    for (final item in state.items.where(
+      (i) => i.status == DownloadStatus.queued,
+    )) {
       unawaited(_startDownload(item));
     }
   }
 
   void _pauseAll() {
-    for (final item in state.items.where((i) => i.status == DownloadStatus.downloading)) {
+    for (final item in state.items.where(
+      (i) => i.status == DownloadStatus.downloading,
+    )) {
       unawaited(pauseDownload(item.id));
     }
   }
@@ -578,7 +611,9 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
   }
 
   Future<void> retryAllFailed() async {
-    for (final item in state.items.where((i) => i.status == DownloadStatus.failed)) {
+    for (final item in state.items.where(
+      (i) => i.status == DownloadStatus.failed,
+    )) {
       if (isRetryableDownloadError(item.error)) {
         await retryDownload(item.id);
       }
@@ -588,13 +623,17 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
   Future<void> cancelDownload(String id) async {
     _retryScheduled.remove(id);
     await rust_downloader.cancelJob(jobId: id);
-    state = state.copyWith(items: state.items.where((i) => i.id != id).toList());
+    state = state.copyWith(
+      items: state.items.where((i) => i.id != id).toList(),
+    );
     await _save();
   }
 
   Future<void> removeCompleted() async {
     state = state.copyWith(
-      items: state.items.where((i) => i.status != DownloadStatus.completed).toList(),
+      items: state.items
+          .where((i) => i.status != DownloadStatus.completed)
+          .toList(),
     );
     await _save();
   }
@@ -602,5 +641,5 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
 final downloadManagerProvider =
     NotifierProvider<DownloadManagerNotifier, DownloadManagerState>(
-  DownloadManagerNotifier.new,
-);
+      DownloadManagerNotifier.new,
+    );

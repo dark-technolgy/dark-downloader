@@ -69,15 +69,22 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
           builder: (context, setDialogState) => PopScope(
             canPop: !force && !isDownloading,
             child: AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Row(
                 children: [
-                  Icon(isDownloading ? Icons.cloud_download : Icons.update, color: const Color(0xFF00A3FF)),
+                  Icon(
+                    isDownloading ? Icons.cloud_download : Icons.update,
+                    color: const Color(0xFF00A3FF),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(isDownloading 
-                        ? "جاري التحميل..." 
-                        : (force ? "تحديث إجباري" : "تحديث جديد متاح")),
+                    child: Text(
+                      isDownloading
+                          ? "جاري التحميل..."
+                          : (force ? "تحديث إجباري" : "تحديث جديد متاح"),
+                    ),
                   ),
                 ],
               ),
@@ -95,12 +102,20 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                       const SizedBox(height: 16),
                       const Text(
                         "ما الجديد:",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
-                      Text(widget.config.releaseNotes!, style: const TextStyle(fontSize: 12)),
+                      Text(
+                        widget.config.releaseNotes!,
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ],
                   ] else ...[
-                    const Text("يتم الآن تحميل التحديث الجديد، يرجى الانتظار..."),
+                    const Text(
+                      "يتم الآن تحميل التحديث الجديد، يرجى الانتظار...",
+                    ),
                     const SizedBox(height: 20),
                     LinearProgressIndicator(
                       value: downloadProgress,
@@ -113,7 +128,10 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                     Center(
                       child: Text(
                         "${(downloadProgress * 100).toStringAsFixed(0)}%",
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00A3FF)),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00A3FF),
+                        ),
                       ),
                     ),
                   ],
@@ -135,14 +153,14 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                     onPressed: () async {
                       final url = widget.config.downloadUrl;
                       if (url == null) return;
-                      
+
                       setDialogState(() => isDownloading = true);
-                      
+
                       try {
-                        final fileName = Platform.isAndroid 
+                        final fileName = Platform.isAndroid
                             ? "DarkDownloader_v${widget.config.latestVersion}.apk"
-                            : "DarkDownloader_v${widget.config.latestVersion}.msix";
-                            
+                            : "DarkDownloader_v${widget.config.latestVersion}.exe";
+
                         await UpdateService.downloadAndInstallUpdate(
                           url: url,
                           fileName: fileName,
@@ -153,7 +171,10 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                       } catch (e) {
                         setDialogState(() => isDownloading = false);
                         // Fallback to browser
-                        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                        launchUrl(
+                          Uri.parse(url),
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                     icon: const Icon(Icons.download, size: 18),
@@ -161,7 +182,9 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF00A3FF),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
               ],

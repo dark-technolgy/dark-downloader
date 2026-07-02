@@ -24,22 +24,30 @@ class UpdateService {
 
       if (response != null) {
         final latestVersion = response['latest_version'] as String;
-        
+
         if (_isNewer(latestVersion, currentVersion)) {
           // Attempt to find direct download link from the manifest
           try {
-            final manifestRes = await _dio.get('https://releases.keenx.net/latest.json');
+            final manifestRes = await _dio.get(
+              'https://releases.keenx.net/latest.json',
+            );
             if (manifestRes.statusCode == 200) {
               final manifest = manifestRes.data as Map<String, dynamic>;
               final assets = manifest['assets'] as List<dynamic>;
-              
+
               String? directUrl;
               if (Platform.isWindows) {
-                // Prefer MSIX for Windows
-                directUrl = assets.firstWhere((a) => a['name'].toString().endsWith('.msix'), orElse: () => null)?['url'];
+                // Windows ships as an Inno Setup .exe installer (no cert, no MSIX).
+                directUrl = assets.firstWhere(
+                  (a) => a['name'].toString().endsWith('.exe'),
+                  orElse: () => null,
+                )?['url'];
               } else if (Platform.isAndroid) {
                 // Prefer universal APK for Android
-                directUrl = assets.firstWhere((a) => a['name'].toString().contains('universal'), orElse: () => null)?['url'];
+                directUrl = assets.firstWhere(
+                  (a) => a['name'].toString().contains('universal'),
+                  orElse: () => null,
+                )?['url'];
               }
 
               if (directUrl != null) {

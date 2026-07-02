@@ -31,8 +31,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _desktopEncoderBannerDismissed = false;
   bool _desktopEncoderRetryBusy = false;
 
-
-
   /// [IndexedStack] builds every child — [DownloadHistoryScreen] and
   /// [ProfileScreen] used to mount on cold start (sidebar effects like
   /// [ProfileScreen] used to mount on cold start (sidebar effects). Defer them until the user opens those tabs.
@@ -46,8 +44,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget? _profileTab;
   Widget? _toolkitTab;
   Widget? _vaultTab;
-
-
 
   Widget _historySlot() {
     if (!_historyUiEverOpened) return const SizedBox.shrink();
@@ -73,7 +69,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-
       _loadDesktopEncoderStatus();
       _performUpdateCheck();
     });
@@ -103,13 +98,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           title: Row(
             children: [
               Icon(
-                isDownloading ? Icons.downloading_rounded : Icons.system_update_rounded,
+                isDownloading
+                    ? Icons.downloading_rounded
+                    : Icons.system_update_rounded,
                 color: const Color(0xFF00A3FF),
               ),
               const SizedBox(width: 12),
               Text(
                 isDownloading ? "جارٍ التحديث..." : "تحديث جديد متاح! 🚀",
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -119,7 +119,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Text(
                 "إصدار جديد: ${update['version']}",
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
               if (!isDownloading)
@@ -132,12 +135,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 LinearProgressIndicator(
                   value: downloadProgress,
                   backgroundColor: Colors.white10,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00A3FF)),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF00A3FF),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   "${(downloadProgress * 100).toStringAsFixed(0)}%",
-                  style: const TextStyle(color: Color(0xFF00A3FF), fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Color(0xFF00A3FF),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ],
@@ -146,19 +154,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             if (!isDownloading)
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("لاحقاً", style: TextStyle(color: Colors.grey)),
+                child: const Text(
+                  "لاحقاً",
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
             if (!isDownloading)
               ElevatedButton(
                 onPressed: () async {
                   setDialogState(() => isDownloading = true);
-                  final extension = Platform.isAndroid ? 'apk' : (Platform.isWindows ? 'msix' : 'tar.gz');
-                  final fileName = "Dark-Downloader-${update['version']}.$extension";
-                  
+                  // Windows ships as an Inno Setup .exe installer (no MSIX, no cert).
+                  final extension = Platform.isAndroid
+                      ? 'apk'
+                      : (Platform.isWindows ? 'exe' : 'tar.gz');
+                  final fileName =
+                      "Dark-Downloader-${update['version']}.$extension";
+
                   await UpdateService.downloadAndInstallUpdate(
                     url: update['url'],
                     fileName: fileName,
-                    onProgress: (p) => setDialogState(() => downloadProgress = p),
+                    onProgress: (p) =>
+                        setDialogState(() => downloadProgress = p),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -178,7 +194,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final p = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      _desktopEncoderReady = p.getBool(ToolBootstrapper.ffmpegReadyPrefsKey) ?? false;
+      _desktopEncoderReady =
+          p.getBool(ToolBootstrapper.ffmpegReadyPrefsKey) ?? false;
     });
   }
 
@@ -198,14 +215,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final normalized = extractFirstDownloadTarget(raw);
     if (normalized == null) return;
 
-
     setState(() => _currentIndex = 0);
     ref.read(pendingExtractorUrlProvider.notifier).set(normalized);
   }
 
   @override
   Widget build(BuildContext context) {
-
     ref.listen<String?>(incomingRawLinkProvider, (prev, next) {
       if (next == null || next.isEmpty) return;
       ref.read(incomingRawLinkProvider.notifier).clear();
@@ -218,7 +233,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final locale = ref.watch(localeProvider);
     final t = AppLocalization.translate;
-
 
     return Scaffold(
       body: Column(
@@ -272,13 +286,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _desktopEncoderReady == false &&
               !_desktopEncoderBannerDismissed)
             ColoredBox(
-              color: Theme.of(context)
-                  .colorScheme
-                  .errorContainer
-                  .withValues(alpha: 0.45),
+              color: Theme.of(
+                context,
+              ).colorScheme.errorContainer.withValues(alpha: 0.45),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -316,14 +331,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                   )
                                 : Text(
-                                    t('platform_banner_desktop_encoder_retry',
-                                        locale),
+                                    t(
+                                      'platform_banner_desktop_encoder_retry',
+                                      locale,
+                                    ),
                                   ),
                           ),
                         ],
@@ -331,10 +348,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 20),
-                      onPressed: () => setState(
-                        () => _desktopEncoderBannerDismissed = true,
-                      ),
-                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                      onPressed: () =>
+                          setState(() => _desktopEncoderBannerDismissed = true),
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
                     ),
                   ],
                 ),
