@@ -186,7 +186,7 @@ jobs:
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "{ \"latest_version\": \"v$VERSION\", \"download_url\": \"$DOWNLOAD_URL\" }"
+            -d "{ \"latest_version\": \"$VERSION\", \"download_url\": \"$DOWNLOAD_URL\" }"
 
       - name: Trigger Website Redeploy
         env:

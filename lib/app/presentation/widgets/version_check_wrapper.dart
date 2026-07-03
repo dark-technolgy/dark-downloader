@@ -44,8 +44,10 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
 
   bool _isVersionLower(String current, String target) {
     try {
-      final currentParts = current.split('.').map(int.parse).toList();
-      final targetParts = target.split('.').map(int.parse).toList();
+      final cClean = current.replaceAll(RegExp(r'[vV]'), '').split('+')[0];
+      final tClean = target.replaceAll(RegExp(r'[vV]'), '').split('+')[0];
+      final currentParts = cClean.split('.').map(int.parse).toList();
+      final targetParts = tClean.split('.').map(int.parse).toList();
 
       for (var i = 0; i < 3; i++) {
         final c = currentParts.length > i ? currentParts[i] : 0;

@@ -78,8 +78,10 @@ class UpdateService {
 
   static bool _isNewer(String latest, String current) {
     try {
-      List<int> v1 = latest.split('.').map(int.parse).toList();
-      List<int> v2 = current.split('.').map(int.parse).toList();
+      final lClean = latest.replaceAll(RegExp(r'[vV]'), '').split('+')[0];
+      final cClean = current.replaceAll(RegExp(r'[vV]'), '').split('+')[0];
+      List<int> v1 = lClean.split('.').map(int.parse).toList();
+      List<int> v2 = cClean.split('.').map(int.parse).toList();
       for (int i = 0; i < 3; i++) {
         if (v1[i] > v2[i]) return true;
         if (v1[i] < v2[i]) return false;
