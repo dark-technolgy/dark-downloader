@@ -12,6 +12,8 @@ import 'app/config/theme.dart';
 import 'app/presentation/screens/home_screen.dart';
 import 'app/presentation/screens/onboarding_screen.dart';
 import 'app/services/tool_bootstrapper.dart';
+import 'app/services/ytdlp_bootstrap.dart';
+import 'app/services/rule_pack_sync.dart';
 import 'app/widgets/incoming_links_binding.dart';
 import 'app/providers/locale_provider.dart';
 import 'app/providers/theme_provider.dart';
@@ -105,6 +107,8 @@ Future<void> _backgroundBootstrap() async {
     // D. Finalizing Services
     NotificationService.init().ok();
     ToolBootstrapper.ensure().ok();
+    YtdlpBootstrap.ensure().ok();
+    RulePackSync.ensure().ok();
 
     final bridge = BrowserBridgeService(globalContainer);
     unawaited(bridge.start());

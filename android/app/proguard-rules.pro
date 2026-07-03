@@ -10,6 +10,12 @@
 -keep class com.sun.jna.** { *; }
 -keep class com.google.android.exoplayer2.** { *; }
 
+# FFmpegKit (ffmpeg_kit_flutter_new) — JNI bindings must not be stripped
+-keep class com.arthenica.ffmpegkit.** { *; }
+-keep class com.antonkarpenko.ffmpegkit.** { *; }
+-dontwarn com.arthenica.ffmpegkit.**
+-dontwarn com.antonkarpenko.ffmpegkit.**
+
 # Avoid stripping common libraries
 -keep class io.flutter.plugin.** { *; }
 -keep class io.flutter.embedding.** { *; }

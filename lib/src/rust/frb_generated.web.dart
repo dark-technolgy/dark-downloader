@@ -16,6 +16,7 @@ import 'api/simple.dart';
 import 'api/stream_policy.dart';
 import 'api/universal_extractor.dart';
 import 'api/video_processor.dart';
+import 'api/ytdlp_wrapper.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
@@ -77,6 +78,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double dco_decode_f_64(dynamic raw);
 
   @protected
+  int dco_decode_i_32(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
@@ -90,6 +94,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
+  List<RuleStep> dco_decode_list_rule_step(dynamic raw);
 
   @protected
   List<StreamResult> dco_decode_list_stream_result(dynamic raw);
@@ -121,6 +128,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   (String, String) dco_decode_record_string_string(dynamic raw);
+
+  @protected
+  RuleStep dco_decode_rule_step(dynamic raw);
 
   @protected
   RulesRegistry dco_decode_rules_registry(dynamic raw);
@@ -202,6 +212,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
@@ -221,6 +234,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<(String, String)> sse_decode_list_record_string_string(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<RuleStep> sse_decode_list_rule_step(SseDeserializer deserializer);
 
   @protected
   List<StreamResult> sse_decode_list_stream_result(
@@ -260,6 +276,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RuleStep sse_decode_rule_step(SseDeserializer deserializer);
+
+  @protected
   RulesRegistry sse_decode_rules_registry(SseDeserializer deserializer);
 
   @protected
@@ -282,9 +301,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   VideoInfoResult sse_decode_video_info_result(SseDeserializer deserializer);
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   void sse_encode_AnyhowException(
@@ -356,6 +372,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
@@ -381,6 +400,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<(String, String)> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_rule_step(List<RuleStep> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_stream_result(
@@ -425,6 +447,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_rule_step(RuleStep self, SseSerializer serializer);
+
+  @protected
   void sse_encode_rules_registry(RulesRegistry self, SseSerializer serializer);
 
   @protected
@@ -453,9 +478,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     VideoInfoResult self,
     SseSerializer serializer,
   );
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
 }
 
 // Section: wire_class

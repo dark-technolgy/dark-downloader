@@ -34,14 +34,12 @@ class AuthState {
 
   bool get needsEmailConfirmation => false;
 
-  bool get isPro => true;
-
-  bool get subscriptionUnlocked => true;
-
   /// Display name
   String get displayName {
     final fromProfile = profile?['name'] as String?;
-    if (fromProfile != null && fromProfile.trim().isNotEmpty) return fromProfile;
+    if (fromProfile != null && fromProfile.trim().isNotEmpty) {
+      return fromProfile;
+    }
     final fromMeta = user?.userMetadata?['full_name'] as String?;
     if (fromMeta != null && fromMeta.trim().isNotEmpty) return fromMeta;
     return 'مستخدم';
@@ -147,7 +145,9 @@ class AuthNotifier extends Notifier<AuthState> {
             value: userId,
           ),
           callback: (payload) async {
-            debugPrint('🚨 Profile deleted from DB! Revoking access instantly...');
+            debugPrint(
+              '🚨 Profile deleted from DB! Revoking access instantly...',
+            );
             await supabase.auth.signOut();
           },
         )
@@ -182,7 +182,7 @@ class AuthNotifier extends Notifier<AuthState> {
             'language': currentLocale,
           });
         }
-        
+
         updatedProfile = await supabase
             .from('profiles')
             .select()
@@ -257,10 +257,10 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     try {
       final formattedEmail = _formatEmailOrPhone(email);
-      
+
       // Collect metadata BEFORE signup so the trigger gets it instantly!
       final meta = await DeviceMetadata.collect();
-      
+
       final res = await supabase.auth.signUp(
         email: formattedEmail,
         password: password,
@@ -317,12 +317,15 @@ class AuthNotifier extends Notifier<AuthState> {
     if (user == null) return;
     try {
       // تحديث الاسم في user_metadata أيضاً
-      await supabase.auth.updateUser(UserAttributes(data: {'full_name': name.trim()}));
-      
-      await supabase.from('profiles').update({
-        'name': name.trim(),
-      }).eq('id', user.id);
-      
+      await supabase.auth.updateUser(
+        UserAttributes(data: {'full_name': name.trim()}),
+      );
+
+      await supabase
+          .from('profiles')
+          .update({'name': name.trim()})
+          .eq('id', user.id);
+
       await refreshProfile();
     } catch (e) {
       debugPrint('Update name error: $e');

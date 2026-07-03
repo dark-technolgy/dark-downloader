@@ -9,9 +9,12 @@ import '../../config/localization.dart';
 import '../../providers/download_manager_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../utils/download_error_utils.dart';
+import '../../utils/eta_format_utils.dart';
+import '../../utils/format_file_size.dart';
 import '../../utils/open_download_folder.dart';
 import '../../providers/ai_assistant_provider.dart';
 import '../../providers/vault_provider.dart';
+import '../widgets/responsive_scaffold.dart';
 import 'video_player_screen.dart';
 
 class DownloadHistoryScreen extends ConsumerWidget {
@@ -23,9 +26,11 @@ class DownloadHistoryScreen extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final t = AppLocalization.translate;
     final failedRetryable = state.items
-        .where((i) =>
-            i.status == DownloadStatus.failed &&
-            isRetryableDownloadError(i.error))
+        .where(
+          (i) =>
+              i.status == DownloadStatus.failed &&
+              isRetryableDownloadError(i.error),
+        )
         .length;
 
     return DefaultTabController(
@@ -43,11 +48,13 @@ class DownloadHistoryScreen extends ConsumerWidget {
             if (state.items.any((i) => i.status == DownloadStatus.paused))
               TextButton.icon(
                 onPressed: () {
-                   for (final item in state.items) {
-                     if (item.status == DownloadStatus.paused) {
-                        ref.read(downloadManagerProvider.notifier).resumeDownload(item.id);
-                     }
-                   }
+                  for (final item in state.items) {
+                    if (item.status == DownloadStatus.paused) {
+                      ref
+                          .read(downloadManagerProvider.notifier)
+                          .resumeDownload(item.id);
+                    }
+                  }
                 },
                 icon: const Icon(Icons.play_arrow_rounded, size: 20),
                 label: const Text("استئناف الكل"),
@@ -70,41 +77,43 @@ class DownloadHistoryScreen extends ConsumerWidget {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            if (state.queuePaused)
-              MaterialBanner(
-                content: Text(t('dm_queue_paused_banner', locale)),
-                leading: const Icon(Icons.pause_circle_outline),
-                actions: [
-                  TextButton(
-                    onPressed: () => ref
-                        .read(downloadManagerProvider.notifier)
-                        .setQueuePaused(false),
-                    child: Text(t('dm_resume_queue', locale)),
-                  ),
-                ],
+        body: ReadableWidthContainer(
+          child: Column(
+            children: [
+              if (state.queuePaused)
+                MaterialBanner(
+                  content: Text(t('dm_queue_paused_banner', locale)),
+                  leading: const Icon(Icons.pause_circle_outline),
+                  actions: [
+                    TextButton(
+                      onPressed: () => ref
+                          .read(downloadManagerProvider.notifier)
+                          .setQueuePaused(false),
+                      child: Text(t('dm_resume_queue', locale)),
+                    ),
+                  ],
+                ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _DownloadList(
+                      emptyMessage: t('dm_empty_active', locale),
+                      items: state.items
+                          .where((i) => i.status != DownloadStatus.completed)
+                          .toList(),
+                    ),
+                    _DownloadList(
+                      emptyMessage: t('dm_empty_completed', locale),
+                      items: state.items
+                          .where((i) => i.status == DownloadStatus.completed)
+                          .toList(),
+                      completedTab: true,
+                    ),
+                  ],
+                ),
               ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _DownloadList(
-                    emptyMessage: t('dm_empty_active', locale),
-                    items: state.items
-                        .where((i) => i.status != DownloadStatus.completed)
-                        .toList(),
-                  ),
-                  _DownloadList(
-                    emptyMessage: t('dm_empty_completed', locale),
-                    items: state.items
-                        .where((i) => i.status == DownloadStatus.completed)
-                        .toList(),
-                    completedTab: true,
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -164,7 +173,10 @@ class _DownloadTile extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalization.translate('dm_file_missing', Localizations.localeOf(context)),
+            AppLocalization.translate(
+              'dm_file_missing',
+              Localizations.localeOf(context),
+            ),
           ),
         ),
       );
@@ -173,10 +185,8 @@ class _DownloadTile extends ConsumerWidget {
     if (!context.mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => VideoPlayerScreen(
-          source: item.filePath,
-          title: item.title,
-        ),
+        builder: (_) =>
+            VideoPlayerScreen(source: item.filePath, title: item.title),
       ),
     );
   }
@@ -186,16 +196,13 @@ class _DownloadTile extends ConsumerWidget {
     final file = File(item.filePath);
     if (!await file.exists()) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t('dm_file_missing', locale))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t('dm_file_missing', locale))));
       return;
     }
     // ignore: deprecated_member_use
-    await Share.shareXFiles(
-      [XFile(item.filePath)],
-      text: item.title,
-    );
+    await Share.shareXFiles([XFile(item.filePath)], text: item.title);
   }
 
   Future<void> _openFolder(BuildContext context, Locale locale) async {
@@ -217,31 +224,52 @@ class _DownloadTile extends ConsumerWidget {
             final aiState = ref.watch(aiAssistantProvider);
             return AlertDialog(
               backgroundColor: const Color(0xFF0A0A0A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: Colors.amber, width: 0.5)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: Colors.amber, width: 0.5),
+              ),
               title: const Row(
                 children: [
                   Icon(Icons.auto_awesome_rounded, color: Colors.amber),
                   SizedBox(width: 12),
-                  Text("ملخص ذكاء دارك", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  Text(
+                    "ملخص ذكاء دارك",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (aiState.status == AiTaskStatus.idle)
-                    const Text("هل تريد استخدام الذكاء الاصطناعي لتلخيص محتوى هذا الفيديو؟", style: TextStyle(color: Colors.grey))
+                    const Text(
+                      "هل تريد استخدام الذكاء الاصطناعي لتلخيص محتوى هذا الفيديو؟",
+                      style: TextStyle(color: Colors.grey),
+                    )
                   else if (aiState.status == AiTaskStatus.processing)
                     const Column(
                       children: [
                         CircularProgressIndicator(color: Colors.amber),
                         SizedBox(height: 20),
-                        Text("جاري قراءة الفيديو وتحليله...", style: TextStyle(color: Colors.grey)),
+                        Text(
+                          "جاري قراءة الفيديو وتحليله...",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ],
                     )
                   else if (aiState.status == AiTaskStatus.completed)
-                    Text(aiState.result ?? "لا يتوفر ملخص لهذا الفيديو.", style: const TextStyle(color: Colors.white70))
+                    Text(
+                      aiState.result ?? "لا يتوفر ملخص لهذا الفيديو.",
+                      style: const TextStyle(color: Colors.white70),
+                    )
                   else
-                    Text(aiState.errorMessage ?? "حدث خطأ أثناء المعالجة.", style: const TextStyle(color: Colors.redAccent)),
+                    Text(
+                      aiState.errorMessage ?? "حدث خطأ أثناء المعالجة.",
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
                 ],
               ),
               actions: [
@@ -249,18 +277,26 @@ class _DownloadTile extends ConsumerWidget {
                   onPressed: () {
                     ref.read(aiAssistantProvider.notifier).reset();
                     Navigator.pop(context);
-                  }, 
-                  child: const Text("إغلاق", style: TextStyle(color: Colors.grey))
+                  },
+                  child: const Text(
+                    "إغلاق",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 if (aiState.status == AiTaskStatus.idle)
                   ElevatedButton(
-                    onPressed: () => ref.read(aiAssistantProvider.notifier).summarizeVideo(item.title, ""),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+                    onPressed: () => ref
+                        .read(aiAssistantProvider.notifier)
+                        .summarizeVideo(item.title, ""),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.black,
+                    ),
                     child: const Text("ابدأ التلخيص الآن"),
                   ),
               ],
             );
-          }
+          },
         );
       },
     );
@@ -275,31 +311,54 @@ class _DownloadTile extends ConsumerWidget {
             final aiState = ref.watch(aiAssistantProvider);
             return AlertDialog(
               backgroundColor: const Color(0xFF0A0A0A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: Colors.blueAccent, width: 0.5)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: Colors.blueAccent, width: 0.5),
+              ),
               title: const Row(
                 children: [
                   Icon(Icons.closed_caption_rounded, color: Colors.blueAccent),
                   SizedBox(width: 12),
-                  Text("ترجمة ذكاء دارك", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  Text(
+                    "ترجمة ذكاء دارك",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (aiState.status == AiTaskStatus.idle)
-                    const Text("هل تريد تحويل الكلام في هذا الفيديو إلى نص (ترجمة تلقائية)؟", style: TextStyle(color: Colors.grey))
+                    const Text(
+                      "هل تريد تحويل الكلام في هذا الفيديو إلى نص (ترجمة تلقائية)؟",
+                      style: TextStyle(color: Colors.grey),
+                    )
                   else if (aiState.status == AiTaskStatus.processing)
                     const Column(
                       children: [
                         CircularProgressIndicator(color: Colors.blueAccent),
                         SizedBox(height: 20),
-                        Text("جاري استخراج الكلام وتحليله...", style: TextStyle(color: Colors.grey)),
+                        Text(
+                          "جاري استخراج الكلام وتحليله...",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ],
                     )
                   else if (aiState.status == AiTaskStatus.completed)
-                    SingleChildScrollView(child: Text(aiState.result ?? "لا يتوفر نص لهذا الفيديو.", style: const TextStyle(color: Colors.white70)))
+                    SingleChildScrollView(
+                      child: Text(
+                        aiState.result ?? "لا يتوفر نص لهذا الفيديو.",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    )
                   else
-                    Text(aiState.errorMessage ?? "حدث خطأ أثناء المعالجة.", style: const TextStyle(color: Colors.redAccent)),
+                    Text(
+                      aiState.errorMessage ?? "حدث خطأ أثناء المعالجة.",
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
                 ],
               ),
               actions: [
@@ -307,18 +366,26 @@ class _DownloadTile extends ConsumerWidget {
                   onPressed: () {
                     ref.read(aiAssistantProvider.notifier).reset();
                     Navigator.pop(context);
-                  }, 
-                  child: const Text("إغلاق", style: TextStyle(color: Colors.grey))
+                  },
+                  child: const Text(
+                    "إغلاق",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 if (aiState.status == AiTaskStatus.idle)
                   ElevatedButton(
-                    onPressed: () => ref.read(aiAssistantProvider.notifier).transcribeVideo(item.filePath),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
+                    onPressed: () => ref
+                        .read(aiAssistantProvider.notifier)
+                        .transcribeVideo(item.filePath),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                    ),
                     child: const Text("ابدأ الترجمة الآن"),
                   ),
               ],
             );
-          }
+          },
         );
       },
     );
@@ -328,10 +395,17 @@ class _DownloadTile extends ConsumerWidget {
     if (item.phase != null && item.phase!.contains('mux')) {
       return t('dm_merging', locale);
     }
+    if (item.phase == 'extracting_audio') {
+      return t('dm_extracting_audio', locale);
+    }
     switch (item.status) {
       case DownloadStatus.downloading:
-        return t('dm_downloading_label', locale)
-            .replaceAll('{size}', '${(item.progress * 100).toStringAsFixed(0)}%');
+        final pct = (item.progress * 100).toStringAsFixed(0);
+        if (item.totalBytes > 0) {
+          return '${formatFileSizeBytes(item.downloadedBytes)} / '
+              '${formatFileSizeBytes(item.totalBytes)} \u00B7 $pct%';
+        }
+        return t('dm_downloading_label', locale).replaceAll('{size}', '$pct%');
       case DownloadStatus.paused:
         return t('dm_paused', locale);
       case DownloadStatus.queued:
@@ -339,6 +413,10 @@ class _DownloadTile extends ConsumerWidget {
       case DownloadStatus.failed:
         return t(item.error ?? 'dm_fallback_failed', locale);
       case DownloadStatus.completed:
+        if (item.totalBytes > 0) {
+          return '${t('success', locale)} \u00B7 '
+              '${formatFileSizeBytes(item.totalBytes)}';
+        }
         return t('success', locale);
       case DownloadStatus.cancelled:
         return t('dm_err_cancelled', locale);
@@ -375,7 +453,8 @@ class _DownloadTile extends ConsumerWidget {
                               item.thumbnailUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => ColoredBox(
-                                color: theme.colorScheme.surfaceContainerHighest,
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
                                 child: Icon(
                                   Icons.video_library_rounded,
                                   color: theme.colorScheme.primary,
@@ -444,10 +523,16 @@ class _DownloadTile extends ConsumerWidget {
                         case 'open':
                           await OpenFile.open(item.filePath);
                         case 'vault':
-                          await ref.read(vaultProvider.notifier).encryptFile(File(item.filePath));
+                          await ref
+                              .read(vaultProvider.notifier)
+                              .encryptFile(File(item.filePath));
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('تم تشفير الملف ونقله للخزنة بنجاح 🔒')),
+                              const SnackBar(
+                                content: Text(
+                                  'تم تشفير الملف ونقله للخزنة بنجاح 🔒',
+                                ),
+                              ),
                             );
                           }
                         case 'ai_summary':
@@ -505,8 +590,14 @@ class _DownloadTile extends ConsumerWidget {
                         PopupMenuItem(
                           value: 'ai_summary',
                           child: ListTile(
-                            leading: const Icon(Icons.auto_awesome_rounded, color: Colors.amber),
-                            title: const Text('ملخص ذكي (AI)', style: TextStyle(color: Colors.amber)),
+                            leading: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: Colors.amber,
+                            ),
+                            title: const Text(
+                              'ملخص ذكي (AI)',
+                              style: TextStyle(color: Colors.amber),
+                            ),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -514,8 +605,14 @@ class _DownloadTile extends ConsumerWidget {
                         PopupMenuItem(
                           value: 'ai_transcribe',
                           child: ListTile(
-                            leading: const Icon(Icons.closed_caption_rounded, color: Colors.blueAccent),
-                            title: const Text('ترجمة تلقائية (AI)', style: TextStyle(color: Colors.blueAccent)),
+                            leading: const Icon(
+                              Icons.closed_caption_rounded,
+                              color: Colors.blueAccent,
+                            ),
+                            title: const Text(
+                              'ترجمة تلقائية (AI)',
+                              style: TextStyle(color: Colors.blueAccent),
+                            ),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -523,8 +620,14 @@ class _DownloadTile extends ConsumerWidget {
                         PopupMenuItem(
                           value: 'vault',
                           child: ListTile(
-                            leading: const Icon(Icons.security_rounded, color: Color(0xFF00A3FF)),
-                            title: const Text('تشفير ونقل للخزنة 🔒', style: TextStyle(color: Color(0xFF00A3FF))),
+                            leading: const Icon(
+                              Icons.security_rounded,
+                              color: Color(0xFF00A3FF),
+                            ),
+                            title: const Text(
+                              'تشفير ونقل للخزنة 🔒',
+                              style: TextStyle(color: Color(0xFF00A3FF)),
+                            ),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -559,8 +662,10 @@ class _DownloadTile extends ConsumerWidget {
                       PopupMenuItem(
                         value: 'cancel',
                         child: ListTile(
-                          leading: Icon(Icons.delete_outline,
-                              color: theme.colorScheme.error),
+                          leading: Icon(
+                            Icons.delete_outline,
+                            color: theme.colorScheme.error,
+                          ),
                           title: Text(
                             t('delete', locale),
                             style: TextStyle(color: theme.colorScheme.error),
@@ -581,6 +686,31 @@ class _DownloadTile extends ConsumerWidget {
                     minHeight: 6,
                   ),
                 ),
+                if (item.status == DownloadStatus.downloading &&
+                    (item.speedBytesSec > 0 || item.etaSeconds > 0)) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (item.speedBytesSec > 0)
+                        Text(
+                          '${formatFileSizeBytes(item.speedBytesSec)}/s',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      if (item.etaSeconds > 0)
+                        Text(
+                          formatEtaSeconds(item.etaSeconds, locale),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ],
               if (item.status == DownloadStatus.completed) ...[
                 const SizedBox(height: 10),

@@ -10,8 +10,8 @@ import 'package:uuid/uuid.dart';
 import '../../src/rust/api/downloader.dart' as rust_downloader;
 import '../models/video_model.dart';
 import '../providers/extractor_provider.dart';
-import '../../src/rust/api/video_processor.dart' as rust_video_processor;
 import '../services/bundled_ffmpeg_path.dart';
+import '../services/media_processor.dart';
 import '../services/notification_service.dart';
 import '../services/permission_service.dart';
 import '../services/storage_service.dart';
@@ -40,13 +40,19 @@ class DownloadItem {
   final DownloadStatus status;
   final DateTime createdAt;
   final DateTime? scheduledAt;
+  final DateTime? completedAt;
   final String? audioOutputFormat;
+  final String videoOutputFormat;
   final String? error;
   final String pageUrl;
   final String? audioStreamUrl;
   final int connections;
   final int retryCount;
   final String? phase;
+  final int downloadedBytes;
+  final int totalBytes;
+  final int speedBytesSec;
+  final int etaSeconds;
 
   DownloadItem({
     required this.id,
@@ -60,13 +66,19 @@ class DownloadItem {
     this.status = DownloadStatus.queued,
     required this.createdAt,
     this.scheduledAt,
+    this.completedAt,
     this.audioOutputFormat,
+    this.videoOutputFormat = 'mp4',
     this.error,
     this.pageUrl = '',
     this.audioStreamUrl,
     this.connections = 8,
     this.retryCount = 0,
     this.phase,
+    this.downloadedBytes = 0,
+    this.totalBytes = 0,
+    this.speedBytesSec = 0,
+    this.etaSeconds = 0,
   });
 
   DownloadItem copyWith({
@@ -78,6 +90,11 @@ class DownloadItem {
     int? retryCount,
     String? phase,
     bool clearPhase = false,
+    int? downloadedBytes,
+    int? totalBytes,
+    int? speedBytesSec,
+    int? etaSeconds,
+    DateTime? completedAt,
   }) {
     return DownloadItem(
       id: id,
@@ -91,13 +108,19 @@ class DownloadItem {
       status: status ?? this.status,
       createdAt: createdAt,
       scheduledAt: scheduledAt,
+      completedAt: completedAt ?? this.completedAt,
       audioOutputFormat: audioOutputFormat,
+      videoOutputFormat: videoOutputFormat,
       error: clearError ? null : (error ?? this.error),
       pageUrl: pageUrl,
       audioStreamUrl: audioStreamUrl,
       connections: connections,
       retryCount: retryCount ?? this.retryCount,
       phase: clearPhase ? null : (phase ?? this.phase),
+      downloadedBytes: downloadedBytes ?? this.downloadedBytes,
+      totalBytes: totalBytes ?? this.totalBytes,
+      speedBytesSec: speedBytesSec ?? this.speedBytesSec,
+      etaSeconds: etaSeconds ?? this.etaSeconds,
     );
   }
 
@@ -113,13 +136,17 @@ class DownloadItem {
     'status': status.index,
     'createdAt': createdAt.toIso8601String(),
     'scheduledAt': scheduledAt?.toIso8601String(),
+    'completedAt': completedAt?.toIso8601String(),
     'audioOutputFormat': audioOutputFormat,
+    'videoOutputFormat': videoOutputFormat,
     'error': error,
     'pageUrl': pageUrl,
     'audioStreamUrl': audioStreamUrl,
     'connections': connections,
     'retryCount': retryCount,
     'phase': phase,
+    'downloadedBytes': downloadedBytes,
+    'totalBytes': totalBytes,
   };
 
   factory DownloadItem.fromJson(Map<String, dynamic> json) => DownloadItem(
@@ -136,13 +163,19 @@ class DownloadItem {
     scheduledAt: json['scheduledAt'] != null
         ? DateTime.parse(json['scheduledAt'] as String)
         : null,
+    completedAt: json['completedAt'] != null
+        ? DateTime.parse(json['completedAt'] as String)
+        : null,
     audioOutputFormat: json['audioOutputFormat'] as String?,
+    videoOutputFormat: json['videoOutputFormat'] as String? ?? 'mp4',
     error: json['error'] as String?,
     pageUrl: json['pageUrl'] as String? ?? json['url'] as String? ?? '',
     audioStreamUrl: json['audioStreamUrl'] as String?,
     connections: json['connections'] as int? ?? 8,
     retryCount: json['retryCount'] as int? ?? 0,
     phase: json['phase'] as String?,
+    downloadedBytes: (json['downloadedBytes'] as num?)?.toInt() ?? 0,
+    totalBytes: (json['totalBytes'] as num?)?.toInt() ?? 0,
   );
 }
 
@@ -247,6 +280,10 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
       newItems[i] = item.copyWith(
         progress: snap.percent / 100.0,
         phase: snap.phase,
+        downloadedBytes: snap.downloadedBytes.toInt(),
+        totalBytes: snap.totalBytes.toInt(),
+        speedBytesSec: snap.speedBytesSec.toInt(),
+        etaSeconds: snap.etaSeconds.toInt(),
       );
       updated = true;
     }
@@ -308,9 +345,16 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     final downloadsDir = (await StorageService.getDownloadsDirectory()).path;
     final ext = stream?.format ?? 'mp4';
 
-    // When merging video+audio, the final format is always mp4
-    // (FFmpeg muxes into mp4 container unless both streams are webm)
-    final finalExt = (audioStream != null && ext != 'webm') ? 'mp4' : ext;
+    // Final container rules — كل الصيغ عالمية تعمل على كل المنصات:
+    //  - الصوت فقط: يُحوّل لاحقاً إلى صيغة الصوت المختارة (mp3 / m4a).
+    //  - الفيديو مع صوت منفصل: صيغة الإخراج **تتبع حاوية المصدر** لتجنب
+    //    إعادة الترميز البطيئة/الفاشلة — WEBM(VP9) يبقى webm، وأي شيء آخر
+    //    (H.264 وغيره) → mp4. هذا يطابق تماماً محرك الدمج في Rust فيتم
+    //    النسخ السريع بلا فشل. الصوت يُرمَّز إلى الكودك المناسب للحاوية.
+    //  - Progressive (فيديو+صوت مدمج): يحتفظ بامتداده الأصلي.
+    final srcIsWebm = ext.toLowerCase() == 'webm';
+    final videoOutputFormat = srcIsWebm ? 'webm' : 'mp4';
+    final finalExt = audioStream != null ? videoOutputFormat : ext;
 
     final safeName = await rust_downloader.safeFilename(
       title: video.title,
@@ -329,6 +373,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
       createdAt: DateTime.now(),
       scheduledAt: scheduledAt,
       audioOutputFormat: audioOutputFormat,
+      videoOutputFormat: videoOutputFormat,
       pageUrl: video.url,
       audioStreamUrl: audioStream?.url,
       connections: connections,
@@ -362,6 +407,12 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
     try {
       final ffmpegPath = await resolveDesktopFfmpegPath();
+      // On mobile there is no FFmpeg binary for the Rust subprocess to spawn,
+      // so skip Rust's internal mux (it would always fail) and let
+      // MediaProcessor merge the sidecar via ffmpeg_kit below.
+      final rustMuxFfmpeg = (Platform.isAndroid || Platform.isIOS)
+          ? ''
+          : ffmpegPath;
 
       final result = await rust_downloader.downloadFileV2(
         url: item.url,
@@ -369,7 +420,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         audioUrl: item.audioStreamUrl,
         jobId: item.id,
         connections: item.connections,
-        muxFfmpeg: ffmpegPath,
+        muxFfmpeg: rustMuxFfmpeg,
       );
 
       String finalPath = result.filePath;
@@ -395,8 +446,14 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
                 .toList(),
           );
 
-          final mergedTmp = p.join(dir.path, '$stem.ffmpeg.muxing.mp4');
-          rust_video_processor.muxVideoAudio(
+          // امتداد ملف الدمج المؤقت يتبع امتداد الملف النهائي الفعلي
+          // (webm أو mp4) لضمان تطابق الحاوية مع الكودك وتفادي الفشل.
+          final outExt = p.extension(finalPath).replaceFirst('.', '');
+          final mergedTmp = p.join(
+            dir.path,
+            '$stem.ffmpeg.muxing.${outExt.isEmpty ? 'mp4' : outExt}',
+          );
+          await MediaProcessor.muxVideoAudio(
             videoPath: finalPath,
             audioPath: sidecarAudio.path,
             outputPath: mergedTmp,
@@ -423,41 +480,173 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         final dirName = p.dirname(result.filePath);
         final finalAudioPath = p.join(dirName, '$baseName.$audioExt');
 
-        try {
-          // Unified Rust processor for all platforms
-          if (audioExt == 'mp3') {
-            rust_video_processor.convertToMp3(
-              inputPath: result.filePath,
-              outputPath: finalAudioPath,
-              ffmpegPath: ffmpegPath,
-            );
-          } else {
-            rust_video_processor.extractAudio(
-              videoPath: result.filePath,
-              outputPath: finalAudioPath,
-              ffmpegPath: ffmpegPath,
-            );
+        // If the source file happens to already carry the target extension
+        // (e.g. we downloaded a raw .mp3), use a scratch output path so
+        // FFmpeg never has input == output.
+        final sameAsSource = p.equals(result.filePath, finalAudioPath);
+        final scratchOut = sameAsSource
+            ? p.join(dirName, '$baseName.__tmp__.$audioExt')
+            : finalAudioPath;
+
+        if (audioExt == 'mp3') {
+          String? coverTmpPath;
+          if (item.thumbnailUrl.isNotEmpty) {
+            try {
+              coverTmpPath = await _downloadThumbnailToTemp(
+                item.thumbnailUrl,
+                p.join(dirName, '.$baseName.cover.jpg'),
+              );
+            } catch (_) {
+              coverTmpPath = null;
+            }
           }
-          finalPath = finalAudioPath;
+
+          // Attempt 1: rich MP3 (metadata + embedded cover). Cover embed can
+          // fail on odd source thumbnails (e.g. animated WebP); fall through
+          // silently.
+          var richOk = false;
           try {
-            await File(
-              result.filePath,
-            ).delete(); // Delete the original video/audio stream file
-          } catch (_) {}
-        } catch (e) {
-          throw Exception('Audio extraction failed: $e');
+            await MediaProcessor.convertToMp3Rich(
+              inputPath: result.filePath,
+              outputPath: scratchOut,
+              ffmpegPath: ffmpegPath,
+              title: item.title.isNotEmpty ? item.title : null,
+              artist: item.platform.isNotEmpty ? item.platform : null,
+              album: item.platform.isNotEmpty ? item.platform : null,
+              comment: item.pageUrl.isNotEmpty ? item.pageUrl : null,
+              coverPath: coverTmpPath,
+            );
+            richOk = await File(scratchOut).exists();
+          } catch (_) {
+            richOk = false;
+          }
+
+          // Attempt 2: rich without cover (metadata only). Handles the
+          // "cover format not supported" branch without dropping tags.
+          if (!richOk && coverTmpPath != null) {
+            try {
+              await MediaProcessor.convertToMp3Rich(
+                inputPath: result.filePath,
+                outputPath: scratchOut,
+                ffmpegPath: ffmpegPath,
+                title: item.title.isNotEmpty ? item.title : null,
+                artist: item.platform.isNotEmpty ? item.platform : null,
+                album: item.platform.isNotEmpty ? item.platform : null,
+                comment: item.pageUrl.isNotEmpty ? item.pageUrl : null,
+                coverPath: null,
+              );
+              richOk = await File(scratchOut).exists();
+            } catch (_) {
+              richOk = false;
+            }
+          }
+
+          // Attempt 3: plain conversion — the safety net.
+          if (!richOk) {
+            try {
+              await MediaProcessor.convertToMp3(
+                inputPath: result.filePath,
+                outputPath: scratchOut,
+                ffmpegPath: ffmpegPath,
+              );
+            } catch (e) {
+              if (!await File(scratchOut).exists()) {
+                throw Exception('MP3 conversion failed: $e');
+              }
+            }
+          }
+
+          if (coverTmpPath != null) {
+            try {
+              await File(coverTmpPath).delete();
+            } catch (_) {}
+          }
+        } else {
+          try {
+            await MediaProcessor.extractAudio(
+              videoPath: result.filePath,
+              outputPath: scratchOut,
+              ffmpegPath: ffmpegPath,
+            );
+          } catch (e) {
+            if (!await File(scratchOut).exists()) {
+              throw Exception('Audio extraction failed: $e');
+            }
+          }
         }
+
+        // Ground truth: did we actually produce an audio file?
+        if (!await File(scratchOut).exists()) {
+          throw Exception('Audio conversion produced no output file.');
+        }
+
+        if (sameAsSource) {
+          try {
+            await File(result.filePath).delete();
+          } catch (_) {}
+          await File(scratchOut).rename(finalAudioPath);
+        } else {
+          try {
+            await File(result.filePath).delete();
+          } catch (_) {}
+        }
+        finalPath = finalAudioPath;
       }
 
-      _onComplete(item.id, finalPath);
+      await _onComplete(item.id, finalPath);
     } catch (e) {
       _onFailed(item.id, e.toString());
     }
   }
 
-  void _onComplete(String id, String finalPath) {
+  /// Download a thumbnail to a local temp path (JPG/PNG accepted by FFmpeg mjpeg).
+  /// Returns the local path on success; throws on failure.
+  Future<String> _downloadThumbnailToTemp(String url, String targetPath) async {
+    final uri = Uri.parse(url);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 15);
+    try {
+      final req = await client.getUrl(uri);
+      req.headers.set(
+        'user-agent',
+        'Mozilla/5.0 (dark_downloader/thumb-fetch)',
+      );
+      final resp = await req.close();
+      if (resp.statusCode < 200 || resp.statusCode >= 300) {
+        throw Exception('HTTP ${resp.statusCode}');
+      }
+      final file = File(targetPath);
+      final sink = file.openWrite();
+      await resp.pipe(sink);
+      return targetPath;
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<void> _onComplete(String id, String finalPath) async {
     final index = state.items.indexWhere((i) => i.id == id);
     if (index == -1) return;
+
+    // Ground truth: the file must exist on disk and have non-zero size before
+    // we declare the download "complete". Prevents the "says done while
+    // background work is still running" class of bugs.
+    int finalSize = 0;
+    try {
+      final f = File(finalPath);
+      if (!await f.exists()) {
+        _onFailed(id, 'Output file missing at completion: $finalPath');
+        return;
+      }
+      finalSize = await f.length();
+      if (finalSize <= 0) {
+        _onFailed(id, 'Output file is empty at completion: $finalPath');
+        return;
+      }
+    } catch (e) {
+      _onFailed(id, 'Completion check failed: $e');
+      return;
+    }
 
     _retryScheduled.remove(id);
     state = state.copyWith(
@@ -470,12 +659,17 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
                     filePath: finalPath,
                     clearPhase: true,
                     clearError: true,
+                    downloadedBytes: finalSize,
+                    totalBytes: finalSize,
+                    speedBytesSec: 0,
+                    etaSeconds: 0,
+                    completedAt: DateTime.now(),
                   )
                 : i,
           )
           .toList(),
     );
-    _save();
+    await _save();
 
     NotificationService.showComplete(
       id: id.hashCode,

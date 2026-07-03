@@ -205,7 +205,50 @@ pub async fn extract(url: String) -> Result<ExtractionResult, String> {
 
     match extract_with_options(&url, bypass_blocks).await {
         Ok(v) => Ok(ExtractionResult::Video(v)),
-        Err(e) => Err(e),
+        Err(native_err) => {
+            // Cascade layer 1: remote rule pack (works on every platform,
+            // Android included, because it's pure data + regex — no external
+            // binary needed). This is what makes Android self-healing.
+            match super::remote_rules::extract_via_rules(&url).await {
+                Ok(v) if !v.streams.is_empty() => {
+                    debug_log::log_debug(&format!(
+                        "Native extractor failed ({}); satisfied by remote rules",
+                        native_err
+                    ));
+                    return Ok(ExtractionResult::Video(v));
+                }
+                Ok(_) => {
+                    debug_log::log_debug(
+                        "remote rules produced no streams; trying yt-dlp fallback if available",
+                    );
+                }
+                Err(rules_err) => {
+                    debug_log::log_debug(&format!(
+                        "remote rules did not match ({}); trying yt-dlp fallback if available",
+                        rules_err
+                    ));
+                }
+            }
+
+            // Cascade layer 2: yt-dlp binary (desktop-only). Community-maintained,
+            // survives most upstream platform changes (cipher rotations, audio-
+            // protection, API deprecations) between our app releases.
+            if super::ytdlp_wrapper::is_ytdlp_available() {
+                debug_log::log_debug(&format!(
+                    "Native extractor failed ({}); falling back to yt-dlp",
+                    native_err
+                ));
+                match super::ytdlp_wrapper::extract_via_ytdlp(&url).await {
+                    Ok(v) => Ok(ExtractionResult::Video(v)),
+                    Err(ytdlp_err) => Err(format!(
+                        "Native: {} | yt-dlp fallback: {}",
+                        native_err, ytdlp_err
+                    )),
+                }
+            } else {
+                Err(native_err)
+            }
+        }
     }
 }
 

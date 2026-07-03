@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -385141431;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1828816140;
 
 // Section: executor
 
@@ -159,6 +159,56 @@ fn wire__crate__api__video_processor__convert_to_mp3_impl(
         },
     )
 }
+fn wire__crate__api__video_processor__convert_to_mp3_rich_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "convert_to_mp3_rich",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_input_path = <String>::sse_decode(&mut deserializer);
+            let api_output_path = <String>::sse_decode(&mut deserializer);
+            let api_ffmpeg_path = <String>::sse_decode(&mut deserializer);
+            let api_title = <Option<String>>::sse_decode(&mut deserializer);
+            let api_artist = <Option<String>>::sse_decode(&mut deserializer);
+            let api_album = <Option<String>>::sse_decode(&mut deserializer);
+            let api_date = <Option<String>>::sse_decode(&mut deserializer);
+            let api_comment = <Option<String>>::sse_decode(&mut deserializer);
+            let api_cover_path = <Option<String>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::video_processor::convert_to_mp3_rich(
+                        api_input_path,
+                        api_output_path,
+                        api_ffmpeg_path,
+                        api_title,
+                        api_artist,
+                        api_album,
+                        api_date,
+                        api_comment,
+                        api_cover_path,
+                    )?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
 fn wire__crate__api__downloader__download_file_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -246,6 +296,44 @@ fn wire__crate__api__downloader__download_file_v2_impl(
         },
     )
 }
+fn wire__crate__api__video_processor__embed_album_art_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "embed_album_art",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_mp3_path = <String>::sse_decode(&mut deserializer);
+            let api_cover_path = <String>::sse_decode(&mut deserializer);
+            let api_ffmpeg_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::video_processor::embed_album_art(
+                        api_mp3_path,
+                        api_cover_path,
+                        api_ffmpeg_path,
+                    )?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
 fn wire__crate__api__extractor__extract_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -320,6 +408,43 @@ fn wire__crate__api__video_processor__extract_audio_impl(
         },
     )
 }
+fn wire__crate__api__ytdlp_wrapper__extract_audio_via_ytdlp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "extract_audio_via_ytdlp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_url = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok =
+                            crate::api::ytdlp_wrapper::extract_audio_via_ytdlp(&api_url).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__universal_extractor__extract_ultra_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -349,6 +474,80 @@ fn wire__crate__api__universal_extractor__extract_ultra_impl(
                     (move || async move {
                         let output_ok =
                             crate::api::universal_extractor::extract_ultra(api_url).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__remote_rules__extract_via_rules_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "extract_via_rules",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_url = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, String>(
+                    (move || async move {
+                        let output_ok =
+                            crate::api::remote_rules::extract_via_rules(&api_url).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__ytdlp_wrapper__extract_via_ytdlp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "extract_via_ytdlp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_url = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok =
+                            crate::api::ytdlp_wrapper::extract_via_ytdlp(&api_url).await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -564,6 +763,36 @@ fn wire__crate__api__simple__init_app_impl(
         },
     )
 }
+fn wire__crate__api__ytdlp_wrapper__is_ytdlp_available_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "is_ytdlp_available",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::ytdlp_wrapper::is_ytdlp_available())?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__video_processor__mux_video_audio_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -601,6 +830,39 @@ fn wire__crate__api__video_processor__mux_video_audio_impl(
                     Ok(output_ok)
                 })(),
             )
+        },
+    )
+}
+fn wire__crate__api__remote_rules__platform_rule_default_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "platform_rule_default",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::remote_rules::PlatformRule::default())?;
+                    Ok(output_ok)
+                })())
+            }
         },
     )
 }
@@ -863,6 +1125,39 @@ fn wire__crate__api__adblock_engine__rust_init_adblocker_impl(
         },
     )
 }
+fn wire__crate__api__remote_rules__rust_install_bundled_rules_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "rust_install_bundled_rules",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_json = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::remote_rules::rust_install_bundled_rules(api_json)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__adblock_engine__rust_should_block_url_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1038,6 +1333,38 @@ fn wire__crate__api__downloader__set_download_proxy_impl(
                     Ok(output_ok)
                 })())
             }
+        },
+    )
+}
+fn wire__crate__api__ytdlp_wrapper__set_ytdlp_binary_path_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "set_ytdlp_binary_path",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::ytdlp_wrapper::set_ytdlp_binary_path(api_path);
+                })?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -1263,6 +1590,13 @@ impl SseDecode for f64 {
     }
 }
 
+impl SseDecode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1320,6 +1654,20 @@ impl SseDecode for Vec<(String, String)> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<(String, String)>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::remote_rules::RuleStep> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::remote_rules::RuleStep>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -1401,10 +1749,18 @@ impl SseDecode for crate::api::remote_rules::PlatformRule {
         let mut var_version = <u32>::sse_decode(deserializer);
         let mut var_patterns =
             <std::collections::HashMap<String, String>>::sse_decode(deserializer);
+        let mut var_urlPatterns = <Vec<String>>::sse_decode(deserializer);
+        let mut var_userAgent = <Option<String>>::sse_decode(deserializer);
+        let mut var_priority = <i32>::sse_decode(deserializer);
+        let mut var_steps = <Vec<crate::api::remote_rules::RuleStep>>::sse_decode(deserializer);
         return crate::api::remote_rules::PlatformRule {
             platform: var_platform,
             version: var_version,
             patterns: var_patterns,
+            url_patterns: var_urlPatterns,
+            user_agent: var_userAgent,
+            priority: var_priority,
+            steps: var_steps,
         };
     }
 }
@@ -1445,6 +1801,70 @@ impl SseDecode for (String, String) {
         let mut var_field0 = <String>::sse_decode(deserializer);
         let mut var_field1 = <String>::sse_decode(deserializer);
         return (var_field0, var_field1);
+    }
+}
+
+impl SseDecode for crate::api::remote_rules::RuleStep {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_url = <String>::sse_decode(deserializer);
+                let mut var_asVar = <String>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::Fetch {
+                    url: var_url,
+                    as_var: var_asVar,
+                };
+            }
+            1 => {
+                let mut var_input = <String>::sse_decode(deserializer);
+                let mut var_pattern = <String>::sse_decode(deserializer);
+                let mut var_asVar = <String>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::RegexExtract {
+                    input: var_input,
+                    pattern: var_pattern,
+                    as_var: var_asVar,
+                };
+            }
+            2 => {
+                let mut var_input = <String>::sse_decode(deserializer);
+                let mut var_pattern = <String>::sse_decode(deserializer);
+                let mut var_asVar = <String>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::RegexFindAll {
+                    input: var_input,
+                    pattern: var_pattern,
+                    as_var: var_asVar,
+                };
+            }
+            3 => {
+                let mut var_url = <String>::sse_decode(deserializer);
+                let mut var_quality = <String>::sse_decode(deserializer);
+                let mut var_container = <String>::sse_decode(deserializer);
+                let mut var_isAudioOnly = <bool>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::BuildStream {
+                    url: var_url,
+                    quality: var_quality,
+                    container: var_container,
+                    is_audio_only: var_isAudioOnly,
+                };
+            }
+            4 => {
+                let mut var_value = <String>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::SetTitle { value: var_value };
+            }
+            5 => {
+                let mut var_value = <String>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::SetThumbnail { value: var_value };
+            }
+            6 => {
+                let mut var_value = <String>::sse_decode(deserializer);
+                return crate::api::remote_rules::RuleStep::SetAuthor { value: var_value };
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -1556,13 +1976,6 @@ impl SseDecode for crate::api::models::VideoInfoResult {
     }
 }
 
-impl SseDecode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
-    }
-}
-
 fn pde_ffi_dispatcher_primary_impl(
     func_id: i32,
     port: flutter_rust_bridge::for_generated::MessagePort,
@@ -1573,85 +1986,115 @@ fn pde_ffi_dispatcher_primary_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__downloader__cancel_job_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__downloader__download_file_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__downloader__download_file_v2_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__extractor__extract_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__universal_extractor__extract_ultra_impl(
+        5 => wire__crate__api__downloader__download_file_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__downloader__download_file_v2_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__extractor__extract_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__ytdlp_wrapper__extract_audio_via_ytdlp_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        9 => wire__crate__api__extractor__extract_with_options_impl(
+        11 => wire__crate__api__universal_extractor__extract_ultra_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        10 => {
+        12 => wire__crate__api__remote_rules__extract_via_rules_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        13 => wire__crate__api__ytdlp_wrapper__extract_via_ytdlp_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        14 => wire__crate__api__extractor__extract_with_options_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        15 => {
             wire__crate__api__downloader__get_downloads_dir_impl(port, ptr, rust_vec_len, data_len)
         }
-        11 => {
+        16 => {
             wire__crate__api__downloader__get_job_progress_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => wire__crate__api__remote_rules__get_remote_pattern_impl(
+        17 => wire__crate__api__remote_rules__get_remote_pattern_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__remote_rules__rules_registry_default_impl(
+        19 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__remote_rules__platform_rule_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__security__rust_check_app_integrity_impl(
+        23 => wire__crate__api__remote_rules__rules_registry_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__security__rust_generate_secure_token_impl(
+        24 => wire__crate__api__security__rust_check_app_integrity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__security__rust_get_device_fingerprint_impl(
+        25 => wire__crate__api__security__rust_generate_secure_token_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__security__rust_get_supabase_config_impl(
+        27 => wire__crate__api__security__rust_get_device_fingerprint_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => wire__crate__api__security__rust_sign_message_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__remote_rules__rust_sync_remote_rules_impl(
+        29 => wire__crate__api__security__rust_get_supabase_config_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => wire__crate__api__downloader__safe_filename_impl(port, ptr, rust_vec_len, data_len),
-        28 => {
+        31 => wire__crate__api__remote_rules__rust_install_bundled_rules_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        33 => wire__crate__api__security__rust_sign_message_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__remote_rules__rust_sync_remote_rules_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        35 => wire__crate__api__downloader__safe_filename_impl(port, ptr, rust_vec_len, data_len),
+        36 => {
             wire__crate__api__downloader__set_download_proxy_impl(port, ptr, rust_vec_len, data_len)
         }
-        29 => wire__crate__api__stream_policy__should_pair_separate_audio_impl(
+        38 => wire__crate__api__stream_policy__should_pair_separate_audio_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => {
+        39 => {
             wire__crate__api__security__vault_decrypt_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        31 => {
+        40 => {
             wire__crate__api__security__vault_encrypt_file_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -1668,25 +2111,33 @@ fn pde_ffi_dispatcher_sync_impl(
     match func_id {
         2 => wire__crate__api__video_processor__compress_video_impl(ptr, rust_vec_len, data_len),
         3 => wire__crate__api__video_processor__convert_to_mp3_impl(ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__video_processor__extract_audio_impl(ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__video_processor__mux_video_audio_impl(ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__adblock_engine__rust_get_default_ad_rules_impl(
+        4 => {
+            wire__crate__api__video_processor__convert_to_mp3_rich_impl(ptr, rust_vec_len, data_len)
+        }
+        7 => wire__crate__api__video_processor__embed_album_art_impl(ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__video_processor__extract_audio_impl(ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__ytdlp_wrapper__is_ytdlp_available_impl(ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__video_processor__mux_video_audio_impl(ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__adblock_engine__rust_get_default_ad_rules_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => {
+        28 => {
             wire__crate__api__remote_rules__rust_get_rules_status_impl(ptr, rust_vec_len, data_len)
         }
-        23 => {
+        30 => {
             wire__crate__api__adblock_engine__rust_init_adblocker_impl(ptr, rust_vec_len, data_len)
         }
-        24 => wire__crate__api__adblock_engine__rust_should_block_url_impl(
+        32 => wire__crate__api__adblock_engine__rust_should_block_url_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
+        37 => {
+            wire__crate__api__ytdlp_wrapper__set_ytdlp_binary_path_impl(ptr, rust_vec_len, data_len)
+        }
         _ => unreachable!(),
     }
 }
@@ -1773,6 +2224,10 @@ impl flutter_rust_bridge::IntoDart for crate::api::remote_rules::PlatformRule {
             self.platform.into_into_dart().into_dart(),
             self.version.into_into_dart().into_dart(),
             self.patterns.into_into_dart().into_dart(),
+            self.url_patterns.into_into_dart().into_dart(),
+            self.user_agent.into_into_dart().into_dart(),
+            self.priority.into_into_dart().into_dart(),
+            self.steps.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -1830,6 +2285,77 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::PlaylistResult>
     for crate::api::models::PlaylistResult
 {
     fn into_into_dart(self) -> crate::api::models::PlaylistResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::remote_rules::RuleStep {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::remote_rules::RuleStep::Fetch { url, as_var } => [
+                0.into_dart(),
+                url.into_into_dart().into_dart(),
+                as_var.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::remote_rules::RuleStep::RegexExtract {
+                input,
+                pattern,
+                as_var,
+            } => [
+                1.into_dart(),
+                input.into_into_dart().into_dart(),
+                pattern.into_into_dart().into_dart(),
+                as_var.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::remote_rules::RuleStep::RegexFindAll {
+                input,
+                pattern,
+                as_var,
+            } => [
+                2.into_dart(),
+                input.into_into_dart().into_dart(),
+                pattern.into_into_dart().into_dart(),
+                as_var.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::remote_rules::RuleStep::BuildStream {
+                url,
+                quality,
+                container,
+                is_audio_only,
+            } => [
+                3.into_dart(),
+                url.into_into_dart().into_dart(),
+                quality.into_into_dart().into_dart(),
+                container.into_into_dart().into_dart(),
+                is_audio_only.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::remote_rules::RuleStep::SetTitle { value } => {
+                [4.into_dart(), value.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::remote_rules::RuleStep::SetThumbnail { value } => {
+                [5.into_dart(), value.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::remote_rules::RuleStep::SetAuthor { value } => {
+                [6.into_dart(), value.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::remote_rules::RuleStep
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::remote_rules::RuleStep>
+    for crate::api::remote_rules::RuleStep
+{
+    fn into_into_dart(self) -> crate::api::remote_rules::RuleStep {
         self
     }
 }
@@ -2016,6 +2542,13 @@ impl SseEncode for f64 {
     }
 }
 
+impl SseEncode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2062,6 +2595,16 @@ impl SseEncode for Vec<(String, String)> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <(String, String)>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::remote_rules::RuleStep> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::remote_rules::RuleStep>::sse_encode(item, serializer);
         }
     }
 }
@@ -2132,6 +2675,10 @@ impl SseEncode for crate::api::remote_rules::PlatformRule {
         <String>::sse_encode(self.platform, serializer);
         <u32>::sse_encode(self.version, serializer);
         <std::collections::HashMap<String, String>>::sse_encode(self.patterns, serializer);
+        <Vec<String>>::sse_encode(self.url_patterns, serializer);
+        <Option<String>>::sse_encode(self.user_agent, serializer);
+        <i32>::sse_encode(self.priority, serializer);
+        <Vec<crate::api::remote_rules::RuleStep>>::sse_encode(self.steps, serializer);
     }
 }
 
@@ -2159,6 +2706,66 @@ impl SseEncode for (String, String) {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.0, serializer);
         <String>::sse_encode(self.1, serializer);
+    }
+}
+
+impl SseEncode for crate::api::remote_rules::RuleStep {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::remote_rules::RuleStep::Fetch { url, as_var } => {
+                <i32>::sse_encode(0, serializer);
+                <String>::sse_encode(url, serializer);
+                <String>::sse_encode(as_var, serializer);
+            }
+            crate::api::remote_rules::RuleStep::RegexExtract {
+                input,
+                pattern,
+                as_var,
+            } => {
+                <i32>::sse_encode(1, serializer);
+                <String>::sse_encode(input, serializer);
+                <String>::sse_encode(pattern, serializer);
+                <String>::sse_encode(as_var, serializer);
+            }
+            crate::api::remote_rules::RuleStep::RegexFindAll {
+                input,
+                pattern,
+                as_var,
+            } => {
+                <i32>::sse_encode(2, serializer);
+                <String>::sse_encode(input, serializer);
+                <String>::sse_encode(pattern, serializer);
+                <String>::sse_encode(as_var, serializer);
+            }
+            crate::api::remote_rules::RuleStep::BuildStream {
+                url,
+                quality,
+                container,
+                is_audio_only,
+            } => {
+                <i32>::sse_encode(3, serializer);
+                <String>::sse_encode(url, serializer);
+                <String>::sse_encode(quality, serializer);
+                <String>::sse_encode(container, serializer);
+                <bool>::sse_encode(is_audio_only, serializer);
+            }
+            crate::api::remote_rules::RuleStep::SetTitle { value } => {
+                <i32>::sse_encode(4, serializer);
+                <String>::sse_encode(value, serializer);
+            }
+            crate::api::remote_rules::RuleStep::SetThumbnail { value } => {
+                <i32>::sse_encode(5, serializer);
+                <String>::sse_encode(value, serializer);
+            }
+            crate::api::remote_rules::RuleStep::SetAuthor { value } => {
+                <i32>::sse_encode(6, serializer);
+                <String>::sse_encode(value, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -2234,13 +2841,6 @@ impl SseEncode for crate::api::models::VideoInfoResult {
         <Option<u32>>::sse_encode(self.duration_seconds, serializer);
         <Option<String>>::sse_encode(self.author, serializer);
         <Vec<crate::api::models::StreamResult>>::sse_encode(self.streams, serializer);
-    }
-}
-
-impl SseEncode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
     }
 }
 

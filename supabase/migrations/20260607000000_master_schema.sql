@@ -226,6 +226,19 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
+-- RPC for incrementing download count atomically (prevents row locking from client)
+CREATE OR REPLACE FUNCTION increment_download_count(increment_by int default 1)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.profiles
+  SET total_downloads = total_downloads + increment_by
+  WHERE id = auth.uid();
+END;
+$$;
+
 -- 9. STORAGE BUCKETS (If you use storage for avatars/files)
 -- Idempotent check before policies
 DO $$

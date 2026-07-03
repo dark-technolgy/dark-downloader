@@ -36,8 +36,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (dt == null) return '—';
     final local = dt.toLocal();
     final months = locale.languageCode == 'ar'
-        ? ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
-        : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        ? [
+            'يناير',
+            'فبراير',
+            'مارس',
+            'أبريل',
+            'مايو',
+            'يونيو',
+            'يوليو',
+            'أغسطس',
+            'سبتمبر',
+            'أكتوبر',
+            'نوفمبر',
+            'ديسمبر',
+          ]
+        : [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ];
     return '${local.day} ${months[local.month - 1]} ${local.year}';
   }
 
@@ -85,7 +111,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
 
           // ─── الإعدادات ───
-          _buildSettingsSection(context, ref, locale, themeState, isDark, colorScheme, theme),
+          _buildSettingsSection(
+            context,
+            ref,
+            locale,
+            themeState,
+            isDark,
+            colorScheme,
+            theme,
+          ),
           const SizedBox(height: 20),
 
           // ─── التحديثات ───
@@ -100,8 +134,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, AuthState state, Locale locale, ColorScheme colorScheme, ThemeData theme) {
-    final initials = state.displayName.isNotEmpty ? state.displayName[0].toUpperCase() : '?';
+  Widget _buildUserCard(
+    BuildContext context,
+    AuthState state,
+    Locale locale,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
+    final initials = state.displayName.isNotEmpty
+        ? state.displayName[0].toUpperCase()
+        : '?';
     final userId = state.user?.id ?? '';
     final shortId = userId.length > 8 ? userId.substring(0, 8) : userId;
 
@@ -127,45 +169,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       child: Column(
         children: [
-          // أفاتار + شارة PRO
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          // أفاتار المستخدم
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
-              if (state.isPro)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.withValues(alpha: 0.4),
-                        blurRadius: 6,
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'PRO',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -182,10 +197,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                     decoration: InputDecoration(
-                      hintText: locale.languageCode == 'ar' ? 'أدخل اسمك' : 'Enter name',
-                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+                      hintText: locale.languageCode == 'ar'
+                          ? 'أدخل اسمك'
+                          : 'Enter name',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
                       border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
                       ),
                       focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white),
@@ -207,7 +228,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           else
             GestureDetector(
               onTap: () {
-                _nameController.text = state.displayName == 'مستخدم' ? '' : state.displayName;
+                _nameController.text = state.displayName == 'مستخدم'
+                    ? ''
+                    : state.displayName;
                 setState(() => _editingName = true);
               },
               child: Row(
@@ -232,8 +255,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
 
-
-
           // معرف المستخدم
           if (shortId.isNotEmpty)
             GestureDetector(
@@ -241,13 +262,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Clipboard.setData(ClipboardData(text: userId));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(locale.languageCode == 'ar' ? 'تم نسخ المعرّف' : 'ID Copied'),
+                    content: Text(
+                      locale.languageCode == 'ar'
+                          ? 'تم نسخ المعرّف'
+                          : 'ID Copied',
+                    ),
                     duration: const Duration(seconds: 1),
                   ),
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -255,7 +283,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.fingerprint_rounded, color: Colors.white.withValues(alpha: 0.6), size: 16),
+                    Icon(
+                      Icons.fingerprint_rounded,
+                      color: Colors.white.withValues(alpha: 0.6),
+                      size: 16,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'ID: $shortId…',
@@ -266,7 +298,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(Icons.copy_rounded, color: Colors.white.withValues(alpha: 0.4), size: 12),
+                    Icon(
+                      Icons.copy_rounded,
+                      color: Colors.white.withValues(alpha: 0.4),
+                      size: 12,
+                    ),
                   ],
                 ),
               ),
@@ -276,7 +312,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoSection(BuildContext context, AuthState state, Locale locale, ColorScheme colorScheme, ThemeData theme) {
+  Widget _buildInfoSection(
+    BuildContext context,
+    AuthState state,
+    Locale locale,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     final isAr = locale.languageCode == 'ar';
 
     return Card(
@@ -298,7 +340,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               value: _formatDateTime(state.lastSignIn, locale),
               color: Colors.green,
             ),
-
           ],
         ),
       ),
@@ -321,7 +362,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         child: Icon(icon, color: color, size: 20),
       ),
-      title: Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+      title: Text(
+        label,
+        style: const TextStyle(fontSize: 13, color: Colors.grey),
+      ),
       subtitle: Text(
         value,
         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -329,7 +373,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingsSection(BuildContext context, WidgetRef ref, Locale locale, AppThemeState themeState, bool isDark, ColorScheme colorScheme, ThemeData theme) {
+  Widget _buildSettingsSection(
+    BuildContext context,
+    WidgetRef ref,
+    Locale locale,
+    AppThemeState themeState,
+    bool isDark,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     final t = AppLocalization.translate;
 
     return Card(
@@ -338,12 +390,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           ListTile(
             leading: Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: Colors.purple.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.language_rounded, color: Colors.purple, size: 20),
+              child: const Icon(
+                Icons.language_rounded,
+                color: Colors.purple,
+                size: 20,
+              ),
             ),
             title: Text(t('language', locale)),
             trailing: SegmentedButton<String>(
@@ -364,18 +421,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const Divider(height: 1, indent: 56),
           ListTile(
             leading: Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: Colors.indigo.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: Colors.indigo, size: 20),
+              child: Icon(
+                isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                color: Colors.indigo,
+                size: 20,
+              ),
             ),
             title: Text(t('theme', locale)),
             trailing: Switch(
               value: isDark,
               onChanged: (val) {
-                ref.read(themeProvider.notifier).setMode(val ? ThemeMode.dark : ThemeMode.light);
+                ref
+                    .read(themeProvider.notifier)
+                    .setMode(val ? ThemeMode.dark : ThemeMode.light);
               },
             ),
           ),
@@ -384,29 +448,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildUpdateCheck(BuildContext context, WidgetRef ref, Locale locale, ColorScheme colorScheme) {
+  Widget _buildUpdateCheck(
+    BuildContext context,
+    WidgetRef ref,
+    Locale locale,
+    ColorScheme colorScheme,
+  ) {
     final isAr = locale.languageCode == 'ar';
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         leading: Container(
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(Icons.system_update_rounded, color: colorScheme.primary, size: 20),
+          child: Icon(
+            Icons.system_update_rounded,
+            color: colorScheme.primary,
+            size: 20,
+          ),
         ),
         title: Text(isAr ? 'البحث عن تحديثات' : 'Check for updates'),
-        subtitle: Text(isAr ? 'تأكد أنك تستخدم أحدث نسخة' : 'Make sure you are on the latest version'),
+        subtitle: Text(
+          isAr
+              ? 'تأكد أنك تستخدم أحدث نسخة'
+              : 'Make sure you are on the latest version',
+        ),
         onTap: () async {
           final update = await UpdateService.checkForUpdate();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(update != null
-                    ? (isAr ? 'يوجد تحديث جديد متاح!' : 'Update available!')
-                    : (isAr ? 'أنت تستخدم أحدث نسخة ✅' : 'You are up to date ✅')),
+                content: Text(
+                  update != null
+                      ? (isAr ? 'يوجد تحديث جديد متاح!' : 'Update available!')
+                      : (isAr
+                            ? 'أنت تستخدم أحدث نسخة ✅'
+                            : 'You are up to date ✅'),
+                ),
               ),
             );
           }
@@ -415,7 +497,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildCompanyInfo(BuildContext context, Locale locale, ColorScheme colorScheme) {
+  Widget _buildCompanyInfo(
+    BuildContext context,
+    Locale locale,
+    ColorScheme colorScheme,
+  ) {
     final t = AppLocalization.translate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,17 +515,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         const SizedBox(height: 12),
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Column(
             children: [
               ListTile(
                 leading: Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.business_rounded, color: colorScheme.primary, size: 20),
+                  child: Icon(
+                    Icons.business_rounded,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
                 ),
                 title: const Text(CompanyInfo.companyName),
                 subtitle: const Text(CompanyInfo.address),
@@ -447,25 +540,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const Divider(height: 1, indent: 56),
               ListTile(
                 leading: Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.phone_rounded, color: Colors.green, size: 20),
+                  child: const Icon(
+                    Icons.phone_rounded,
+                    color: Colors.green,
+                    size: 20,
+                  ),
                 ),
                 title: const Text(CompanyInfo.phoneNumber),
-                onTap: () => launchUrl(Uri.parse('tel:${CompanyInfo.phoneNumber}')),
+                onTap: () =>
+                    launchUrl(Uri.parse('tel:${CompanyInfo.phoneNumber}')),
               ),
               const Divider(height: 1, indent: 56),
               ListTile(
                 leading: Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.language_rounded, color: Colors.blue, size: 20),
+                  child: const Icon(
+                    Icons.language_rounded,
+                    color: Colors.blue,
+                    size: 20,
+                  ),
                 ),
                 title: const Text(CompanyInfo.website),
                 onTap: () => launchUrl(Uri.parse(CompanyInfo.website)),

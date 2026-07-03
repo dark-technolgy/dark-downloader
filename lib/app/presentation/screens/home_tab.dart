@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/breakpoints.dart';
 import '../../config/localization.dart';
 import '../../config/platform_home_urls.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/download_manager_provider.dart';
 import '../../providers/extractor_provider.dart';
 import '../../providers/incoming_link_provider.dart';
@@ -143,10 +142,9 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
     final url = _urlController.text.trim();
     if (url.isEmpty) return;
     FocusScope.of(context).unfocus();
-    await ref.read(extractorProvider.notifier).extractVideo(
-          url,
-          bypassBlocks: _bypassEnabled,
-        );
+    await ref
+        .read(extractorProvider.notifier)
+        .extractVideo(url, bypassBlocks: _bypassEnabled);
 
     final state = ref.read(extractorProvider);
     if (state.playlist != null && mounted) {
@@ -179,10 +177,9 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
         if (!mounted) return;
         _urlController.text = url;
         setState(() {});
-        await ref.read(extractorProvider.notifier).extractVideo(
-              url,
-              bypassBlocks: _bypassEnabled,
-            );
+        await ref
+            .read(extractorProvider.notifier)
+            .extractVideo(url, bypassBlocks: _bypassEnabled);
 
         if (!context.mounted) return;
         final state = ref.read(extractorProvider);
@@ -201,7 +198,6 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
     });
 
     final locale = ref.watch(localeProvider);
-    final auth = ref.watch(authProvider);
     final t = AppLocalization.translate;
     final extractState = ref.watch(extractorProvider);
     final downloadState = ref.watch(downloadManagerProvider);
@@ -267,24 +263,6 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  if (auth.isPro) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        'PRO',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ],
                               ),
                               Text(
@@ -333,13 +311,19 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
           SliverToBoxAdapter(
             child: ReadableWidthContainer(
               padding: context.pageInsets,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
+              child: ResponsiveTwoColumn(
+                stackedScrollable: false,
+                primaryFlex: 6,
+                secondaryFlex: 4,
+                primary: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // ─── رابط مقترح (Smart Paste) ───
                   if (_suggestedUrl != null)
-                    Padding(
+                    Semantics(
+                      label: '${AppLocalization.translate('suggested_link_title', locale)} $_suggestedUrl',
+                      child: Padding(
+
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Container(
                         padding: const EdgeInsets.all(12),
@@ -352,8 +336,11 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.auto_fix_high_rounded,
-                                color: colorScheme.primary, size: 20),
+                            Icon(
+                              Icons.auto_fix_high_rounded,
+                              color: colorScheme.primary,
+                              size: 20,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -361,7 +348,9 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                                 children: [
                                   Text(
                                     AppLocalization.translate(
-                                        'suggested_link_title', locale),
+                                      'suggested_link_title',
+                                      locale,
+                                    ),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -390,8 +379,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                                 ),
                               ),
                               child: Text(
-                                AppLocalization.translate(
-                                    'analyze', locale),
+                                AppLocalization.translate('analyze', locale),
                                 style: const TextStyle(fontSize: 12),
                               ),
                             ),
@@ -405,6 +393,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
+                  ),
 
                   // ─── حقل URL ───
                   Container(
@@ -432,18 +421,28 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Icon(Icons.vpn_lock_rounded, size: 16, color: colorScheme.primary),
+                            Icon(
+                              Icons.vpn_lock_rounded,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
                             const SizedBox(width: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   t('bypass_blocks_label', locale),
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 Text(
                                   t('bypass_blocks_hint', locale),
-                                  style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -499,10 +498,15 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => const BrowserScreen()),
+                                    MaterialPageRoute(
+                                      builder: (_) => const BrowserScreen(),
+                                    ),
                                   );
                                 },
-                                icon: const Icon(Icons.explore_rounded, size: 18),
+                                icon: const Icon(
+                                  Icons.explore_rounded,
+                                  size: 18,
+                                ),
                                 label: Text(t('browse_web', locale)),
                                 style: OutlinedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
@@ -583,18 +587,94 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                   ),
 
                   const SizedBox(height: 28),
-
-                  // ─── التحميلات النشطة ───
-                  if (downloadState.downloadQueue.isNotEmpty) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          t('downloading', locale),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                  
+                  // ─── المنصات المدعومة ───
+                  Text(
+                    t('supported_platforms', locale),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: switch (context.device) {
+                        DeviceKind.desktop => 6,
+                        DeviceKind.tablet => 5,
+                        DeviceKind.mobile => 4,
+                      },
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: _platforms.length,
+                    itemBuilder: (ctx, i) {
+                      final p = _platforms[i];
+                      final name = t(p['key'] as String, locale);
+                      final platformKey = p['key'] as String;
+                      final homeUrl = kPlatformHomeUrls[platformKey];
+                      return Semantics(
+                        button: true,
+                        label: name,
+                        child: GestureDetector(
+                          onTap: homeUrl == null
+                              ? null
+                              : () => launchUrl(
+                                  Uri.parse(homeUrl),
+                                  mode: LaunchMode.externalApplication,
+                                ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: (p['color'] as Color).withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Icon(
+                                  p['icon'] as IconData,
+                                  color: p['color'] as Color,
+                                  size: 26,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                name,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              secondary: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ─── التحميلات النشطة ───
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        t('downloading', locale),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (downloadState.downloadQueue.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -612,140 +692,112 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ...downloadState.items.take(2).map((v) {
-                      final progress = v.progress;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 8,
-                            ),
-                          ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  if (downloadState.downloadQueue.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          style: BorderStyle.solid,
+                          width: 1,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.video_file_rounded,
-                                  color: colorScheme.primary,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    v.title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.download_done_rounded,
+                            size: 48,
+                            color: colorScheme.primary.withValues(alpha: 0.4),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            t('dm_empty_active', locale),
+                            style: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    ...downloadState.items.take(3).map((v) {
+                      final progress = v.progress;
+                      return Semantics(
+                        label: 'Download ${v.title}, ${(progress * 100).toStringAsFixed(0)} percent',
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.video_file_rounded,
+                                    color: colorScheme.primary,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      v.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Text(
-                                  t('format_percent', locale).replaceAll(
-                                    '{p}',
-                                    (progress * 100).toStringAsFixed(0),
+                                  Text(
+                                    t('format_percent', locale).replaceAll(
+                                      '{p}',
+                                      (progress * 100).toStringAsFixed(0),
+                                    ),
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                  style: TextStyle(
-                                    color: colorScheme.primary,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 6,
-                                backgroundColor: Colors.grey.shade200,
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: progress,
+                                  minHeight: 6,
+                                  backgroundColor: Colors.grey.shade200,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }),
-                    const SizedBox(height: 20),
                   ],
-
-                  // ─── المنصات المدعومة ───
-                  Text(
-                    t('supported_platforms', locale),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: switch (context.device) {
-                        DeviceKind.desktop => 8,
-                        DeviceKind.tablet => 6,
-                        DeviceKind.mobile => 4,
-                      },
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: _platforms.length,
-                    itemBuilder: (ctx, i) {
-                      final p = _platforms[i];
-                      final name = t(p['key'] as String, locale);
-                      final platformKey = p['key'] as String;
-                      final homeUrl = kPlatformHomeUrls[platformKey];
-                      return GestureDetector(
-                        onTap: homeUrl == null
-                            ? null
-                            : () => launchUrl(Uri.parse(homeUrl), mode: LaunchMode.externalApplication),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: (p['color'] as Color).withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(
-                                p['icon'] as IconData,
-                                color: p['color'] as Color,
-                                size: 26,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              name,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-
                   const SizedBox(height: 28),
 
                   // ─── نصائح ───
@@ -814,6 +866,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
 
                   const SizedBox(height: 24),
                 ],
+              ),
               ),
             ),
           ),

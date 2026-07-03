@@ -26,7 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.dark.dark_downloader"
-        minSdk = flutter.minSdkVersion
+        // ffmpeg_kit_flutter_new requires API 24+.
+        minSdk = maxOf(24, flutter.minSdkVersion)
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName

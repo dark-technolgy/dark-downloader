@@ -1,0 +1,56 @@
+{
+  "last_updated": 0,
+  "rules": [
+    {
+      "platform": "generic-mp4",
+      "version": 1,
+      "priority": -100,
+      "url_patterns": [
+        ".*"
+      ],
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "steps": [
+        { "op": "fetch", "url": "{{url}}", "as": "html" },
+        {
+          "op": "regex_extract",
+          "input": "html",
+          "pattern": "<title>([^<]+)</title>",
+          "as": "title"
+        },
+        { "op": "set_title", "value": "{{title}}" },
+        {
+          "op": "regex_find_all",
+          "input": "html",
+          "pattern": "(https?://[^\"'>\\s]+\\.mp4(?:\\?[^\"'>\\s]*)?)",
+          "as": "mp4_urls"
+        },
+        { "op": "build_stream", "url": "{{mp4_urls[0]}}", "quality": "HD", "container": "mp4" }
+      ]
+    },
+    {
+      "platform": "generic-hls",
+      "version": 1,
+      "priority": -101,
+      "url_patterns": [
+        ".*"
+      ],
+      "steps": [
+        { "op": "fetch", "url": "{{url}}", "as": "html" },
+        {
+          "op": "regex_extract",
+          "input": "html",
+          "pattern": "<title>([^<]+)</title>",
+          "as": "title"
+        },
+        { "op": "set_title", "value": "{{title}}" },
+        {
+          "op": "regex_find_all",
+          "input": "html",
+          "pattern": "(https?://[^\"'>\\s]+\\.m3u8(?:\\?[^\"'>\\s]*)?)",
+          "as": "hls_urls"
+        },
+        { "op": "build_stream", "url": "{{hls_urls[0]}}", "quality": "Auto HLS", "container": "mp4" }
+      ]
+    }
+  ]
+}

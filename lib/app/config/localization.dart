@@ -14,11 +14,11 @@ class AppLocalization {
     // عام
     'app_name': 'دارك',
     'bootstrap_engine_failed_debug': 'تعذّر تشغيل المحرك الأصلي.\n\n{detail}',
-    'bootstrap_engine_failed_release': 'تعذّر تشغيل المحرك الأصلي. راجع السجلات أو أعد تثبيت التطبيق.',
+    'bootstrap_engine_failed_release':
+        'تعذّر تشغيل المحرك الأصلي. راجع السجلات أو أعد تثبيت التطبيق.',
     'profile_guest_name': 'ضيف',
     'profile_seed_display_name': 'مستخدم دارك',
     'profile_no_email': 'لم يتم تسجيل الدخول',
-    'subscription_tier_free': 'مجاني',
     'profile_theme_color_title': 'لون التطبيق',
     'profile_theme_color_subtitle': 'اختر لونك المفضل للواجهة',
     'profile_user_id_unknown': 'غير معروف',
@@ -38,8 +38,10 @@ class AppLocalization {
     'confirm': 'تأكيد',
     'privacy_policy': 'سياسة الخصوصية',
     'terms_of_service': 'شروط الاستخدام',
-    'privacy_policy_content': 'سياسة الخصوصية لـ دارك:\n\n1. الأمان: بياناتك مشفرة ومحمية بأحدث التقنيات.\n2. الاستخدام: نستخدم البيانات فقط لتحسين تجربة المستخدم وتقديم خدماتنا.\n3. الخصوصية: ملفاتك وخصوصيتك هي أولويتنا القصوى.',
-    'terms_of_service_content': 'شروط استخدام دارك:\n\n1. الاشتراك: ميزات PRO تتطلب اشتراكاً نشطاً.\n2. سياسة الاسترداد: بما أن الخدمة رقمية، لا يمكن استرداد الأموال بعد تفعيل ميزات PRO أو بدء أول عملية تحميل.\n3. الاستخدام العادل: يمنع استخدام التطبيق لتحميل محتوى ينتهك حقوق الملكية الفكرية.',
+    'privacy_policy_content':
+        'سياسة الخصوصية لـ دارك:\n\n1. الأمان: بياناتك مشفرة ومحمية بأحدث التقنيات.\n2. الاستخدام: نستخدم البيانات فقط لتحسين تجربة المستخدم وتقديم خدماتنا.\n3. الخصوصية: ملفاتك وخصوصيتك هي أولويتنا القصوى.',
+    'terms_of_service_content':
+        'شروط استخدام دارك:\n\n1. مجاني بالكامل: دارك تطبيق مجاني تماماً؛ لا اشتراكات ولا مدفوعات.\n2. الاستخدام العادل: يمنع استخدام التطبيق لتحميل محتوى ينتهك حقوق الملكية الفكرية.\n3. مسؤوليتك: أنت المسؤول الوحيد عن المحتوى الذي تُنزّله وطريقة استخدامه، والتزامك بشروط المواقع الأصلية.\n4. بدون ضمانات: التطبيق يُقدَّم كما هو دون أي ضمانات؛ استخدامك له على مسؤوليتك الشخصية.',
     'or': 'أو',
     'yes': 'نعم',
     'no': 'لا',
@@ -130,7 +132,7 @@ class AppLocalization {
     'adblock_add_rule': 'إضافة قاعدة',
     'adblock_rule_hint': 'مثال: ||ads.example.com^',
     'browser_queue_not_added':
-        'تعذر الإضافة (صلاحيات، اشتراك، أو التحميل نشط لنفس الفيديو).',
+        'تعذر الإضافة إلى الطابور (صلاحيات، أو التحميل نشط لنفس الفيديو).',
     'browser_refresh': 'تحديث',
     'browser_desktop_site': 'نسخة سطح المكتب',
     'browser_mobile_site': 'نسخة الجوال',
@@ -160,31 +162,24 @@ class AppLocalization {
     'resume': 'استئناف',
     'browser_queue_all': 'إضافة الكل للطابور (أفضل جودة)',
     'browser_queue_all_progress': 'جاري إضافة العناصر المكتشفة…',
-    'browser_queue_all_summary': 'من {total}: أضيف {added}، تخطي {skipped}، فشل {failed}',
+    'browser_queue_all_summary':
+        'من {total}: أضيف {added}، تخطي {skipped}، فشل {failed}',
     'browser_queue_all_step': '{current} / {total}',
     'browser_queue_all_cancel': 'إيقاف',
-    'browser_queue_all_stopped': 'توقفت مبكراً: أضيف {added}، تخطي {skipped}، فشل {failed} من أصل {total}.',
+    'browser_queue_all_stopped':
+        'توقفت مبكراً: أضيف {added}، تخطي {skipped}، فشل {failed} من أصل {total}.',
     'bookmarks': 'الإشارات المرجعية',
     'browser_history_cloud_hint':
         'سجلك محلياً؛ عند تسجيل الدخول يُدمج مع السحابة. زر المزامنة يسحب ويرفع آخر القائمة.',
     'browser_history_pull_cloud': 'مزامنة مع السحابة',
     'browser_sync_ok': 'تمت المزامنة',
-    'browser_sync_fail': 'تعذّرت المزامنة. تأكد من الجدول في Supabase أو الشبكة.',
+    'browser_sync_fail':
+        'تعذّرت المزامنة. تأكد من الجدول في Supabase أو الشبكة.',
 
     // الملف الشخصي
     'my_profile': 'ملفي الشخصي',
     'profile_display_name_fallback': 'مستخدم',
     'account_info': 'معلومات الحساب',
-    'subscription_info': 'معلومات الاشتراك',
-    'subscription': 'الاشتراك',
-    'current_plan': 'خطتك الحالية',
-    'upgrade': 'ترقية',
-    'plan_free': 'مجاني',
-    'plan_premium': 'مميز',
-    'plan_pro': 'احترافي',
-    'active': 'نشط',
-    'inactive': 'غير نشط',
-    'expires': 'ينتهي في',
     'total_downloads': 'مجموع التحميلات',
     'about': 'حول التطبيق',
     'language': 'اللغة',
@@ -198,54 +193,14 @@ class AppLocalization {
     'arabic': 'العربية',
     'english': 'English',
     'profile_pick_accent': 'اختر لون الواجهة',
-    'profile_upgrade_pro_title': 'رقِّ حسابك إلى PRO',
-    'profile_upgrade_pro_subtitle': 'سرعة أعلى، تحميلات غير محدودة وميزات حصرية',
-
-    // الاشتراكات
-    'plans': 'خطط الاشتراك',
-    'choose_plan': 'اختر خطتك',
-    'per_month': 'شهرياً',
-    'popular': 'الأكثر طلباً',
-    'cancel_subscription': 'إلغاء الاشتراك',
-    'confirm_cancel': 'هل أنت متأكد من إلغاء الاشتراك؟',
-    'select_plan': 'اختر هذه الخطة',
-    'subscription_screen_title': 'ترقية الحساب',
-    'subscription_headline': 'اختر خطتك المناسبة',
-    'subscription_tagline':
-        'تطبيق موجّه عالمياً: اشترك بـ PRO عبر بوابة دفع آمنة (FIB) حيث يوفّر البنك خدمة الدفع رسمياً.',
-    'subscription_tier_premium': 'PREMIUM',
-    'subscription_tier_pro': 'PRO',
-    'subscription_price_premium': r'9.99$',
-    'subscription_price_pro': r'19.99$',
-    'subscription_period_slash_month': '/ شهر',
-    'subscription_local_payment': 'دفع عبر FIB (حيث يتوفر)',
-    'subscription_pay_fib': 'الدفع عبر FIB',
-    'subscription_fib_sandbox_note':
-        'للمطورين: إعدادات الاختبار على fib-stage.fib.iq؛ أسرار FIB في Supabase Edge Functions.',
-    'subscription_subscribe_now': 'اشترك الآن',
-    'subscription_premium_f1': 'تحميلات غير محدودة',
-    'subscription_premium_f2': 'جودة حتى 1080p (Full HD)',
-    'subscription_premium_f3': 'بدون إعلانات نهائياً',
-    'subscription_premium_f4': 'دعم فني عبر البريد',
-    'subscription_pro_f1': 'كل ميزات Premium',
-    'subscription_pro_f2': 'جودة 4K Ultra HD',
-    'subscription_pro_f3': 'تحميل 5 ملفات في وقت واحد',
-    'subscription_pro_f4': 'دعم فني فوري (Live Chat)',
-    'subscription_pro_f5': 'أولوية في تحديثات الميزات',
-    'trial_expired': 'انتهت الفترة التجريبية. اشترك للمتابعة.',
-    'trial_remaining': 'متبقي من التجربة: {h} ساعة',
-    'subscribe_to_continue': 'يلزم الاشتراك للمتابعة',
-    'subscription_period_monthly': 'شهري',
-    'subscription_period_yearly': 'سنوي',
-    'subscription_price_monthly': r'$1.5',
-    'subscription_price_yearly': r'$15',
 
     // رسائل
     'network_error': 'خطأ في الاتصال، تحقق من الإنترنت',
     'added_to_queue': 'تمت الإضافة لقائمة التحميل',
     'playlist_preparing': 'جارٍ تجهيز قائمة التشغيل...',
     'playlist_added_batch': 'تمت إضافة {n} من العناصر إلى قائمة التحميل',
-    'playlist_nothing_enqueued': 'لم تُضف أي عنصر إلى قائمة التحميل. تحقق من الروابط أو حاول مجدداً.',
+    'playlist_nothing_enqueued':
+        'لم تُضف أي عنصر إلى قائمة التحميل. تحقق من الروابط أو حاول مجدداً.',
     'playlist_download_selected': 'تحميل المختار ({n})',
     'downloads_empty_local': 'لا توجد تحميلات في القائمة',
     'cloud_history_empty': 'لا يوجد سجل سحابي بعد',
@@ -270,6 +225,7 @@ class AppLocalization {
     'generic_error_detail': 'حدث خطأ: {detail}',
 
     'format_percent': '{p}%',
+
     /// يُلحق بحجم البيانات للسرعة، مثل `12 MB/ث`.
     'data_rate_suffix': '/ث',
 
@@ -346,7 +302,7 @@ class AppLocalization {
     // خادم (RequireAuth)
     'backend_unavailable_title': 'الخدمة غير متاحة',
     'backend_unavailable_body':
-        'لا يمكن الاتصال بالخادم حالياً. مزامنة الحساب والاشتراك غير متاحة، ويمكنك الاستمرار في التحميل المباشر.',
+        'لا يمكن الاتصال بالخادم حالياً. المزامنة السحابية غير متاحة، ويمكنك الاستمرار في التحميل المباشر.',
     'backend_unavailable_login_title': 'لم يُضبط Supabase بعد',
     'backend_unavailable_login_lead':
         'لن يعمل تسجيل الدخول حتى يقرأ التطبيق عنوان المشروع ومفتاح anon. اختر طريقة واحدة:',
@@ -408,7 +364,8 @@ class AppLocalization {
     'torrent_path_dialog_title': 'مسار ملف ‎.torrent',
     'torrent_path_open': 'فتح',
     'torrent_path_hint': '/path/to/file.torrent',
-    'torrent_engine_unsupported_short': 'محرك BitTorrent غير مدعوم على هذه المنصة.',
+    'torrent_engine_unsupported_short':
+        'محرك BitTorrent غير مدعوم على هذه المنصة.',
     'torrent_search_title': 'بحث التورنت',
     'torrent_added_to_list': 'أُضيف إلى قائمة التورنت',
     'torrent_no_results': 'لا نتائج بعد.',
@@ -449,10 +406,12 @@ class AppLocalization {
 
     // مصادقة — رسائل مزوّد الحالة
     'auth_password_recovery_ok': 'يمكنك الآن تعيين كلمة مرور جديدة',
-    'auth_reset_email_sent': 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني',
+    'auth_reset_email_sent':
+        'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني',
     'auth_fill_email_password': 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
     'auth_password_min_length': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
-    'auth_confirmation_email_sent': 'تم إرسال رابط التأكيد إلى بريدك الإلكتروني',
+    'auth_confirmation_email_sent':
+        'تم إرسال رابط التأكيد إلى بريدك الإلكتروني',
     'auth_confirm_hint_windows':
         'افتح الرابط من بريدك — سيُفتح تطبيق دارك تلقائياً. إن ظهرت صفحة فارغة، اضغط «إعادة إرسال الرابط» أدناه.',
     'auth_resend_confirmation': 'إعادة إرسال رابط التأكيد',
@@ -490,6 +449,7 @@ class AppLocalization {
     'dm_permissions_required': 'الصلاحيات مطلوبة — فعّلها من الإعدادات',
     'dm_downloading_label': 'جاري التحميل... {size}',
     'dm_merging': 'جاري دمج الصوت والفيديو...',
+    'dm_extracting_audio': 'جاري استخراج الصوت...',
     'dm_merge_audio_missing':
         'لم يُعثر على ملف الصوت بعد التحميل — أعد المحاولة أو اختر تنسيقاً يجمع الصورة والصوت.',
     'dm_merge_failed': 'فشل دمج الصوت مع الفيديو — {detail}',
@@ -502,7 +462,8 @@ class AppLocalization {
     'dm_err_no_space': 'مساحة التخزين ممتلئة',
     'dm_err_http_client': 'الرابط غير متاح',
     'dm_err_http_server': 'الخادم يعاني حالياً — جرّب لاحقاً',
-    'dm_err_http_forbidden': 'الخادم رفض الطلب أو انتهت صلاحية الجلسة — أعد تحليل الرابط.',
+    'dm_err_http_forbidden':
+        'الخادم رفض الطلب أو انتهت صلاحية الجلسة — أعد تحليل الرابط.',
     'dm_err_http_not_found': 'المورد غير موجود على الخادم (404).',
     'dm_err_connection_lost': 'انقطع الاتصال أثناء التحميل — أعد المحاولة.',
     'dm_tab_active': 'النشطة',
@@ -529,7 +490,8 @@ class AppLocalization {
     'dm_retry_all_failed': 'إعادة محاولة الفاشلة',
     'dm_pause_queue': 'إيقاف الطابور مؤقتاً',
     'dm_resume_queue': 'استئناف الطابور',
-    'dm_queue_paused_banner': 'الطابور متوقف — لن تبدأ تحميلات جديدة حتى تضغط استئناف.',
+    'dm_queue_paused_banner':
+        'الطابور متوقف — لن تبدأ تحميلات جديدة حتى تضغط استئناف.',
     'dm_stop_active': 'إيقاف التحميلات الجارية',
     'downloads_tab_queue': 'قائمة التحميل',
     'downloads_tab_cloud': 'السجل السحابي',
@@ -557,40 +519,13 @@ class AppLocalization {
     'notif_open_file': 'فتح الملف',
     'notif_download_failed_line': 'فشل التحميل: {title}',
 
-    // دفع واشتراك
-    'pay_premium_desc': 'وصول كامل لكل الميزات',
-    'pay_premium_f1': 'تحميلات غير محدودة',
-    'pay_premium_f2': 'جودة HD (حتى 1080p)',
-    'pay_premium_f3': 'تحميل دفعات',
-    'pay_premium_f4': 'بدون إعلانات',
-    'pay_premium_f5': 'دعم فني',
-    'pay_pro_desc': 'كل Premium + جودة 4K',
-    'pay_pro_f1': 'كل ميزات Premium',
-    'pay_pro_f2': 'جودة 4K',
-    'pay_pro_f3': 'تحميل 3 ملفات معاً',
-    'pay_pro_f4': 'تحرير متقدم',
-    'pay_pro_f5': 'دعم أولوية',
-    'pay_pro_f6': 'وصول API',
-    'pay_fib_banner':
-        'الدفع يتم عبر FIB عندما يكون متاحاً في منطقتك؛ غالباً بالدينار العراقي (IQD) حسب صفحة البنك. يجب أن يطابق المبلغ إعدادات الخادم.',
-    'pay_err_login_required': 'يجب تسجيل الدخول أولاً',
-    'pay_err_checkout_invalid_response': 'استجابة غير صالحة من خادم الدفع',
-    'pay_err_checkout_status': 'فشل إنشاء جلسة الدفع (رمز {code})',
-    'pay_err_checkout_network':
-        'تعذر الاتصال بخادم الدفع. تحقق من الاتصال وحاول مجدداً.',
-    'pay_err_cancel_generic': 'فشل إلغاء الاشتراك',
-    'pay_err_cancel_network': 'تعذر إلغاء الاشتراك. حاول مجدداً.',
-    'pay_err_checkout_create_failed': 'فشل إنشاء جلسة الدفع',
-    'pay_err_fib_start_failed': 'تعذر بدء الدفع. يرجى المحاولة لاحقاً.',
-
     // مستخرج الفيديو
     'ext_err_no_streams': 'لم يتم العثور على روابط تحميل',
     'ext_err_network': 'تحقق من اتصالك بالإنترنت',
     'ext_err_timeout': 'انتهت مهلة الاتصال',
     'ext_err_login_required': 'الفيديو يتطلب تسجيل الدخول',
     'ext_err_not_available_region': 'الفيديو غير متاح في منطقتك',
-    'ext_err_parse_failed':
-        'فشل تحليل الرابط. تأكد من أن الرابط صحيح ومدعوم.',
+    'ext_err_parse_failed': 'فشل تحليل الرابط. تأكد من أن الرابط صحيح ومدعوم.',
 
     // تسجيل الدخول — واجهة
     'login_headline_signup': 'أنشئ حسابك الجديد',
@@ -616,12 +551,6 @@ class AppLocalization {
     'login_create_account': 'إنشاء حساب',
     'login_toggle_to_signin': 'لديك حساب بالفعل؟  ',
     'login_toggle_to_signup': 'ليس لديك حساب؟  ',
-    'pro_welcome_title': 'أهلاً بك في عالم الاحتراف!',
-    'pro_welcome_subtitle': 'تم تفعيل كافة ميزات PRO بنجاح. استمتع بتجربة تحميل لا حدود لها.',
-    'pro_welcome_feature_1': 'تحميل فائق السرعة بدقة 8K',
-    'pro_welcome_feature_2': 'تحميل قوائم التشغيل كاملة',
-    'pro_welcome_feature_3': 'بدون إعلانات نهائياً',
-    'pro_welcome_button': 'ابدأ الآن',
     'ui_lang_en': 'EN',
     'ui_lang_ar': 'ع',
 
@@ -630,14 +559,10 @@ class AppLocalization {
     'adv_parallel_connections': 'اتصالات متوازية',
     'adv_parallel_hint': 'أكثر اتصالات = أسرع تحميل (يستهلك RAM أكثر)',
     'adv_audio_format': 'صيغة الصوت النهائية',
-    'adv_audio_format_hint': 'M4A أسرع (بدون ترميز). MP3 للتوافق. WAV/FLAC بدون ضغط.',
+    'adv_audio_format_hint':
+        'M4A (AAC) جودة عالية وتوافق كامل. MP3 يعمل على كل الأجهزة.',
     'adv_codec_m4a': 'M4A (AAC)',
     'adv_codec_mp3': 'MP3',
-    'adv_codec_opus': 'Opus',
-    'adv_codec_wav': 'WAV',
-    'adv_codec_flac': 'FLAC',
-
-
 
     // FFmpeg سطح مكتب
     'ffmpeg_desktop_process_failed':
@@ -647,12 +572,13 @@ class AppLocalization {
   static const Map<String, String> en = {
     // General
     'app_name': 'Dark',
-    'bootstrap_engine_failed_debug': 'Native engine failed to start.\n\n{detail}',
-    'bootstrap_engine_failed_release': 'Native engine failed to start. Check logs or reinstall the app.',
+    'bootstrap_engine_failed_debug':
+        'Native engine failed to start.\n\n{detail}',
+    'bootstrap_engine_failed_release':
+        'Native engine failed to start. Check logs or reinstall the app.',
     'profile_guest_name': 'Guest',
     'profile_seed_display_name': 'Dark user',
     'profile_no_email': 'Not signed in',
-    'subscription_tier_free': 'Free',
     'profile_theme_color_title': 'App accent',
     'profile_theme_color_subtitle': 'Pick your preferred accent color',
     'profile_user_id_unknown': 'Unknown',
@@ -672,8 +598,11 @@ class AppLocalization {
     'confirm': 'Confirm',
     'privacy_policy': 'Privacy Policy',
     'terms_of_service': 'Terms of Service',
-    'privacy_policy_content': 'Privacy Policy for Dark:\n\n1. Security: Your data is encrypted and protected with the latest technologies.\n2. Usage: Data is used only to improve the user experience and deliver our services.\n3. Privacy: Your files and privacy are our top priority.',
-    'terms_of_service_content': 'Terms of Service for Dark:\n\n1. Subscription: PRO features require an active subscription.\n2. Refund Policy: As this is a digital service, refunds are not available once PRO features are activated or the first download begins.\n3. Fair Use: Use of the app to download copyrighted content without permission is prohibited.',
+    'privacy_policy_content':
+        'Privacy Policy for Dark:\n\n1. Security: Your data is encrypted and protected with the latest technologies.\n2. Usage: Data is used only to improve the user experience and deliver our services.\n3. Privacy: Your files and privacy are our top priority.',
+    'terms_of_service_content':
+        'Terms of Service for Dark:\n\n1. 100% Free: Dark is completely free — no subscriptions, no payments.\n2. Fair Use: Downloading copyrighted content without permission is prohibited.\n3. Your Responsibility: You are solely responsible for what you download and how you use it, and for complying with the source sites'
+        ' terms.\n4. No Warranty: The app is provided as-is with no guarantees; use at your own risk.',
     'or': 'Or',
     'yes': 'Yes',
     'no': 'No',
@@ -709,7 +638,8 @@ class AppLocalization {
     'supported_platforms': 'Supported Platforms',
     'quick_download': 'Quick Download',
     'bypass_blocks_label': 'Bypass Web Blocks',
-    'bypass_blocks_hint': 'Use proxy servers to access blocked sites without VPN',
+    'bypass_blocks_hint':
+        'Use proxy servers to access blocked sites without VPN',
     'recent_downloads': 'Recent Downloads',
     'no_recent': 'No recent downloads',
     'see_all': 'See All',
@@ -764,7 +694,7 @@ class AppLocalization {
     'adblock_add_rule': 'Add Rule',
     'adblock_rule_hint': 'Example: ||ads.example.com^',
     'browser_queue_not_added':
-        'Could not add to queue (permissions, subscription, or an active download for this video).',
+        'Could not add to queue (permissions, or an active download for this video).',
     'browser_refresh': 'Refresh',
     'browser_desktop_site': 'Desktop site',
     'browser_mobile_site': 'Mobile site',
@@ -772,7 +702,8 @@ class AppLocalization {
     'browser_link_copied': 'Link copied',
     'browser_no_url': 'No valid URL in the address bar',
     'browser_unsafe_url': 'Link not allowed (only http or https).',
-    'browser_detected_subtitle': 'Media links are captured automatically on desktop',
+    'browser_detected_subtitle':
+        'Media links are captured automatically on desktop',
     'browser_downloads_library': 'Download library',
     'browser_tabs': 'Tabs',
     'browser_more': 'More',
@@ -794,31 +725,24 @@ class AppLocalization {
     'resume': 'Resume',
     'browser_queue_all': 'Add all to queue (best quality)',
     'browser_queue_all_progress': 'Adding detected items…',
-    'browser_queue_all_summary': 'Of {total}: added {added}, skipped {skipped}, failed {failed}',
+    'browser_queue_all_summary':
+        'Of {total}: added {added}, skipped {skipped}, failed {failed}',
     'browser_queue_all_step': '{current} / {total}',
     'browser_queue_all_cancel': 'Stop',
-    'browser_queue_all_stopped': 'Stopped early: added {added}, skipped {skipped}, failed {failed} of {total}.',
+    'browser_queue_all_stopped':
+        'Stopped early: added {added}, skipped {skipped}, failed {failed} of {total}.',
     'bookmarks': 'Bookmarks',
     'browser_history_cloud_hint':
         'History stays on device; when signed in it merges with the cloud. Sync pulls and uploads your current list.',
     'browser_history_pull_cloud': 'Sync with cloud',
     'browser_sync_ok': 'Sync completed',
-    'browser_sync_fail': 'Sync failed. Check Supabase table or your connection.',
+    'browser_sync_fail':
+        'Sync failed. Check Supabase table or your connection.',
 
     // Profile
     'my_profile': 'My Profile',
     'profile_display_name_fallback': 'User',
     'account_info': 'Account Info',
-    'subscription_info': 'Subscription Info',
-    'subscription': 'Subscription',
-    'current_plan': 'Current Plan',
-    'upgrade': 'Upgrade',
-    'plan_free': 'Free',
-    'plan_premium': 'Premium',
-    'plan_pro': 'Pro',
-    'active': 'Active',
-    'inactive': 'Inactive',
-    'expires': 'Expires',
     'total_downloads': 'Total Downloads',
     'about': 'About App',
     'language': 'Language',
@@ -832,54 +756,14 @@ class AppLocalization {
     'arabic': 'العربية',
     'english': 'English',
     'profile_pick_accent': 'Pick accent color',
-    'profile_upgrade_pro_title': 'Upgrade to PRO',
-    'profile_upgrade_pro_subtitle': 'Higher speeds, unlimited downloads, and exclusive features',
-
-    // Subscriptions
-    'plans': 'Subscription Plans',
-    'choose_plan': 'Choose Your Plan',
-    'per_month': '/month',
-    'popular': 'Most Popular',
-    'cancel_subscription': 'Cancel Subscription',
-    'confirm_cancel': 'Are you sure you want to cancel?',
-    'select_plan': 'Select This Plan',
-    'subscription_screen_title': 'Upgrade account',
-    'subscription_headline': 'Choose your plan',
-    'subscription_tagline':
-        'Built for a global audience: upgrade to PRO via our secure payment partner (FIB) where the bank supports checkout.',
-    'subscription_tier_premium': 'PREMIUM',
-    'subscription_tier_pro': 'PRO',
-    'subscription_price_premium': r'$9.99',
-    'subscription_price_pro': r'$19.99',
-    'subscription_period_slash_month': '/ mo',
-    'subscription_local_payment': 'Pay with FIB (where available)',
-    'subscription_pay_fib': 'Pay with FIB',
-    'subscription_fib_sandbox_note':
-        'For developers: sandbox host fib-stage.fib.iq; store FIB secrets in Supabase Edge Functions.',
-    'subscription_subscribe_now': 'Subscribe now',
-    'subscription_premium_f1': 'Unlimited downloads',
-    'subscription_premium_f2': 'Up to 1080p (Full HD)',
-    'subscription_premium_f3': 'No ads',
-    'subscription_premium_f4': 'Email support',
-    'subscription_pro_f1': 'Everything in Premium',
-    'subscription_pro_f2': '4K Ultra HD quality',
-    'subscription_pro_f3': 'Download 5 files at once',
-    'subscription_pro_f4': 'Live chat support',
-    'subscription_pro_f5': 'Priority access to new features',
-    'trial_expired': 'Trial expired. Subscribe to continue.',
-    'trial_remaining': 'Trial remaining: {h} hours',
-    'subscribe_to_continue': 'Subscription required',
-    'subscription_period_monthly': 'Monthly',
-    'subscription_period_yearly': 'Yearly',
-    'subscription_price_monthly': r'$1.5',
-    'subscription_price_yearly': r'$15',
 
     // Messages
     'network_error': 'Network error, check your connection',
     'added_to_queue': 'Added to download queue',
     'playlist_preparing': 'Preparing playlist…',
     'playlist_added_batch': 'Added {n} items to the download queue',
-    'playlist_nothing_enqueued': 'No items were added to the queue. Check the links or try again.',
+    'playlist_nothing_enqueued':
+        'No items were added to the queue. Check the links or try again.',
     'playlist_download_selected': 'Download selected ({n})',
     'downloads_empty_local': 'No downloads in the queue',
     'cloud_history_empty': 'No cloud history yet',
@@ -904,6 +788,7 @@ class AppLocalization {
     'generic_error_detail': 'Something went wrong: {detail}',
 
     'format_percent': '{p}%',
+
     /// Appended after a data amount for throughput (e.g. `12 MB/s`).
     'data_rate_suffix': '/s',
 
@@ -980,7 +865,7 @@ class AppLocalization {
     // Backend
     'backend_unavailable_title': 'Service unavailable',
     'backend_unavailable_body':
-        'Cannot reach the server right now. Account sync and subscriptions are unavailable; direct downloads still work.',
+        'Cannot reach the server right now. Cloud sync is unavailable; direct downloads still work.',
     'backend_unavailable_login_title': 'Supabase is not configured',
     'backend_unavailable_login_lead':
         'Sign-in stays disabled until the app can read your project URL and anon key. Pick one setup path:',
@@ -1019,7 +904,8 @@ class AppLocalization {
     'torrent_menu_remove_with_files': 'Delete with files',
     'torrent_stats_line': 'Active {a} · seeding {s}',
     'home_torrent_unsupported': 'Torrents are not available on this device',
-    'torrent_unsupported_title': 'BitTorrent is not available on this platform.',
+    'torrent_unsupported_title':
+        'BitTorrent is not available on this platform.',
     'torrent_unsupported_subtitle': 'Use Windows, macOS, Linux, or Android.',
     'torrent_err_add_magnet': 'Failed to add magnet',
     'torrent_err_add_torrent_file': 'Failed to add torrent file',
@@ -1041,7 +927,8 @@ class AppLocalization {
     'torrent_path_dialog_title': 'Path to .torrent file',
     'torrent_path_open': 'Open',
     'torrent_path_hint': '/path/to/file.torrent',
-    'torrent_engine_unsupported_short': 'BitTorrent engine is not available on this platform.',
+    'torrent_engine_unsupported_short':
+        'BitTorrent engine is not available on this platform.',
     'torrent_search_title': 'Torrent search',
     'torrent_added_to_list': 'Added to torrent list',
     'torrent_no_results': 'No results yet.',
@@ -1080,10 +967,12 @@ class AppLocalization {
 
     // Auth (provider messages)
     'auth_password_recovery_ok': 'You can now set a new password',
-    'auth_reset_email_sent': 'A password recovery link has been sent to your email',
+    'auth_reset_email_sent':
+        'A password recovery link has been sent to your email',
     'auth_fill_email_password': 'Please enter your email and password',
     'auth_password_min_length': 'Password must be at least 6 characters',
-    'auth_confirmation_email_sent': 'A confirmation link was sent to your email',
+    'auth_confirmation_email_sent':
+        'A confirmation link was sent to your email',
     'auth_confirm_hint_windows':
         'Open the link from your email — Dark should launch automatically. If you see a blank page, tap Resend confirmation below.',
     'auth_resend_confirmation': 'Resend confirmation link',
@@ -1122,6 +1011,7 @@ class AppLocalization {
         'Permissions required — enable them in system settings',
     'dm_downloading_label': 'Downloading... {size}',
     'dm_merging': 'Merging audio and video...',
+    'dm_extracting_audio': 'Extracting audio...',
     'dm_merge_audio_missing':
         'Audio file was not found after download — try again or pick a muxed format.',
     'dm_merge_failed': 'Could not mux audio into video — {detail}',
@@ -1134,7 +1024,8 @@ class AppLocalization {
     'dm_err_no_space': 'Storage is full',
     'dm_err_http_client': 'Link is not available',
     'dm_err_http_server': 'Server is having issues — try again later',
-    'dm_err_http_forbidden': 'The server denied the request or the session expired — extract again.',
+    'dm_err_http_forbidden':
+        'The server denied the request or the session expired — extract again.',
     'dm_err_http_not_found': 'Resource not found on the server (404).',
     'dm_err_connection_lost': 'Connection dropped during download — try again.',
     'dm_tab_active': 'Active',
@@ -1161,7 +1052,8 @@ class AppLocalization {
     'dm_retry_all_failed': 'Retry failed downloads',
     'dm_pause_queue': 'Pause download queue',
     'dm_resume_queue': 'Resume queue',
-    'dm_queue_paused_banner': 'Queue paused — new downloads will not start until you resume.',
+    'dm_queue_paused_banner':
+        'Queue paused — new downloads will not start until you resume.',
     'dm_stop_active': 'Stop active downloads',
     'downloads_tab_queue': 'Active downloads',
     'downloads_tab_cloud': 'Cloud history',
@@ -1189,38 +1081,13 @@ class AppLocalization {
     'notif_open_file': 'Open file',
     'notif_download_failed_line': 'Download failed: {title}',
 
-    // Payments & subscription
-    'pay_premium_desc': 'Full access to all features',
-    'pay_premium_f1': 'Unlimited downloads',
-    'pay_premium_f2': 'HD quality (up to 1080p)',
-    'pay_premium_f3': 'Batch downloads',
-    'pay_premium_f4': 'Ad-free',
-    'pay_premium_f5': 'Support',
-    'pay_pro_desc': 'Everything in Premium + 4K',
-    'pay_pro_f1': 'All Premium features',
-    'pay_pro_f2': '4K quality',
-    'pay_pro_f3': 'Download 3 files at once',
-    'pay_pro_f4': 'Advanced editing',
-    'pay_pro_f5': 'Priority support',
-    'pay_pro_f6': 'API access',
-    'pay_fib_banner':
-        'Payments are processed via FIB when available in your region; amounts are often in IQD on the bank checkout page and must match your server configuration.',
-    'pay_err_login_required': 'You must sign in first',
-    'pay_err_checkout_invalid_response': 'Invalid response from payment server',
-    'pay_err_checkout_status': 'Could not create checkout session (code {code})',
-    'pay_err_checkout_network':
-        'Cannot reach the payment server. Check your connection and try again.',
-    'pay_err_cancel_generic': 'Could not cancel subscription',
-    'pay_err_cancel_network': 'Could not cancel subscription. Try again.',
-    'pay_err_checkout_create_failed': 'Could not create checkout session',
-    'pay_err_fib_start_failed': 'Could not start payment. Please try again later.',
-
     // Video extractor
     'ext_err_no_streams': 'No download links were found',
     'ext_err_network': 'Check your internet connection',
     'ext_err_timeout': 'Connection timed out',
     'ext_err_login_required': 'This video requires you to be signed in',
-    'ext_err_not_available_region': 'This video is not available in your region',
+    'ext_err_not_available_region':
+        'This video is not available in your region',
     'ext_err_parse_failed':
         'Could not parse this link. Check that the URL is valid and supported.',
 
@@ -1231,8 +1098,7 @@ class AppLocalization {
     'login_full_name': 'Full name',
     'login_val_name_required': 'Please enter your name',
     'login_reset_title': 'Reset password',
-    'login_reset_body':
-        'Enter your email and we will send you a recovery link',
+    'login_reset_body': 'Enter your email and we will send you a recovery link',
     'login_send': 'Send',
     'login_email_hint': 'example@email.com',
     'login_val_email_required': 'Please enter your email',
@@ -1249,30 +1115,18 @@ class AppLocalization {
     'login_create_account': 'Create account',
     'login_toggle_to_signin': 'Already have an account?  ',
     'login_toggle_to_signup': "Don't have an account?  ",
-    'pro_welcome_title': 'Welcome to the PRO Club!',
-    'pro_welcome_subtitle': 'All PRO features have been successfully activated. Enjoy an unlimited downloading experience.',
-    'pro_welcome_feature_1': '8K Ultra High-Speed Downloads',
-    'pro_welcome_feature_2': 'Full Playlist Downloads',
-    'pro_welcome_feature_3': 'Zero Ads, Forever',
-    'pro_welcome_button': 'Get Started',
     'ui_lang_en': 'EN',
     'ui_lang_ar': 'ع',
 
     // Advanced download settings
     'adv_settings_title': 'Advanced settings',
     'adv_parallel_connections': 'Parallel connections',
-    'adv_parallel_hint':
-        'More connections = faster download (uses more RAM)',
+    'adv_parallel_hint': 'More connections = faster download (uses more RAM)',
     'adv_audio_format': 'Output audio format',
     'adv_audio_format_hint':
-        'M4A is fastest (no re-encode). MP3 for compatibility. WAV/FLAC uncompressed.',
+        'M4A (AAC) high quality, plays everywhere. MP3 works on every device.',
     'adv_codec_m4a': 'M4A (AAC)',
     'adv_codec_mp3': 'MP3',
-    'adv_codec_opus': 'Opus',
-    'adv_codec_wav': 'WAV',
-    'adv_codec_flac': 'FLAC',
-
-
 
     // Desktop FFmpeg
     'ffmpeg_desktop_process_failed':

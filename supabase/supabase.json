@@ -1,39 +1,29 @@
 {
   "db": {
     "tables": [
-      {
-        "name": "profiles",
-        "description": "User profiles and subscription info"
-      },
-      {
-        "name": "subscriptions",
-        "description": "Subscription plans and status"
-      },
-      {
-        "name": "download_history",
-        "description": "User download history"
-      },
-      {
-        "name": "payment_events",
-        "description": "Stripe webhook events log"
-      }
+      { "name": "profiles", "description": "User profiles (optional; only for cloud sync)" },
+      { "name": "downloads", "description": "Cloud-synced download history" },
+      { "name": "browser_history", "description": "Cloud-synced browser history" },
+      { "name": "bookmarks", "description": "Cloud-synced bookmarks" },
+      { "name": "adblock_whitelist", "description": "User adblock whitelist entries" },
+      { "name": "audit_logs", "description": "Audit trail for admin actions" },
+      { "name": "remote_config", "description": "App-wide runtime configuration" },
+      { "name": "extractor_rules", "description": "Signed extractor rule packs (hot-updated)" },
+      { "name": "extractor_failures", "description": "Anonymous extractor failure telemetry (opt-in)" }
     ]
   },
   "functions": [
     {
-      "name": "create-checkout-session",
-      "description": "Create Stripe checkout session for subscription",
-      "environment": ["STRIPE_SECRET_KEY", "STRIPE_PREMIUM_PRICE_ID", "STRIPE_PRO_PRICE_ID", "APP_URL"]
+      "name": "ai-media-helper",
+      "description": "AI helper for media extraction hints"
     },
     {
-      "name": "cancel-subscription",
-      "description": "Cancel user subscription in Stripe",
-      "environment": ["STRIPE_SECRET_KEY"]
+      "name": "get-extractor-rules",
+      "description": "Serve latest signed extractor rule packs to clients"
     },
     {
-      "name": "stripe-webhook",
-      "description": "Handle Stripe webhook events",
-      "environment": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"]
+      "name": "report-extractor-failure",
+      "description": "Anonymous extractor failure reporter (opt-in telemetry)"
     }
   ],
   "auth": {

@@ -12,3 +12,4 @@ pub mod simple;
 /// Policy helpers for which streams may be offered as final outputs (e.g. no silent video).
 pub mod stream_policy;
 pub mod video_processor;
+pub mod ytdlp_wrapper;

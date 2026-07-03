@@ -1,78 +1,105 @@
-# Dark Downloader
+# Dark Downloader 🚀
 
-Cross-platform media downloader built with Flutter + Rust.
+A cross-platform, high-performance media downloader built with **Flutter** and **Rust**. 
 
-## Downloads
+**Dark Downloader** is designed to be 100% free forever. No accounts, no subscriptions, no ads, and no telemetry. It unlocks the ability to download videos, audio, MP3s (with embedded artwork), playlists, and more from all supported platforms out of the box.
 
-Users don't build the app themselves — they grab the latest release from the
-website. Each release ships:
+---
 
-| Platform | File                                              | How to run                       |
-| -------- | ------------------------------------------------- | -------------------------------- |
-| Windows  | `Dark-Downloader-Setup-vX.Y.Z.exe`                | Double-click to install (no certificate, no admin required, creates Desktop + Start Menu shortcuts automatically) |
-| Android  | `Dark-Downloader-vX.Y.Z-android-universal.apk`    | Install like a normal APK        |
-| Linux    | `Dark-Downloader-vX.Y.Z-linux-x64.tar.gz`         | Extract, run `dark_downloader`   |
+## ✨ Features
 
-The Windows build uses an **Inno Setup installer** (not MSIX), so users never
-see the
-`This app package's publisher certificate could not be verified (0x800B010A)`
-error.
+- **Layered Cascade Extraction:** A native Rust engine tries to extract media first. If a platform modifies its player, a bundled `yt-dlp` binary transparently takes over. This ensures downloads rarely break.
+- **High-Quality Audio Pipeline:** MP3s are generated using **libmp3lame at VBR quality 0** (highest). Files feature proper Xing/LAME headers for seek accuracy, `id3v2 v3` tags (title, artist, album, source URL), and **embedded front-cover artwork** directly from the video thumbnail.
+- **Cross-Platform:** Available on Android, Windows, and Linux.
+- **Batch Downloading:** Download entire playlists with a single tap.
+- **Smart Paste:** Automatically detects copied URLs and suggests downloading them.
 
-## Local development
+---
 
-```powershell
-flutter pub get
-flutter run          # dev on the currently connected device
+## 🛠 Prerequisites & Requirements
+
+To build and run this project locally, ensure you have the following installed:
+
+1. **Flutter SDK** (Channel Stable, >= 3.20.0)
+2. **Rust Toolchain** (Latest stable version via rustup)
+3. **CMake & Ninja** (For Windows / Linux desktop builds)
+4. **Android Studio / Visual Studio** (For mobile/desktop C++ compilation)
+5. **Supabase CLI** (Optional: only needed if you are deploying the backend edge functions)
+
+---
+
+## 🚀 How to Run Locally
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-repo/dark-downloader.git
+   cd dark-downloader
+   ```
+
+2. **Install Flutter Dependencies:**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the App:**
+   Make sure you have a connected device or an emulator running.
+   ```bash
+   flutter run
+   ```
+
+---
+
+## 🏗 Architecture & Project Structure
+
+This repository uses a modular architecture combining Flutter for the UI and Rust for the heavy lifting (parsing, downloading, processing).
+
+```text
+dark-downloader/
+├── lib/               # Flutter & Dart source code (UI, Providers, Logic)
+├── rust/              # Rust core engine (Downloader, Video Processor, Extractors)
+├── rust_builder/      # flutter_rust_bridge glue code & bindings
+├── android/           # Android specific build files
+├── windows/           # Windows specific build files (CMake)
+├── linux/             # Linux specific build files (CMake)
+├── assets/            # Bundled assets (branding, ffmpeg configs, default rules)
+├── supabase/          # Supabase Edge Functions & Database migrations
+└── scripts/           # Build, packaging, and CI/CD automation scripts
 ```
 
-## Release builds
+### The Rust Bridge
+The app utilizes `flutter_rust_bridge` to achieve native performance. Complex tasks such as video processing, encryption, and extraction algorithms are written in Rust and securely executed on a separate thread, keeping the Flutter UI running at a buttery smooth 60/120 FPS.
 
-Prebuilt FFmpeg binaries are fetched into `bundled_ffmpeg/` on first build.
+---
 
-### Windows — installer (recommended, no cert)
+## 📦 Release Builds & CI/CD
 
+We use GitHub Actions (`.github/workflows/main_build.yml`) to automatically build and package releases for Android, Windows, and Linux on every tag push (`v*.*.*`).
+
+### Build for Windows (Installer)
+Requires Inno Setup 6. Run the powershell script:
 ```powershell
 pwsh scripts/build_installer.ps1
 ```
-
 Output: `build\windows\x64\runner\Release\Dark-Downloader-Setup-v<version>.exe`
 
-Requires Inno Setup 6 (`ISCC.exe`). If it's not on your PATH the script tries
-to install it silently via `winget install JRSoftware.InnoSetup`.
-
-### Android
-
-```powershell
+### Build for Android
+```bash
 flutter build apk --release
-# or split per ABI (smaller downloads):
+# Or for optimized smaller APKs per architecture:
 flutter build apk --release --split-per-abi
 ```
 
-### Linux
-
-Run on a Linux host:
-
+### Build for Linux
 ```bash
 bash scripts/build_release_for_website.sh
 ```
 
-### All platforms in CI
+---
 
-`.github/workflows/main_build.yml` builds Android, Windows (`Setup.exe`), and
-Linux on every `v*.*.*` tag push and publishes to Cloudflare R2.
+## 🔐 Security & Privacy
+Dark Downloader respects your privacy.
+- Passwords and files placed in the **Vault** are encrypted using **AES-256-GCM**.
+- API calls to the backend do not expose personally identifiable information.
 
-## Project layout
-
-```
-android/          Android Gradle project
-windows/          Windows CMake runner
-linux/            Linux CMake runner
-lib/              Flutter/Dart source
-rust/             Rust library (downloader, video processor, extractors)
-rust_builder/     flutter_rust_bridge glue
-assets/           Bundled assets (branding, ffmpeg configs)
-bundled_ffmpeg/   Native FFmpeg binaries (fetched, gitignored)
-cloudflare_bridge/ Cloudflare Pages/DNS automation scripts
-supabase/         Supabase Edge Functions + migrations
-scripts/          Build, packaging, and setup scripts
-```
+## 📄 License
+This project is open-source and free to use. All third-party libraries (FFmpeg, yt-dlp) retain their original licenses.
