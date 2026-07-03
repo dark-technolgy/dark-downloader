@@ -12,7 +12,7 @@ import '../../utils/download_error_utils.dart';
 import '../../utils/eta_format_utils.dart';
 import '../../utils/format_file_size.dart';
 import '../../utils/open_download_folder.dart';
-import '../../providers/ai_assistant_provider.dart';
+
 import '../../providers/vault_provider.dart';
 import '../widgets/responsive_scaffold.dart';
 import 'video_player_screen.dart';
@@ -215,181 +215,6 @@ class _DownloadTile extends ConsumerWidget {
     }
   }
 
-  void _showAiSummary(BuildContext context, DownloadItem item) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final aiState = ref.watch(aiAssistantProvider);
-            return AlertDialog(
-              backgroundColor: const Color(0xFF0A0A0A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-                side: const BorderSide(color: Colors.amber, width: 0.5),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.auto_awesome_rounded, color: Colors.amber),
-                  SizedBox(width: 12),
-                  Text(
-                    "ملخص ذكاء دارك",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (aiState.status == AiTaskStatus.idle)
-                    const Text(
-                      "هل تريد استخدام الذكاء الاصطناعي لتلخيص محتوى هذا الفيديو؟",
-                      style: TextStyle(color: Colors.grey),
-                    )
-                  else if (aiState.status == AiTaskStatus.processing)
-                    const Column(
-                      children: [
-                        CircularProgressIndicator(color: Colors.amber),
-                        SizedBox(height: 20),
-                        Text(
-                          "جاري قراءة الفيديو وتحليله...",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    )
-                  else if (aiState.status == AiTaskStatus.completed)
-                    Text(
-                      aiState.result ?? "لا يتوفر ملخص لهذا الفيديو.",
-                      style: const TextStyle(color: Colors.white70),
-                    )
-                  else
-                    Text(
-                      aiState.errorMessage ?? "حدث خطأ أثناء المعالجة.",
-                      style: const TextStyle(color: Colors.redAccent),
-                    ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    ref.read(aiAssistantProvider.notifier).reset();
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    "إغلاق",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                if (aiState.status == AiTaskStatus.idle)
-                  ElevatedButton(
-                    onPressed: () => ref
-                        .read(aiAssistantProvider.notifier)
-                        .summarizeVideo(item.title, ""),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      foregroundColor: Colors.black,
-                    ),
-                    child: const Text("ابدأ التلخيص الآن"),
-                  ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showAiTranscribe(BuildContext context, DownloadItem item) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final aiState = ref.watch(aiAssistantProvider);
-            return AlertDialog(
-              backgroundColor: const Color(0xFF0A0A0A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-                side: const BorderSide(color: Colors.blueAccent, width: 0.5),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.closed_caption_rounded, color: Colors.blueAccent),
-                  SizedBox(width: 12),
-                  Text(
-                    "ترجمة ذكاء دارك",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (aiState.status == AiTaskStatus.idle)
-                    const Text(
-                      "هل تريد تحويل الكلام في هذا الفيديو إلى نص (ترجمة تلقائية)؟",
-                      style: TextStyle(color: Colors.grey),
-                    )
-                  else if (aiState.status == AiTaskStatus.processing)
-                    const Column(
-                      children: [
-                        CircularProgressIndicator(color: Colors.blueAccent),
-                        SizedBox(height: 20),
-                        Text(
-                          "جاري استخراج الكلام وتحليله...",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    )
-                  else if (aiState.status == AiTaskStatus.completed)
-                    SingleChildScrollView(
-                      child: Text(
-                        aiState.result ?? "لا يتوفر نص لهذا الفيديو.",
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    )
-                  else
-                    Text(
-                      aiState.errorMessage ?? "حدث خطأ أثناء المعالجة.",
-                      style: const TextStyle(color: Colors.redAccent),
-                    ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    ref.read(aiAssistantProvider.notifier).reset();
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    "إغلاق",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                if (aiState.status == AiTaskStatus.idle)
-                  ElevatedButton(
-                    onPressed: () => ref
-                        .read(aiAssistantProvider.notifier)
-                        .transcribeVideo(item.filePath),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text("ابدأ الترجمة الآن"),
-                  ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   String _statusLabel(String Function(String, Locale) t, Locale locale) {
     if (item.phase != null && item.phase!.contains('mux')) {
@@ -535,10 +360,7 @@ class _DownloadTile extends ConsumerWidget {
                               ),
                             );
                           }
-                        case 'ai_summary':
-                          _showAiSummary(context, item);
-                        case 'ai_transcribe':
-                          _showAiTranscribe(context, item);
+
                         case 'retry':
                           await notifier.retryDownload(item.id);
                         case 'pause':
@@ -586,36 +408,7 @@ class _DownloadTile extends ConsumerWidget {
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
-                      if (canPreview)
-                        PopupMenuItem(
-                          value: 'ai_summary',
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.auto_awesome_rounded,
-                              color: Colors.amber,
-                            ),
-                            title: const Text(
-                              'ملخص ذكي (AI)',
-                              style: TextStyle(color: Colors.amber),
-                            ),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      if (canPreview)
-                        PopupMenuItem(
-                          value: 'ai_transcribe',
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.closed_caption_rounded,
-                              color: Colors.blueAccent,
-                            ),
-                            title: const Text(
-                              'ترجمة تلقائية (AI)',
-                              style: TextStyle(color: Colors.blueAccent),
-                            ),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
+
                       if (canPreview)
                         PopupMenuItem(
                           value: 'vault',

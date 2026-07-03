@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:gal/gal.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -646,6 +647,19 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     } catch (e) {
       _onFailed(id, 'Completion check failed: $e');
       return;
+    }
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      final ext = p.extension(finalPath).toLowerCase();
+      if (ext == '.mp4' || ext == '.webm' || ext == '.mov' || ext == '.mkv') {
+        try {
+          final hasAccess = await Gal.hasAccess(toAlbum: true);
+          if (!hasAccess) await Gal.requestAccess(toAlbum: true);
+          await Gal.putVideo(finalPath);
+        } catch (e) {
+          // Non-fatal, just skips saving to gallery
+        }
+      }
     }
 
     _retryScheduled.remove(id);
