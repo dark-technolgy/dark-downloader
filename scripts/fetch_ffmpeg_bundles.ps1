@@ -14,8 +14,8 @@ if (-not (Test-Path (Join-Path $root 'pubspec.yaml'))) {
   throw 'شغّل السكربت من جذر المشروع (حيث pubspec.yaml).'
 }
 
-$winOut = Join-Path $root 'bundled_ffmpeg\windows'
-$linOut = Join-Path $root 'bundled_ffmpeg\linux'
+$winOut = Join-Path $root 'assets\bundled_ffmpeg\windows'
+$linOut = Join-Path $root 'assets\bundled_ffmpeg\linux'
 New-Item -ItemType Directory -Force -Path $winOut | Out-Null
 New-Item -ItemType Directory -Force -Path $linOut | Out-Null
 

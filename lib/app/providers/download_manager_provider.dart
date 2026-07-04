@@ -19,6 +19,8 @@ import '../services/storage_service.dart';
 import '../utils/download_error_utils.dart';
 import 'locale_provider.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import '../services/telemetry_service.dart';
 
 enum DownloadStatus {
   queued,
@@ -560,7 +562,10 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
           if (coverTmpPath != null) {
             try {
               await File(coverTmpPath).delete();
-            } catch (_) {}
+            } catch (e, st) {
+              debugPrint('Error deleting cover temp file: $e');
+              Telemetry.instance.recordError(e, st);
+            }
           }
         } else {
           try {
@@ -584,12 +589,18 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         if (sameAsSource) {
           try {
             await File(result.filePath).delete();
-          } catch (_) {}
+          } catch (e, st) {
+            debugPrint('Error deleting source file during rename: $e');
+            Telemetry.instance.recordError(e, st);
+          }
           await File(scratchOut).rename(finalAudioPath);
         } else {
           try {
             await File(result.filePath).delete();
-          } catch (_) {}
+          } catch (e, st) {
+            debugPrint('Error deleting source file after audio extraction: $e');
+            Telemetry.instance.recordError(e, st);
+          }
         }
         finalPath = finalAudioPath;
       }

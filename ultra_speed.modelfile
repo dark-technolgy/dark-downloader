@@ -1,0 +1,22 @@
+FROM qwen3-27b:latest
+
+# ضبط عدد خيوط المعالج لاستخدام كافة الأنوية الـ 20
+PARAMETER num_thread 20
+
+# إجبار الموديل على استخدام كرت الشاشة بالكامل (99 طبقة)
+PARAMETER num_gpu 99
+
+# زيادة سرعة التنبؤ (Batch Size)
+PARAMETER num_batch 512
+
+# حجم السياق (Context Window) - تم ضبطه ليتناسب مع ذاكرة الكرت 16GB
+PARAMETER num_ctx 4096
+
+# استخدام الذاكرة بشكل هجومي للأداء
+PARAMETER main_gpu 0
+PARAMETER low_vram false
+
+SYSTEM """
+You are a high-performance AI assistant, optimized to run on an RTX 4080 and a 14-core CPU.
+Response as fast and accurately as possible.
+"""

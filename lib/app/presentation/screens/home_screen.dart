@@ -133,7 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               if (isDownloading) ...[
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
-                  value: downloadProgress,
+                  value: downloadProgress >= 0 ? downloadProgress : null,
                   backgroundColor: Colors.white10,
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     Color(0xFF00A3FF),
@@ -141,7 +141,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "${(downloadProgress * 100).toStringAsFixed(0)}%",
+                  downloadProgress >= 0
+                      ? "${(downloadProgress * 100).toStringAsFixed(0)}%"
+                      : "جاري التحميل...",
                   style: const TextStyle(
                     color: Color(0xFF00A3FF),
                     fontWeight: FontWeight.bold,

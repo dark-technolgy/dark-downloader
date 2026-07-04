@@ -123,7 +123,10 @@ class ToolBootstrapper {
     final bytes = await File(zipPath).readAsBytes();
     try {
       await File(zipPath).delete();
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Failed to delete temp zip: $e');
+      Telemetry.instance.recordError(e, st);
+    }
 
     final outDir = p.join(
       (await getApplicationSupportDirectory()).path,
@@ -172,7 +175,10 @@ class ToolBootstrapper {
     }
     try {
       await File(txz).delete();
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Failed to delete temp tar: $e');
+      Telemetry.instance.recordError(e, st);
+    }
 
     String? binPath;
     await for (final e in Directory(exRoot).list(
@@ -198,7 +204,10 @@ class ToolBootstrapper {
     await Process.run('chmod', ['+x', out]);
     try {
       await Directory(exRoot).delete(recursive: true);
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Failed to delete temp extraction root: $e');
+      Telemetry.instance.recordError(e, st);
+    }
   }
 
   static Future<bool> _fileMatchesSha256(String filePath, String wantHex) async {

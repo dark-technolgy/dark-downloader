@@ -77,12 +77,21 @@ Install it manually from https://jrsoftware.org/isdl.php then re-run this script
 Write-Host ">>> Inno Setup compiler: $iscc" -ForegroundColor DarkGray
 
 # --- 3. Ensure bundled FFmpeg exists ----------------------------------------
-$winFf = Join-Path $repoRoot 'bundled_ffmpeg\windows\ffmpeg.exe'
+$winFf = Join-Path $repoRoot 'assets\bundled_ffmpeg\windows\ffmpeg.exe'
 if (-not (Test-Path $winFf)) {
     Write-Host ">>> bundled_ffmpeg missing — fetching..." -ForegroundColor Yellow
     & (Join-Path $PSScriptRoot 'fetch_ffmpeg_bundles.ps1')
     if (-not (Test-Path $winFf)) {
         throw "Failed to obtain $winFf"
+    }
+}
+
+$winYt = Join-Path $repoRoot 'assets\bundled_ytdlp\windows\yt-dlp.exe'
+if (-not (Test-Path $winYt)) {
+    Write-Host ">>> bundled_ytdlp missing — fetching..." -ForegroundColor Yellow
+    & (Join-Path $PSScriptRoot 'fetch_ytdlp_bundles.ps1')
+    if (-not (Test-Path $winYt)) {
+        throw "Failed to obtain $winYt"
     }
 }
 

@@ -347,10 +347,15 @@ pub async fn extract_with_options(
         if let Ok(res) = generic_res {
             result = Ok(res);
         } else if !bypass_blocks {
-            // إذا فشلت وبدون تجاوز الحجب، نجرب مع تجاوز الحجب تلقائياً
-            debug_log::log_debug("Generic failed, retrying WITH bypass automatically...");
-            if let Ok(res) = extract_generic_recursive(url, "Unknown", 0).await {
+            // محاولة التحميل من الخوادم السحابية (Cobalt API) قبل وضع التجاوز الشامل
+            debug_log::log_debug("Generic failed, retrying via Cobalt API (Cloud Extract)...");
+            if let Ok(res) = extract_cobalt(url).await {
                 result = Ok(res);
+            } else {
+                debug_log::log_debug("Cobalt API failed, retrying WITH bypass automatically...");
+                if let Ok(res) = extract_generic_recursive(url, "Unknown", 0).await {
+                    result = Ok(res);
+                }
             }
         }
     }
@@ -3632,5 +3637,81 @@ fn extract_json_value(text: &str, key: &str) -> Option<String> {
         c[1].replace("\\u0025", "%")
             .replace("\\u0026", "&")
             .replace("\\/", "/")
+    })
+}
+
+async fn extract_cobalt(url: &str) -> Result<VideoInfoResult> {
+    let client = browser_client()?;
+    let payload = json!({
+        "url": url,
+        "vQuality": "max",
+        "filenamePattern": "basic"
+    });
+    
+    let req = client
+        .post("https://api.cobalt.tools/api/json")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36")
+        .json(&payload);
+
+    let resp = req.send().await?;
+    let status_code = resp.status();
+    let text = resp.text().await?;
+    
+    if !status_code.is_success() {
+        return Err(anyhow!("Cobalt API returned status {}: {}", status_code, text));
+    }
+
+    let data: Value = serde_json::from_str(&text)?;
+    let status = data["status"].as_str().unwrap_or("error");
+    
+    if status == "error" {
+        let text_err = data["text"].as_str().unwrap_or("Cobalt generic error");
+        return Err(anyhow!(text_err));
+    }
+
+    let mut streams = vec![];
+    
+    if status == "stream" || status == "redirect" {
+        if let Some(stream_url) = data["url"].as_str() {
+            streams.push(mk_muxed_stream(
+                stream_url.to_string(),
+                "Best".to_string(),
+                "mp4",
+                None,
+            ));
+        }
+    } else if status == "picker" {
+        if let Some(picker) = data["picker"].as_array() {
+            for item in picker {
+                if let Some(s_url) = item["url"].as_str() {
+                    let type_str = item["type"].as_str().unwrap_or("video");
+                    if type_str != "video" {
+                        continue;
+                    }
+                    let q = item["quality"].as_str().unwrap_or("Unknown");
+                    streams.push(mk_muxed_stream(
+                        s_url.to_string(),
+                        q.to_string(),
+                        "mp4",
+                        None,
+                    ));
+                }
+            }
+        }
+    }
+
+    if streams.is_empty() {
+        return Err(anyhow!("No streams found by Cobalt"));
+    }
+
+    Ok(VideoInfoResult {
+        title: "Cobalt Download".to_string(),
+        thumbnail_url: None,
+        platform: "Cobalt API".to_string(),
+        duration_seconds: None,
+        author: None,
+        streams,
     })
 }

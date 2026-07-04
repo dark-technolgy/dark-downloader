@@ -30,12 +30,16 @@ bundled_ffmpeg/windows/*
 bundled_ffmpeg/linux/*
 !bundled_ffmpeg/linux/.gitkeep
 
-# حزم FFmpeg كبيرة داخل assets (أوفلاين) — تُبنى محلياً أو في CI
+# حزم الأدوات كبيرة الحجم (أوفلاين) تُبنى محلياً أو في CI
 assets/bundled_ffmpeg/embed_*.zip
 assets/bundled_ffmpeg/windows/ffmpeg.exe
+assets/bundled_ffmpeg/linux/ffmpeg
+assets/bundled_ytdlp/windows/yt-dlp.exe
+assets/bundled_ytdlp/linux/yt-dlp
 
 # Android FFmpeg-Kit: downloaded AAR (POM is committed)
 android/ffmpeg-kit-repo/com/arthenica/ffmpeg-kit-min-gpl/6.0-2/ffmpeg-kit-min-gpl-6.0-2.aar
+android/ffmpeg-kit-repo/com/arthenica/ffmpeg-kit-full-gpl/6.0-2/ffmpeg-kit-full-gpl-6.0-2.aar
 
 # ─── Editor / OS ─────────────────────────────────────────────────────────────
 .vs/

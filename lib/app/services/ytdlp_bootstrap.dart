@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+
+import 'telemetry_service.dart';
 
 import '../../src/rust/api/ytdlp_wrapper.dart' as rust_ytdlp;
 
@@ -76,7 +79,10 @@ class YtdlpBootstrap {
         await _ensureExecutable(candidate);
         return candidate;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error searching adjacent yt-dlp: $e');
+      Telemetry.instance.recordError(e, st);
+    }
 
     // 2) Previously extracted from asset bundle
     try {
@@ -92,7 +98,10 @@ class YtdlpBootstrap {
         await _ensureExecutable(cached);
         return cached;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error searching cached yt-dlp: $e');
+      Telemetry.instance.recordError(e, st);
+    }
 
     // 3) Materialize from asset bundle (offline install)
     final fromAssets = await _materializeFromAssets();
@@ -139,7 +148,9 @@ class YtdlpBootstrap {
       final outPath = p.join(outDir, binName);
       await File(outPath).writeAsBytes(bytes, flush: true);
       return outPath;
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Error materializing yt-dlp from assets: $e');
+      Telemetry.instance.recordError(e, st);
       return null;
     }
   }
@@ -163,7 +174,10 @@ class YtdlpBootstrap {
           if (line.isNotEmpty && await File(line).exists()) return line;
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error checking system yt-dlp: $e');
+      Telemetry.instance.recordError(e, st);
+    }
     return null;
   }
 
@@ -171,6 +185,9 @@ class YtdlpBootstrap {
     if (Platform.isWindows) return;
     try {
       await Process.run('chmod', ['+x', path]);
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error ensuring yt-dlp is executable: $e');
+      Telemetry.instance.recordError(e, st);
+    }
   }
 }

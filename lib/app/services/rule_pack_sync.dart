@@ -36,11 +36,6 @@ class RulePackSync {
   static const _kPrefsSeedVersion = 'rules_pack_seed_version_v1';
   static const _kAssetPath = 'assets/bootstrap/extractor_rules.json';
 
-  /// Public CDN mirror. Updated whenever we ship a new rule set — no app
-  /// release required. Kept lowercase / plain-text so it's easy to swap.
-  static const _kFallbackRulesUrl =
-      'https://raw.githubusercontent.com/dark-technolgy/dark-downloader/master/assets/bootstrap/extractor_rules.json';
-
   static bool _bootstrapping = false;
 
   /// Idempotent entry point. Safe to call more than once; only the first call
@@ -145,6 +140,6 @@ class RulePackSync {
       return '$trimmed/functions/v1/get-extractor-rules';
     }
 
-    return _kFallbackRulesUrl;
+    return null;
   }
 }

@@ -4,6 +4,9 @@ import 'package:archive/archive.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+
+import 'telemetry_service.dart';
 
 /// Resolves the FFmpeg binary for all platforms.
 ///
@@ -22,7 +25,10 @@ Future<String> resolveDesktopFfmpegPath() async {
     if (c == 'ffmpeg') return c;
     try {
       if (await File(c).exists()) return c;
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error checking cached ffmpeg path: $e');
+      Telemetry.instance.recordError(e, st);
+    }
     _cachedFfmpegPath = null;
   }
 
@@ -110,7 +116,10 @@ Future<String?> _resolveMobileFfmpegPath() async {
       if (await File(extracted).exists()) {
         return extracted;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error searching app support for ffmpeg on Android: $e');
+      Telemetry.instance.recordError(e, st);
+    }
 
     // Try to find ffmpeg in the native libs directory
     // Android apps can load native libs from the app's nativeLibraryDir
@@ -130,7 +139,10 @@ Future<String?> _resolveMobileFfmpegPath() async {
           return ffmpegSo;
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error searching native lib dir for ffmpeg on Android: $e');
+      Telemetry.instance.recordError(e, st);
+    }
   }
 
   if (Platform.isIOS) {
@@ -141,7 +153,10 @@ Future<String?> _resolveMobileFfmpegPath() async {
       if (await File(extracted).exists()) {
         return extracted;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error searching app support for ffmpeg on iOS: $e');
+      Telemetry.instance.recordError(e, st);
+    }
   }
 
   return null;
@@ -177,7 +192,9 @@ String? _pathBesideExecutable() {
       return a;
     }
     return p.join(dir, 'ffmpeg', 'ffmpeg');
-  } catch (_) {
+  } catch (e, st) {
+    debugPrint('Error resolving ffmpeg beside executable: $e');
+    Telemetry.instance.recordError(e, st);
     return null;
   }
 }
@@ -223,7 +240,9 @@ Future<String?> _materializeFromEmbeddedZip() async {
       await _ensureExecutable(main);
     }
     return main;
-  } catch (_) {
+  } catch (e, st) {
+    debugPrint('Error materializing ffmpeg from embedded zip: $e');
+    Telemetry.instance.recordError(e, st);
     return null;
   }
 }
@@ -279,7 +298,9 @@ Future<String?> _tryExtract(String assetKey, String outName) async {
       await _ensureExecutable(out.path);
     }
     return out.path;
-  } catch (_) {
+  } catch (e, st) {
+    debugPrint('Error extracting ffmpeg from assets: $e');
+    Telemetry.instance.recordError(e, st);
     return null;
   }
 }
@@ -294,7 +315,10 @@ Future<void> outDirRecursive(String path) async {
 Future<void> _ensureExecutable(String filePath) async {
   try {
     await Process.run('chmod', ['+x', filePath]);
-  } catch (_) {}
+  } catch (e, st) {
+    debugPrint('Error ensuring executable permissions for ffmpeg: $e');
+    Telemetry.instance.recordError(e, st);
+  }
 }
 
 Future<String?> _whichSystemFfmpeg() async {
@@ -305,14 +329,20 @@ Future<String?> _whichSystemFfmpeg() async {
         final line = (r.stdout as String).split('\n').first.trim();
         if (line.isNotEmpty) return line;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error whiching system ffmpeg on Windows: $e');
+      Telemetry.instance.recordError(e, st);
+    }
   } else {
     try {
       final r = await Process.run('which', const ['ffmpeg']);
       if (r.exitCode == 0) {
         return (r.stdout as String).trim();
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('Error whiching system ffmpeg on Linux/Mac: $e');
+      Telemetry.instance.recordError(e, st);
+    }
   }
   return null;
 }

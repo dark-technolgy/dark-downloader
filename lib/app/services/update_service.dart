@@ -97,6 +97,19 @@ class UpdateService {
     required Function(double progress) onProgress,
   }) async {
     try {
+      final isWindows = Platform.isWindows;
+      final isAndroid = Platform.isAndroid;
+      
+      // Prevent downloading mismatched extensions internally.
+      // If the URL is just the website URL (e.g. keenx.net), fallback immediately.
+      final lowerUrl = url.toLowerCase();
+      final validWindows = isWindows && lowerUrl.endsWith('.exe');
+      final validAndroid = isAndroid && lowerUrl.endsWith('.apk');
+      
+      if (!validWindows && !validAndroid) {
+        throw Exception('Not a direct executable URL, redirecting to browser');
+      }
+
       final tempDir = await getTemporaryDirectory();
       final savePath = '${tempDir.path}/$fileName';
 
@@ -104,20 +117,26 @@ class UpdateService {
         url,
         savePath,
         onReceiveProgress: (received, total) {
-          if (total != -1) {
+          if (total != -1 && total > 0) {
             onProgress(received / total);
+          } else {
+            // Indeterminate progress
+            onProgress(-1.0);
           }
         },
       );
 
       // Open the file to start installation
-      await OpenFile.open(savePath);
+      final result = await OpenFile.open(savePath);
+      if (result.type != ResultType.done) {
+        throw Exception('Failed to open file: ${result.message}');
+      }
     } catch (e) {
       debugPrint('In-app update failed: $e');
       // Fallback to browser if internal fails
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     }
   }
