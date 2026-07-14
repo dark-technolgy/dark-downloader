@@ -154,3 +154,11 @@ run_logs.txt
 
 # Extracted FFmpeg tooling (large, regenerated locally)
 ffmpeg_extracted/
+
+# Ignored large dependencies
+jdk.zip
+mingit.zip
+mingit/
+nuget.exe
+packages/
+git.bat

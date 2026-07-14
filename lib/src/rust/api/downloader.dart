@@ -21,7 +21,7 @@ Future<void> setDownloadProxy({String? proxyUrl}) =>
     RustLib.instance.api.crateApiDownloaderSetDownloadProxy(proxyUrl: proxyUrl);
 
 Future<DownloadResult> downloadFile(
-        {required String url, required String outputPath}) =>
+        {required String url, required String outputPath,}) =>
     RustLib.instance.api
         .crateApiDownloaderDownloadFile(url: url, outputPath: outputPath);
 
@@ -31,14 +31,14 @@ Future<DownloadResult> downloadFileV2(
         String? audioUrl,
         required String jobId,
         required int connections,
-        String? muxFfmpeg}) =>
+        String? muxFfmpeg,}) =>
     RustLib.instance.api.crateApiDownloaderDownloadFileV2(
         url: url,
         outputPath: outputPath,
         audioUrl: audioUrl,
         jobId: jobId,
         connections: connections,
-        muxFfmpeg: muxFfmpeg);
+        muxFfmpeg: muxFfmpeg,);
 
 Future<String> getDownloadsDir() =>
     RustLib.instance.api.crateApiDownloaderGetDownloadsDir();

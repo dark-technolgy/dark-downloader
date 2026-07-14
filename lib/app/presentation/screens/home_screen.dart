@@ -179,7 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         setDialogState(() => downloadProgress = p),
                   );
                   
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.of(context).pop();
                   }
                 },

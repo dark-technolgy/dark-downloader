@@ -76,7 +76,7 @@ class BookmarksNotifier extends Notifier<AsyncValue<List<BookmarkItem>>> {
         'url': url,
         'category': category,
       }, onConflict: 'user_id, url',);
-      _load();
+      await _load();
     } catch (e) {
       // Error logging
     }
@@ -85,7 +85,7 @@ class BookmarksNotifier extends Notifier<AsyncValue<List<BookmarkItem>>> {
   Future<void> removeBookmark(String bookmarkId) async {
     try {
       await supabase.from('bookmarks').delete().eq('id', bookmarkId);
-      _load();
+      await _load();
     } catch (e) {
       // Error logging
     }

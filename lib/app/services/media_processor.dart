@@ -128,7 +128,7 @@ class MediaProcessor {
       '1:a:0',
       '-shortest',
       outputPath,
-    ], ffmpegPath, durationSeconds, null); // Copy is fast, no progress needed
+    ], ffmpegPath, durationSeconds, null,); // Copy is fast, no progress needed
     if (copyOk) return;
 
     // Attempt 2: full transcode into a codec the container accepts.

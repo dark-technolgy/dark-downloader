@@ -128,58 +128,58 @@ class DownloadItem {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'url': url,
-    'filePath': filePath,
-    'thumbnailUrl': thumbnailUrl,
-    'quality': quality,
-    'platform': platform,
-    'progress': progress,
-    'status': status.index,
-    'createdAt': createdAt.toIso8601String(),
-    'scheduledAt': scheduledAt?.toIso8601String(),
-    'completedAt': completedAt?.toIso8601String(),
-    'audioOutputFormat': audioOutputFormat,
-    'videoOutputFormat': videoOutputFormat,
-    'error': error,
-    'pageUrl': pageUrl,
-    'audioStreamUrl': audioStreamUrl,
-    'connections': connections,
-    'retryCount': retryCount,
-    'phase': phase,
-    'downloadedBytes': downloadedBytes,
-    'totalBytes': totalBytes,
-  };
+        'id': id,
+        'title': title,
+        'url': url,
+        'filePath': filePath,
+        'thumbnailUrl': thumbnailUrl,
+        'quality': quality,
+        'platform': platform,
+        'progress': progress,
+        'status': status.index,
+        'createdAt': createdAt.toIso8601String(),
+        'scheduledAt': scheduledAt?.toIso8601String(),
+        'completedAt': completedAt?.toIso8601String(),
+        'audioOutputFormat': audioOutputFormat,
+        'videoOutputFormat': videoOutputFormat,
+        'error': error,
+        'pageUrl': pageUrl,
+        'audioStreamUrl': audioStreamUrl,
+        'connections': connections,
+        'retryCount': retryCount,
+        'phase': phase,
+        'downloadedBytes': downloadedBytes,
+        'totalBytes': totalBytes,
+      };
 
   factory DownloadItem.fromJson(Map<String, dynamic> json) => DownloadItem(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    url: json['url'] as String,
-    filePath: json['filePath'] as String,
-    thumbnailUrl: json['thumbnailUrl'] as String? ?? '',
-    quality: json['quality'] as String? ?? '',
-    platform: json['platform'] as String? ?? '',
-    progress: (json['progress'] as num?)?.toDouble() ?? 0,
-    status: DownloadStatus.values[json['status'] as int? ?? 0],
-    createdAt: DateTime.parse(json['createdAt'] as String),
-    scheduledAt: json['scheduledAt'] != null
-        ? DateTime.parse(json['scheduledAt'] as String)
-        : null,
-    completedAt: json['completedAt'] != null
-        ? DateTime.parse(json['completedAt'] as String)
-        : null,
-    audioOutputFormat: json['audioOutputFormat'] as String?,
-    videoOutputFormat: json['videoOutputFormat'] as String? ?? 'mp4',
-    error: json['error'] as String?,
-    pageUrl: json['pageUrl'] as String? ?? json['url'] as String? ?? '',
-    audioStreamUrl: json['audioStreamUrl'] as String?,
-    connections: json['connections'] as int? ?? 8,
-    retryCount: json['retryCount'] as int? ?? 0,
-    phase: json['phase'] as String?,
-    downloadedBytes: (json['downloadedBytes'] as num?)?.toInt() ?? 0,
-    totalBytes: (json['totalBytes'] as num?)?.toInt() ?? 0,
-  );
+        id: json['id'] as String,
+        title: json['title'] as String,
+        url: json['url'] as String,
+        filePath: json['filePath'] as String,
+        thumbnailUrl: json['thumbnailUrl'] as String? ?? '',
+        quality: json['quality'] as String? ?? '',
+        platform: json['platform'] as String? ?? '',
+        progress: (json['progress'] as num?)?.toDouble() ?? 0,
+        status: DownloadStatus.values[json['status'] as int? ?? 0],
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        scheduledAt: json['scheduledAt'] != null
+            ? DateTime.parse(json['scheduledAt'] as String)
+            : null,
+        completedAt: json['completedAt'] != null
+            ? DateTime.parse(json['completedAt'] as String)
+            : null,
+        audioOutputFormat: json['audioOutputFormat'] as String?,
+        videoOutputFormat: json['videoOutputFormat'] as String? ?? 'mp4',
+        error: json['error'] as String?,
+        pageUrl: json['pageUrl'] as String? ?? json['url'] as String? ?? '',
+        audioStreamUrl: json['audioStreamUrl'] as String?,
+        connections: json['connections'] as int? ?? 8,
+        retryCount: json['retryCount'] as int? ?? 0,
+        phase: json['phase'] as String?,
+        downloadedBytes: (json['downloadedBytes'] as num?)?.toInt() ?? 0,
+        totalBytes: (json['totalBytes'] as num?)?.toInt() ?? 0,
+      );
 }
 
 class DownloadManagerState {
@@ -304,15 +304,14 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     final items = list
         .map((e) => DownloadItem.fromJson(e as Map<String, dynamic>))
         .map((item) {
-          if (item.status == DownloadStatus.downloading) {
-            return item.copyWith(
-              status: DownloadStatus.paused,
-              clearPhase: true,
-            );
-          }
-          return item;
-        })
-        .toList();
+      if (item.status == DownloadStatus.downloading) {
+        return item.copyWith(
+          status: DownloadStatus.paused,
+          clearPhase: true,
+        );
+      }
+      return item;
+    }).toList();
     state = state.copyWith(items: items);
   }
 
@@ -412,7 +411,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
       final ffmpegPath = await resolveDesktopFfmpegPath();
       // On all platforms, we skip Rust's internal muxing so that we can handle
       // it in Dart via MediaProcessor, which allows us to parse stderr and show a progress bar.
-      final rustMuxFfmpeg = '';
+      const rustMuxFfmpeg = '';
 
       var finalUrl = item.url;
       var finalAudioUrl = item.audioStreamUrl;
@@ -445,7 +444,8 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         if (sidecarAudio != null) {
           state = state.copyWith(
             items: state.items
-                .map((i) => i.id == item.id ? i.copyWith(phase: 'converting') : i)
+                .map((i) =>
+                    i.id == item.id ? i.copyWith(phase: 'converting') : i,)
                 .toList(),
           );
 
@@ -464,13 +464,15 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
             onProgress: (percentage) {
               state = state.copyWith(
                 items: state.items
-                    .map((i) => i.id == item.id
-                        ? i.copyWith(
-                            progress: percentage * 100.0,
-                            downloadedBytes: (percentage * 1000).toInt(),
-                            totalBytes: 1000,
-                          )
-                        : i)
+                    .map(
+                      (i) => i.id == item.id
+                          ? i.copyWith(
+                              progress: percentage * 100.0,
+                              downloadedBytes: (percentage * 1000).toInt(),
+                              totalBytes: 1000,
+                            )
+                          : i,
+                    )
                     .toList(),
               );
             },
@@ -491,7 +493,8 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
             }
           }
           if (!renameSuccess) {
-            throw Exception('Failed to rename muxed file. File might be locked.');
+            throw Exception(
+                'Failed to rename muxed file. File might be locked.',);
           }
         }
       }
@@ -725,12 +728,12 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     );
     await _save();
 
-    NotificationService.showComplete(
+    unawaited(NotificationService.showComplete(
       id: id.hashCode,
       title: state.items[index].title,
       filePath: finalPath,
       locale: ref.read(localeProvider),
-    );
+    ),);
   }
 
   void _onFailed(String id, String error) {
@@ -889,5 +892,5 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
 final downloadManagerProvider =
     NotifierProvider<DownloadManagerNotifier, DownloadManagerState>(
-      DownloadManagerNotifier.new,
-    );
+  DownloadManagerNotifier.new,
+);

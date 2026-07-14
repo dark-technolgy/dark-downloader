@@ -170,13 +170,13 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                             setDialogState(() => downloadProgress = p);
                           },
                         );
-                        if (mounted) {
+                        if (context.mounted) {
                           Navigator.of(context).pop();
                         }
                       } catch (e) {
                         setDialogState(() => isDownloading = false);
                         // Fallback to browser
-                        launchUrl(
+                        await launchUrl(
                           Uri.parse(url),
                           mode: LaunchMode.externalApplication,
                         );

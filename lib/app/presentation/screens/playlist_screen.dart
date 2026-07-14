@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -35,7 +36,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     final locale = ref.read(localeProvider);
     const t = AppLocalization.translate;
 
-    showDialog<void>(
+    unawaited(showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -48,7 +49,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           ],
         ),
       ),
-    );
+    ),);
 
     var enqueued = 0;
     for (final index in _selectedIndices) {
@@ -121,8 +122,12 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           final item = widget.playlist.items[index];
           final isSelected = _selectedIndices.contains(index);
           return ListTile(
-            leading: Image.network(item.thumbnailUrl ?? '', width: 80, errorBuilder: (context, error, stackTrace) => const Icon(Icons.movie)),
-            title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+            leading: Image.network(item.thumbnailUrl ?? '',
+                width: 80,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.movie),),
+            title:
+                Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
             trailing: Checkbox(
               value: isSelected,
               onChanged: (v) {
@@ -144,9 +149,11 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           onPressed: _selectedIndices.isEmpty ? null : _startBatchDownload,
           icon: const Icon(Icons.download_rounded),
           label: Text(
-            t('playlist_download_selected', locale).replaceAll('{n}', '${_selectedIndices.length}'),
+            t('playlist_download_selected', locale)
+                .replaceAll('{n}', '${_selectedIndices.length}'),
           ),
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),),
         ),
       ),
     );

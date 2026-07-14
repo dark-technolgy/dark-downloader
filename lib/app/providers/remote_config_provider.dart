@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../src/rust/api/remote_rules.dart' as rust_rules;
 import '../config/supabase_config.dart';
@@ -57,7 +58,8 @@ class RemoteConfigNotifier extends AsyncNotifier<RemoteConfigState> {
   Future<RemoteConfigState> _fetch() async {
     try {
       // 1. Sync Rust Rules (Legacy logic kept)
-      const remoteRulesUrl = String.fromEnvironment('REMOTE_RULES_URL', defaultValue: '');
+      const remoteRulesUrl =
+          String.fromEnvironment('REMOTE_RULES_URL', defaultValue: '');
       if (remoteRulesUrl.isNotEmpty) {
         await rust_rules.rustSyncRemoteRules(url: remoteRulesUrl);
       }
@@ -65,11 +67,11 @@ class RemoteConfigNotifier extends AsyncNotifier<RemoteConfigState> {
       // 2. Fetch Global App Config from Supabase
       // We assume a 'remote_config' table exists for professional management
       final res = await supabase.from('remote_config').select().maybeSingle();
-      
+
       if (res != null) {
         final dsn = res['sentry_dsn'] as String?;
         if (dsn != null && dsn.isNotEmpty) {
-          Telemetry.instance.setupSentry(dsn);
+          unawaited(Telemetry.instance.setupSentry(dsn));
         }
 
         return RemoteConfigState(
@@ -95,4 +97,6 @@ class RemoteConfigNotifier extends AsyncNotifier<RemoteConfigState> {
   }
 }
 
-final remoteConfigProvider = AsyncNotifierProvider<RemoteConfigNotifier, RemoteConfigState>(RemoteConfigNotifier.new);
+final remoteConfigProvider =
+    AsyncNotifierProvider<RemoteConfigNotifier, RemoteConfigState>(
+        RemoteConfigNotifier.new,);

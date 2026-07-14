@@ -86,7 +86,7 @@ Future<void> _backgroundBootstrap() async {
       await windowManager.waitUntilReadyToShow(windowOptions, () async {
         await windowManager.show();
       });
-      TrayService().init().catchError((e) => debugPrint('Tray error: $e'));
+      unawaited(TrayService().init().catchError((e) => debugPrint('Tray error: $e')));
     }
 
     // C. Core Engine - With ultra-safe try/catch and timeouts

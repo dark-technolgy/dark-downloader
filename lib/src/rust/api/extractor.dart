@@ -15,6 +15,6 @@ Future<ExtractionResult> extract({required String url}) =>
     RustLib.instance.api.crateApiExtractorExtract(url: url);
 
 Future<VideoInfoResult> extractWithOptions(
-        {required String url, required bool bypassBlocks}) =>
+        {required String url, required bool bypassBlocks,}) =>
     RustLib.instance.api.crateApiExtractorExtractWithOptions(
-        url: url, bypassBlocks: bypassBlocks);
+        url: url, bypassBlocks: bypassBlocks,);

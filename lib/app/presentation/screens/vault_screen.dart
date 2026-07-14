@@ -42,7 +42,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               onPressed: () async {
                 final result = await FilePicker.pickFiles();
                 if (result != null && result.files.single.path != null) {
-                  ref.read(vaultProvider.notifier).encryptFile(File(result.files.single.path!));
+                  await ref.read(vaultProvider.notifier).encryptFile(File(result.files.single.path!));
                 }
               },
             ),

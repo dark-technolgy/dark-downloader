@@ -148,14 +148,14 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
 
     final state = ref.read(extractorProvider);
     if (state.playlist != null && mounted) {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => PlaylistScreen(playlist: state.playlist!),
         ),
       );
     } else if (state.video != null && mounted) {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => AdvancedDownloadScreen(
@@ -184,7 +184,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
         if (!context.mounted) return;
         final state = ref.read(extractorProvider);
         if (state.video != null) {
-          Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => AdvancedDownloadScreen(

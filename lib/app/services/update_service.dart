@@ -38,16 +38,16 @@ class UpdateService {
               String? directUrl;
               if (Platform.isWindows) {
                 // Windows ships as an Inno Setup .exe installer (no cert, no MSIX).
-                directUrl = assets.firstWhere(
+                directUrl = assets.cast<Map<String, dynamic>>().firstWhere(
                   (a) => a['name'].toString().endsWith('.exe'),
-                  orElse: () => null,
-                )?['url'];
+                  orElse: () => <String, dynamic>{},
+                )['url'] as String?;
               } else if (Platform.isAndroid) {
                 // Prefer universal APK for Android
-                directUrl = assets.firstWhere(
+                directUrl = assets.cast<Map<String, dynamic>>().firstWhere(
                   (a) => a['name'].toString().contains('universal'),
-                  orElse: () => null,
-                )?['url'];
+                  orElse: () => <String, dynamic>{},
+                )['url'] as String?;
               }
 
               if (directUrl != null) {
@@ -117,7 +117,7 @@ class UpdateService {
       final dioWithTimeout = Dio(BaseOptions(
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 30),
-      ));
+      ),);
 
       await dioWithTimeout.download(
         url,

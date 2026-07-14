@@ -227,7 +227,7 @@ enable_signup = true
 double_confirm_changes = false
 # Instant sign-up: users do NOT need to confirm their email before signing in.
 # (Account is created and the session is issued immediately.)
-enable_confirmations = false
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -240,14 +240,14 @@ otp_expiry = 3600
 # Custom SMTP — required on hosted Supabase so the inbox shows "دارك" / Dark Technology
 # instead of the default Supabase sender. Configure the same values in Dashboard:
 # Project Settings → Authentication → SMTP Settings.
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "noreply@darak.app"
-# sender_name = "دارك — Dark Technology"
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "noreply@dark-downloader.com"
+sender_name = "دارك — Dark Downloader"
 
 # Branded auth emails (دارك / Dark Technology). Copy HTML into Dashboard for hosted projects.
 [auth.email.template.confirmation]
