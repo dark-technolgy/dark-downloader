@@ -22,7 +22,7 @@ New-Item -ItemType Directory -Force -Path $linOut | Out-Null
 $winUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip'
 $linUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz'
 
-$tmp = Join-Path $env:TEMP "dd_ff_fetch_$([guid]::NewGuid().ToString('N'))"
+$tmp = Join-Path ([System.IO.Path]::GetTempPath()) "dd_ff_fetch_$([guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
 try {
