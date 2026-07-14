@@ -9,105 +9,146 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'remote_rules.freezed.dart';
 
-            // These functions are ignored because they are not marked as `pub`: `as_text`, `default_body_var`, `default_container`, `default_quality`, `execute_rule`, `get_cache_path`, `indexed`, `interpolate`, `load_local_rules`, `merge_registry`, `mk_audio_stream`, `registry`, `rule_matches`, `save_local_rules`
+// These functions are ignored because they are not marked as `pub`: `as_text`, `default_body_var`, `default_container`, `default_quality`, `execute_rule`, `get_cache_path`, `indexed`, `interpolate`, `load_local_rules`, `merge_registry`, `mk_audio_stream`, `registry`, `rule_matches`, `save_local_rules`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `RuleValue`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`
 
-
-            /// Install a rule pack loaded from disk / bundled asset. Called at startup
+/// Install a rule pack loaded from disk / bundled asset. Called at startup
 /// with the seed pack shipped inside the app. Merges with newer rules only.
-Future<int>  rustInstallBundledRules({required String json }) => RustLib.instance.api.crateApiRemoteRulesRustInstallBundledRules(json: json);
+Future<int> rustInstallBundledRules({required String json}) =>
+    RustLib.instance.api.crateApiRemoteRulesRustInstallBundledRules(json: json);
 
 /// Fetch rules from a remote URL. Only newer versions per platform are kept.
-Future<void>  rustSyncRemoteRules({required String url }) => RustLib.instance.api.crateApiRemoteRulesRustSyncRemoteRules(url: url);
+Future<void> rustSyncRemoteRules({required String url}) =>
+    RustLib.instance.api.crateApiRemoteRulesRustSyncRemoteRules(url: url);
 
 /// Legacy lookup, kept for callers that just want a raw pattern string.
-Future<String?>  getRemotePattern({required String platform , required String key }) => RustLib.instance.api.crateApiRemoteRulesGetRemotePattern(platform: platform, key: key);
+Future<String?> getRemotePattern(
+        {required String platform, required String key}) =>
+    RustLib.instance.api
+        .crateApiRemoteRulesGetRemotePattern(platform: platform, key: key);
 
-String  rustGetRulesStatus() => RustLib.instance.api.crateApiRemoteRulesRustGetRulesStatus();
+String rustGetRulesStatus() =>
+    RustLib.instance.api.crateApiRemoteRulesRustGetRulesStatus();
 
 /// Public async entry: try the rule registry against `url`. Returns the first
 /// rule that produces at least one stream.
-Future<VideoInfoResult>  extractViaRules({required String url }) => RustLib.instance.api.crateApiRemoteRulesExtractViaRules(url: url);
+Future<VideoInfoResult> extractViaRules({required String url}) =>
+    RustLib.instance.api.crateApiRemoteRulesExtractViaRules(url: url);
 
-            class PlatformRule  {
-                final String platform;
-final int version;
-/// Legacy free-form key/value store. New rules should prefer `steps`.
-final Map<String, String> patterns;
-/// Regex list matched against the incoming URL. If empty, the rule is
-/// considered a *legacy* rule and is skipped by the executor.
-final List<String> urlPatterns;
-/// Optional custom User-Agent for fetches inside this rule.
-final String? userAgent;
-/// Optional relative priority (higher wins). Rules with the same
-/// priority are tried in registry order.
-final int priority;
-/// Execution program.
-final List<RuleStep> steps;
+class PlatformRule {
+  final String platform;
+  final int version;
 
-                const PlatformRule({required this.platform ,required this.version ,required this.patterns ,required this.urlPatterns ,this.userAgent ,required this.priority ,required this.steps ,});
+  /// Legacy free-form key/value store. New rules should prefer `steps`.
+  final Map<String, String> patterns;
 
-                static Future<PlatformRule>  default_()=>RustLib.instance.api.crateApiRemoteRulesPlatformRuleDefault();
+  /// Regex list matched against the incoming URL. If empty, the rule is
+  /// considered a *legacy* rule and is skipped by the executor.
+  final List<String> urlPatterns;
 
+  /// Optional custom User-Agent for fetches inside this rule.
+  final String? userAgent;
 
-                
+  /// Optional relative priority (higher wins). Rules with the same
+  /// priority are tried in registry order.
+  final int priority;
 
-                
-        @override
-        int get hashCode => platform.hashCode^version.hashCode^patterns.hashCode^urlPatterns.hashCode^userAgent.hashCode^priority.hashCode^steps.hashCode;
-        
+  /// Execution program.
+  final List<RuleStep> steps;
 
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is PlatformRule &&
-                runtimeType == other.runtimeType
-                && platform == other.platform&& version == other.version&& patterns == other.patterns&& urlPatterns == other.urlPatterns&& userAgent == other.userAgent&& priority == other.priority&& steps == other.steps;
-        
-            }
+  const PlatformRule({
+    required this.platform,
+    required this.version,
+    required this.patterns,
+    required this.urlPatterns,
+    this.userAgent,
+    required this.priority,
+    required this.steps,
+  });
+
+  static Future<PlatformRule> default_() =>
+      RustLib.instance.api.crateApiRemoteRulesPlatformRuleDefault();
+
+  @override
+  int get hashCode =>
+      platform.hashCode ^
+      version.hashCode ^
+      patterns.hashCode ^
+      urlPatterns.hashCode ^
+      userAgent.hashCode ^
+      priority.hashCode ^
+      steps.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlatformRule &&
+          runtimeType == other.runtimeType &&
+          platform == other.platform &&
+          version == other.version &&
+          patterns == other.patterns &&
+          urlPatterns == other.urlPatterns &&
+          userAgent == other.userAgent &&
+          priority == other.priority &&
+          steps == other.steps;
+}
 
 @freezed
-                sealed class RuleStep with _$RuleStep  {
-                    const RuleStep._();
+sealed class RuleStep with _$RuleStep {
+  const RuleStep._();
 
-                     const factory RuleStep.fetch({   required String url ,  required String asVar , }) = RuleStep_Fetch;
- const factory RuleStep.regexExtract({   required String input ,  required String pattern ,  required String asVar , }) = RuleStep_RegexExtract;
- const factory RuleStep.regexFindAll({   required String input ,  required String pattern ,  required String asVar , }) = RuleStep_RegexFindAll;
- const factory RuleStep.buildStream({   required String url ,  required String quality ,  required String container ,  required bool isAudioOnly , }) = RuleStep_BuildStream;
- const factory RuleStep.setTitle({   required String value , }) = RuleStep_SetTitle;
- const factory RuleStep.setThumbnail({   required String value , }) = RuleStep_SetThumbnail;
- const factory RuleStep.setAuthor({   required String value , }) = RuleStep_SetAuthor;
+  const factory RuleStep.fetch({
+    required String url,
+    required String asVar,
+  }) = RuleStep_Fetch;
+  const factory RuleStep.regexExtract({
+    required String input,
+    required String pattern,
+    required String asVar,
+  }) = RuleStep_RegexExtract;
+  const factory RuleStep.regexFindAll({
+    required String input,
+    required String pattern,
+    required String asVar,
+  }) = RuleStep_RegexFindAll;
+  const factory RuleStep.buildStream({
+    required String url,
+    required String quality,
+    required String container,
+    required bool isAudioOnly,
+  }) = RuleStep_BuildStream;
+  const factory RuleStep.setTitle({
+    required String value,
+  }) = RuleStep_SetTitle;
+  const factory RuleStep.setThumbnail({
+    required String value,
+  }) = RuleStep_SetThumbnail;
+  const factory RuleStep.setAuthor({
+    required String value,
+  }) = RuleStep_SetAuthor;
+}
 
-                    
+class RulesRegistry {
+  final List<PlatformRule> rules;
+  final BigInt lastUpdated;
 
-                    
-                }
+  const RulesRegistry({
+    required this.rules,
+    required this.lastUpdated,
+  });
 
-class RulesRegistry  {
-                final List<PlatformRule> rules;
-final BigInt lastUpdated;
+  static Future<RulesRegistry> default_() =>
+      RustLib.instance.api.crateApiRemoteRulesRulesRegistryDefault();
 
-                const RulesRegistry({required this.rules ,required this.lastUpdated ,});
+  @override
+  int get hashCode => rules.hashCode ^ lastUpdated.hashCode;
 
-                static Future<RulesRegistry>  default_()=>RustLib.instance.api.crateApiRemoteRulesRulesRegistryDefault();
-
-
-                
-
-                
-        @override
-        int get hashCode => rules.hashCode^lastUpdated.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is RulesRegistry &&
-                runtimeType == other.runtimeType
-                && rules == other.rules&& lastUpdated == other.lastUpdated;
-        
-            }
-            
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RulesRegistry &&
+          runtimeType == other.runtimeType &&
+          rules == other.rules &&
+          lastUpdated == other.lastUpdated;
+}

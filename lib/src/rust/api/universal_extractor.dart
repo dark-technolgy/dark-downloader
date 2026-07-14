@@ -7,12 +7,7 @@ import '../frb_generated.dart';
 import 'models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-            
-
-            /// Robust Universal Media Extraction Engine
+/// Robust Universal Media Extraction Engine
 /// This module handles complex, dynamic, and multi-format sites.
-Future<VideoInfoResult>  extractUltra({required String url }) => RustLib.instance.api.crateApiUniversalExtractorExtractUltra(url: url);
-
-            
-            
+Future<VideoInfoResult> extractUltra({required String url}) =>
+    RustLib.instance.api.crateApiUniversalExtractorExtractUltra(url: url);

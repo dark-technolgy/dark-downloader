@@ -3,7 +3,6 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
@@ -23,278 +22,425 @@ import 'dart:convert';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 
+abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+  RustLibApiImplPlatform({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
+  @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
 
+  @protected
+  Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
 
-                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-                  RustLibApiImplPlatform({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
+  @protected
+  String dco_decode_String(dynamic raw);
 
-                  
+  @protected
+  bool dco_decode_bool(dynamic raw);
 
-                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
+  @protected
+  DownloadProgressSnapshot dco_decode_box_autoadd_download_progress_snapshot(
+      dynamic raw);
 
-@protected Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
+  @protected
+  double dco_decode_box_autoadd_f_32(dynamic raw);
 
-@protected String dco_decode_String(dynamic raw);
+  @protected
+  PlaylistResult dco_decode_box_autoadd_playlist_result(dynamic raw);
 
-@protected bool dco_decode_bool(dynamic raw);
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
 
-@protected DownloadProgressSnapshot dco_decode_box_autoadd_download_progress_snapshot(dynamic raw);
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
-@protected double dco_decode_box_autoadd_f_32(dynamic raw);
+  @protected
+  VideoInfoResult dco_decode_box_autoadd_video_info_result(dynamic raw);
 
-@protected PlaylistResult dco_decode_box_autoadd_playlist_result(dynamic raw);
+  @protected
+  DownloadProgressSnapshot dco_decode_download_progress_snapshot(dynamic raw);
 
-@protected int dco_decode_box_autoadd_u_32(dynamic raw);
+  @protected
+  DownloadResult dco_decode_download_result(dynamic raw);
 
-@protected BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+  @protected
+  ExtractionResult dco_decode_extraction_result(dynamic raw);
 
-@protected VideoInfoResult dco_decode_box_autoadd_video_info_result(dynamic raw);
+  @protected
+  double dco_decode_f_32(dynamic raw);
 
-@protected DownloadProgressSnapshot dco_decode_download_progress_snapshot(dynamic raw);
+  @protected
+  double dco_decode_f_64(dynamic raw);
 
-@protected DownloadResult dco_decode_download_result(dynamic raw);
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
-@protected ExtractionResult dco_decode_extraction_result(dynamic raw);
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
 
-@protected double dco_decode_f_32(dynamic raw);
+  @protected
+  List<PlatformRule> dco_decode_list_platform_rule(dynamic raw);
 
-@protected double dco_decode_f_64(dynamic raw);
+  @protected
+  List<PlaylistItem> dco_decode_list_playlist_item(dynamic raw);
 
-@protected int dco_decode_i_32(dynamic raw);
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-@protected List<String> dco_decode_list_String(dynamic raw);
+  @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
 
-@protected List<PlatformRule> dco_decode_list_platform_rule(dynamic raw);
+  @protected
+  List<RuleStep> dco_decode_list_rule_step(dynamic raw);
 
-@protected List<PlaylistItem> dco_decode_list_playlist_item(dynamic raw);
+  @protected
+  List<StreamResult> dco_decode_list_stream_result(dynamic raw);
 
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
 
-@protected List<(String,String)> dco_decode_list_record_string_string(dynamic raw);
+  @protected
+  DownloadProgressSnapshot?
+      dco_decode_opt_box_autoadd_download_progress_snapshot(dynamic raw);
 
-@protected List<RuleStep> dco_decode_list_rule_step(dynamic raw);
+  @protected
+  double? dco_decode_opt_box_autoadd_f_32(dynamic raw);
 
-@protected List<StreamResult> dco_decode_list_stream_result(dynamic raw);
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
-@protected String? dco_decode_opt_String(dynamic raw);
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
-@protected DownloadProgressSnapshot? dco_decode_opt_box_autoadd_download_progress_snapshot(dynamic raw);
+  @protected
+  PlatformRule dco_decode_platform_rule(dynamic raw);
 
-@protected double? dco_decode_opt_box_autoadd_f_32(dynamic raw);
+  @protected
+  PlaylistItem dco_decode_playlist_item(dynamic raw);
 
-@protected int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+  @protected
+  PlaylistResult dco_decode_playlist_result(dynamic raw);
 
-@protected BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+  @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
 
-@protected PlatformRule dco_decode_platform_rule(dynamic raw);
+  @protected
+  RuleStep dco_decode_rule_step(dynamic raw);
 
-@protected PlaylistItem dco_decode_playlist_item(dynamic raw);
+  @protected
+  RulesRegistry dco_decode_rules_registry(dynamic raw);
 
-@protected PlaylistResult dco_decode_playlist_result(dynamic raw);
+  @protected
+  StreamResult dco_decode_stream_result(dynamic raw);
 
-@protected (String,String) dco_decode_record_string_string(dynamic raw);
+  @protected
+  SupabaseSecrets dco_decode_supabase_secrets(dynamic raw);
 
-@protected RuleStep dco_decode_rule_step(dynamic raw);
+  @protected
+  int dco_decode_u_32(dynamic raw);
 
-@protected RulesRegistry dco_decode_rules_registry(dynamic raw);
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
-@protected StreamResult dco_decode_stream_result(dynamic raw);
+  @protected
+  int dco_decode_u_8(dynamic raw);
 
-@protected SupabaseSecrets dco_decode_supabase_secrets(dynamic raw);
+  @protected
+  void dco_decode_unit(dynamic raw);
 
-@protected int dco_decode_u_32(dynamic raw);
+  @protected
+  VideoInfoResult dco_decode_video_info_result(dynamic raw);
 
-@protected BigInt dco_decode_u_64(dynamic raw);
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
-@protected int dco_decode_u_8(dynamic raw);
+  @protected
+  Map<String, String> sse_decode_Map_String_String_None(
+      SseDeserializer deserializer);
 
-@protected void dco_decode_unit(dynamic raw);
+  @protected
+  String sse_decode_String(SseDeserializer deserializer);
 
-@protected VideoInfoResult dco_decode_video_info_result(dynamic raw);
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
 
-@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+  @protected
+  DownloadProgressSnapshot sse_decode_box_autoadd_download_progress_snapshot(
+      SseDeserializer deserializer);
 
-@protected Map<String, String> sse_decode_Map_String_String_None(SseDeserializer deserializer);
+  @protected
+  double sse_decode_box_autoadd_f_32(SseDeserializer deserializer);
 
-@protected String sse_decode_String(SseDeserializer deserializer);
+  @protected
+  PlaylistResult sse_decode_box_autoadd_playlist_result(
+      SseDeserializer deserializer);
 
-@protected bool sse_decode_bool(SseDeserializer deserializer);
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
 
-@protected DownloadProgressSnapshot sse_decode_box_autoadd_download_progress_snapshot(SseDeserializer deserializer);
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
-@protected double sse_decode_box_autoadd_f_32(SseDeserializer deserializer);
+  @protected
+  VideoInfoResult sse_decode_box_autoadd_video_info_result(
+      SseDeserializer deserializer);
 
-@protected PlaylistResult sse_decode_box_autoadd_playlist_result(SseDeserializer deserializer);
+  @protected
+  DownloadProgressSnapshot sse_decode_download_progress_snapshot(
+      SseDeserializer deserializer);
 
-@protected int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+  @protected
+  DownloadResult sse_decode_download_result(SseDeserializer deserializer);
 
-@protected BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+  @protected
+  ExtractionResult sse_decode_extraction_result(SseDeserializer deserializer);
 
-@protected VideoInfoResult sse_decode_box_autoadd_video_info_result(SseDeserializer deserializer);
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
 
-@protected DownloadProgressSnapshot sse_decode_download_progress_snapshot(SseDeserializer deserializer);
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer);
 
-@protected DownloadResult sse_decode_download_result(SseDeserializer deserializer);
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
-@protected ExtractionResult sse_decode_extraction_result(SseDeserializer deserializer);
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-@protected double sse_decode_f_32(SseDeserializer deserializer);
+  @protected
+  List<PlatformRule> sse_decode_list_platform_rule(
+      SseDeserializer deserializer);
 
-@protected double sse_decode_f_64(SseDeserializer deserializer);
+  @protected
+  List<PlaylistItem> sse_decode_list_playlist_item(
+      SseDeserializer deserializer);
 
-@protected int sse_decode_i_32(SseDeserializer deserializer);
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
+  @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+      SseDeserializer deserializer);
 
-@protected List<PlatformRule> sse_decode_list_platform_rule(SseDeserializer deserializer);
+  @protected
+  List<RuleStep> sse_decode_list_rule_step(SseDeserializer deserializer);
 
-@protected List<PlaylistItem> sse_decode_list_playlist_item(SseDeserializer deserializer);
+  @protected
+  List<StreamResult> sse_decode_list_stream_result(
+      SseDeserializer deserializer);
 
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
 
-@protected List<(String,String)> sse_decode_list_record_string_string(SseDeserializer deserializer);
+  @protected
+  DownloadProgressSnapshot?
+      sse_decode_opt_box_autoadd_download_progress_snapshot(
+          SseDeserializer deserializer);
 
-@protected List<RuleStep> sse_decode_list_rule_step(SseDeserializer deserializer);
+  @protected
+  double? sse_decode_opt_box_autoadd_f_32(SseDeserializer deserializer);
 
-@protected List<StreamResult> sse_decode_list_stream_result(SseDeserializer deserializer);
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
-@protected String? sse_decode_opt_String(SseDeserializer deserializer);
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
-@protected DownloadProgressSnapshot? sse_decode_opt_box_autoadd_download_progress_snapshot(SseDeserializer deserializer);
+  @protected
+  PlatformRule sse_decode_platform_rule(SseDeserializer deserializer);
 
-@protected double? sse_decode_opt_box_autoadd_f_32(SseDeserializer deserializer);
+  @protected
+  PlaylistItem sse_decode_playlist_item(SseDeserializer deserializer);
 
-@protected int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+  @protected
+  PlaylistResult sse_decode_playlist_result(SseDeserializer deserializer);
 
-@protected BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+  @protected
+  (String, String) sse_decode_record_string_string(
+      SseDeserializer deserializer);
 
-@protected PlatformRule sse_decode_platform_rule(SseDeserializer deserializer);
+  @protected
+  RuleStep sse_decode_rule_step(SseDeserializer deserializer);
 
-@protected PlaylistItem sse_decode_playlist_item(SseDeserializer deserializer);
+  @protected
+  RulesRegistry sse_decode_rules_registry(SseDeserializer deserializer);
 
-@protected PlaylistResult sse_decode_playlist_result(SseDeserializer deserializer);
+  @protected
+  StreamResult sse_decode_stream_result(SseDeserializer deserializer);
 
-@protected (String,String) sse_decode_record_string_string(SseDeserializer deserializer);
+  @protected
+  SupabaseSecrets sse_decode_supabase_secrets(SseDeserializer deserializer);
 
-@protected RuleStep sse_decode_rule_step(SseDeserializer deserializer);
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
 
-@protected RulesRegistry sse_decode_rules_registry(SseDeserializer deserializer);
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
-@protected StreamResult sse_decode_stream_result(SseDeserializer deserializer);
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer);
 
-@protected SupabaseSecrets sse_decode_supabase_secrets(SseDeserializer deserializer);
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer);
 
-@protected int sse_decode_u_32(SseDeserializer deserializer);
+  @protected
+  VideoInfoResult sse_decode_video_info_result(SseDeserializer deserializer);
 
-@protected BigInt sse_decode_u_64(SseDeserializer deserializer);
+  @protected
+  void sse_encode_AnyhowException(
+      AnyhowException self, SseSerializer serializer);
 
-@protected int sse_decode_u_8(SseDeserializer deserializer);
+  @protected
+  void sse_encode_Map_String_String_None(
+      Map<String, String> self, SseSerializer serializer);
 
-@protected void sse_decode_unit(SseDeserializer deserializer);
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer);
 
-@protected VideoInfoResult sse_decode_video_info_result(SseDeserializer deserializer);
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
 
-@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_download_progress_snapshot(
+      DownloadProgressSnapshot self, SseSerializer serializer);
 
-@protected void sse_encode_Map_String_String_None(Map<String, String> self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_f_32(double self, SseSerializer serializer);
 
-@protected void sse_encode_String(String self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_playlist_result(
+      PlaylistResult self, SseSerializer serializer);
 
-@protected void sse_encode_bool(bool self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_download_progress_snapshot(DownloadProgressSnapshot self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_f_32(double self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_video_info_result(
+      VideoInfoResult self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_playlist_result(PlaylistResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_download_progress_snapshot(
+      DownloadProgressSnapshot self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_download_result(
+      DownloadResult self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+  @protected
+  void sse_encode_extraction_result(
+      ExtractionResult self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_video_info_result(VideoInfoResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
 
-@protected void sse_encode_download_progress_snapshot(DownloadProgressSnapshot self, SseSerializer serializer);
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer);
 
-@protected void sse_encode_download_result(DownloadResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_extraction_result(ExtractionResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
-@protected void sse_encode_f_32(double self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_platform_rule(
+      List<PlatformRule> self, SseSerializer serializer);
 
-@protected void sse_encode_f_64(double self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_playlist_item(
+      List<PlaylistItem> self, SseSerializer serializer);
 
-@protected void sse_encode_i_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+      Uint8List self, SseSerializer serializer);
 
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_record_string_string(
+      List<(String, String)> self, SseSerializer serializer);
 
-@protected void sse_encode_list_platform_rule(List<PlatformRule> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_rule_step(List<RuleStep> self, SseSerializer serializer);
 
-@protected void sse_encode_list_playlist_item(List<PlaylistItem> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_stream_result(
+      List<StreamResult> self, SseSerializer serializer);
 
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
 
-@protected void sse_encode_list_record_string_string(List<(String,String)> self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_download_progress_snapshot(
+      DownloadProgressSnapshot? self, SseSerializer serializer);
 
-@protected void sse_encode_list_rule_step(List<RuleStep> self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_f_32(double? self, SseSerializer serializer);
 
-@protected void sse_encode_list_stream_result(List<StreamResult> self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
 
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
-@protected void sse_encode_opt_box_autoadd_download_progress_snapshot(DownloadProgressSnapshot? self, SseSerializer serializer);
+  @protected
+  void sse_encode_platform_rule(PlatformRule self, SseSerializer serializer);
 
-@protected void sse_encode_opt_box_autoadd_f_32(double? self, SseSerializer serializer);
+  @protected
+  void sse_encode_playlist_item(PlaylistItem self, SseSerializer serializer);
 
-@protected void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+  @protected
+  void sse_encode_playlist_result(
+      PlaylistResult self, SseSerializer serializer);
 
-@protected void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+  @protected
+  void sse_encode_record_string_string(
+      (String, String) self, SseSerializer serializer);
 
-@protected void sse_encode_platform_rule(PlatformRule self, SseSerializer serializer);
+  @protected
+  void sse_encode_rule_step(RuleStep self, SseSerializer serializer);
 
-@protected void sse_encode_playlist_item(PlaylistItem self, SseSerializer serializer);
+  @protected
+  void sse_encode_rules_registry(RulesRegistry self, SseSerializer serializer);
 
-@protected void sse_encode_playlist_result(PlaylistResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_stream_result(StreamResult self, SseSerializer serializer);
 
-@protected void sse_encode_record_string_string((String,String) self, SseSerializer serializer);
+  @protected
+  void sse_encode_supabase_secrets(
+      SupabaseSecrets self, SseSerializer serializer);
 
-@protected void sse_encode_rule_step(RuleStep self, SseSerializer serializer);
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_rules_registry(RulesRegistry self, SseSerializer serializer);
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
-@protected void sse_encode_stream_result(StreamResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer);
 
-@protected void sse_encode_supabase_secrets(SupabaseSecrets self, SseSerializer serializer);
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer);
 
-@protected void sse_encode_u_32(int self, SseSerializer serializer);
-
-@protected void sse_encode_u_64(BigInt self, SseSerializer serializer);
-
-@protected void sse_encode_u_8(int self, SseSerializer serializer);
-
-@protected void sse_encode_unit(void self, SseSerializer serializer);
-
-@protected void sse_encode_video_info_result(VideoInfoResult self, SseSerializer serializer);
-                }
-                
-
+  @protected
+  void sse_encode_video_info_result(
+      VideoInfoResult self, SseSerializer serializer);
+}
 
 // Section: wire_class
 
 class RustLibWire implements BaseWire {
-            RustLibWire.fromExternalLibrary(ExternalLibrary lib);
+  RustLibWire.fromExternalLibrary(ExternalLibrary lib);
+}
 
-            
-        }
-        @JS('wasm_bindgen') external RustLibWasmModule get wasmModule;
+@JS('wasm_bindgen')
+external RustLibWasmModule get wasmModule;
 
-        @JS() @anonymous extension type RustLibWasmModule._(JSObject _) implements JSObject {
-            
-        }
-        
+@JS()
+@anonymous
+extension type RustLibWasmModule._(JSObject _) implements JSObject {}

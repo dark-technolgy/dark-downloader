@@ -7,51 +7,81 @@ import '../frb_generated.dart';
 import 'models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-            // These functions are ignored because they are not marked as `pub`: `audio_ext_from_url`, `audio_sidecar_path_from_output`, `build_client`, `cancel_flag_path`, `cleanup_download_artifacts`, `default_headers`, `download_and_finalize`, `download_chunk`, `download_chunked`, `download_hls`, `download_inner`, `download_proxy_key`, `download_single_resume`, `download_single`, `ensure_expected_total`, `is_hls_url`, `merged_final_path`, `mux_blocking`, `mux_temp_path`, `new`, `parse_packed_url`, `probe_url`, `referer_for`, `register_job`, `registry`, `resolve_url`, `run_ffmpeg_mux_attempts`, `run_ffmpeg_mux_with_fallback`, `run_ffmpeg_once`, `set_phase`, `shared_download_client`, `spawn_cancel_watcher`, `unregister_job`, `update_speed`, `user_agent_for`
+// These functions are ignored because they are not marked as `pub`: `audio_ext_from_url`, `audio_sidecar_path_from_output`, `build_client`, `cancel_flag_path`, `cleanup_download_artifacts`, `default_headers`, `download_and_finalize`, `download_chunk`, `download_chunked`, `download_hls`, `download_inner`, `download_proxy_key`, `download_single_resume`, `download_single`, `download_via_ytdlp`, `ensure_expected_total`, `is_hls_url`, `merged_final_path`, `mux_blocking`, `mux_temp_path`, `new`, `parse_packed_url`, `probe_url`, `referer_for`, `register_job`, `registry`, `resolve_url`, `run_ffmpeg_mux_attempts`, `run_ffmpeg_mux_with_fallback`, `run_ffmpeg_once`, `set_phase`, `shared_download_client`, `spawn_cancel_watcher`, `unregister_job`, `update_speed`, `user_agent_for`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `JobState`, `SharedDlClient`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`
 
+Future<DownloadProgressSnapshot?> getJobProgress({required String jobId}) =>
+    RustLib.instance.api.crateApiDownloaderGetJobProgress(jobId: jobId);
 
-            Future<DownloadProgressSnapshot?>  getJobProgress({required String jobId }) => RustLib.instance.api.crateApiDownloaderGetJobProgress(jobId: jobId);
+Future<void> cancelJob({required String jobId}) =>
+    RustLib.instance.api.crateApiDownloaderCancelJob(jobId: jobId);
 
-Future<void>  cancelJob({required String jobId }) => RustLib.instance.api.crateApiDownloaderCancelJob(jobId: jobId);
+Future<void> setDownloadProxy({String? proxyUrl}) =>
+    RustLib.instance.api.crateApiDownloaderSetDownloadProxy(proxyUrl: proxyUrl);
 
-Future<void>  setDownloadProxy({String? proxyUrl }) => RustLib.instance.api.crateApiDownloaderSetDownloadProxy(proxyUrl: proxyUrl);
+Future<DownloadResult> downloadFile(
+        {required String url, required String outputPath}) =>
+    RustLib.instance.api
+        .crateApiDownloaderDownloadFile(url: url, outputPath: outputPath);
 
-Future<DownloadResult>  downloadFile({required String url , required String outputPath }) => RustLib.instance.api.crateApiDownloaderDownloadFile(url: url, outputPath: outputPath);
+Future<DownloadResult> downloadFileV2(
+        {required String url,
+        required String outputPath,
+        String? audioUrl,
+        required String jobId,
+        required int connections,
+        String? muxFfmpeg}) =>
+    RustLib.instance.api.crateApiDownloaderDownloadFileV2(
+        url: url,
+        outputPath: outputPath,
+        audioUrl: audioUrl,
+        jobId: jobId,
+        connections: connections,
+        muxFfmpeg: muxFfmpeg);
 
-Future<DownloadResult>  downloadFileV2({required String url , required String outputPath , String? audioUrl , required String jobId , required int connections , String? muxFfmpeg }) => RustLib.instance.api.crateApiDownloaderDownloadFileV2(url: url, outputPath: outputPath, audioUrl: audioUrl, jobId: jobId, connections: connections, muxFfmpeg: muxFfmpeg);
+Future<String> getDownloadsDir() =>
+    RustLib.instance.api.crateApiDownloaderGetDownloadsDir();
 
-Future<String>  getDownloadsDir() => RustLib.instance.api.crateApiDownloaderGetDownloadsDir();
+Future<String> safeFilename({required String title, required String format}) =>
+    RustLib.instance.api
+        .crateApiDownloaderSafeFilename(title: title, format: format);
 
-Future<String>  safeFilename({required String title , required String format }) => RustLib.instance.api.crateApiDownloaderSafeFilename(title: title, format: format);
+class DownloadProgressSnapshot {
+  final BigInt downloadedBytes;
+  final BigInt totalBytes;
+  final BigInt speedBytesSec;
+  final BigInt etaSeconds;
+  final double percent;
+  final String phase;
 
-            class DownloadProgressSnapshot  {
-                final BigInt downloadedBytes;
-final BigInt totalBytes;
-final BigInt speedBytesSec;
-final BigInt etaSeconds;
-final double percent;
-final String phase;
+  const DownloadProgressSnapshot({
+    required this.downloadedBytes,
+    required this.totalBytes,
+    required this.speedBytesSec,
+    required this.etaSeconds,
+    required this.percent,
+    required this.phase,
+  });
 
-                const DownloadProgressSnapshot({required this.downloadedBytes ,required this.totalBytes ,required this.speedBytesSec ,required this.etaSeconds ,required this.percent ,required this.phase ,});
+  @override
+  int get hashCode =>
+      downloadedBytes.hashCode ^
+      totalBytes.hashCode ^
+      speedBytesSec.hashCode ^
+      etaSeconds.hashCode ^
+      percent.hashCode ^
+      phase.hashCode;
 
-                
-                
-
-                
-        @override
-        int get hashCode => downloadedBytes.hashCode^totalBytes.hashCode^speedBytesSec.hashCode^etaSeconds.hashCode^percent.hashCode^phase.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is DownloadProgressSnapshot &&
-                runtimeType == other.runtimeType
-                && downloadedBytes == other.downloadedBytes&& totalBytes == other.totalBytes&& speedBytesSec == other.speedBytesSec&& etaSeconds == other.etaSeconds&& percent == other.percent&& phase == other.phase;
-        
-            }
-            
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DownloadProgressSnapshot &&
+          runtimeType == other.runtimeType &&
+          downloadedBytes == other.downloadedBytes &&
+          totalBytes == other.totalBytes &&
+          speedBytesSec == other.speedBytesSec &&
+          etaSeconds == other.etaSeconds &&
+          percent == other.percent &&
+          phase == other.phase;
+}

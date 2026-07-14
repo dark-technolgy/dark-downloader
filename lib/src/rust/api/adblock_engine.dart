@@ -6,15 +6,13 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `Blocker`
 
-            // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `Blocker`
+void rustInitAdblocker({required List<String> rules}) =>
+    RustLib.instance.api.crateApiAdblockEngineRustInitAdblocker(rules: rules);
 
+bool rustShouldBlockUrl({required String url}) =>
+    RustLib.instance.api.crateApiAdblockEngineRustShouldBlockUrl(url: url);
 
-            void  rustInitAdblocker({required List<String> rules }) => RustLib.instance.api.crateApiAdblockEngineRustInitAdblocker(rules: rules);
-
-bool  rustShouldBlockUrl({required String url }) => RustLib.instance.api.crateApiAdblockEngineRustShouldBlockUrl(url: url);
-
-List<String>  rustGetDefaultAdRules() => RustLib.instance.api.crateApiAdblockEngineRustGetDefaultAdRules();
-
-            
-            
+List<String> rustGetDefaultAdRules() =>
+    RustLib.instance.api.crateApiAdblockEngineRustGetDefaultAdRules();

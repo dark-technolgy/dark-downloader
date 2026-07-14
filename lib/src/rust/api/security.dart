@@ -6,48 +6,60 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `derive_vault_key`
 
-            // These functions are ignored because they are not marked as `pub`: `derive_vault_key`
+Future<SupabaseSecrets> rustGetSupabaseConfig() =>
+    RustLib.instance.api.crateApiSecurityRustGetSupabaseConfig();
 
+Future<String> rustGetDeviceFingerprint() =>
+    RustLib.instance.api.crateApiSecurityRustGetDeviceFingerprint();
 
-            Future<SupabaseSecrets>  rustGetSupabaseConfig() => RustLib.instance.api.crateApiSecurityRustGetSupabaseConfig();
-
-Future<String>  rustGetDeviceFingerprint() => RustLib.instance.api.crateApiSecurityRustGetDeviceFingerprint();
-
-Future<String>  rustSignMessage({required String message , required String secret }) => RustLib.instance.api.crateApiSecurityRustSignMessage(message: message, secret: secret);
+Future<String> rustSignMessage(
+        {required String message, required String secret}) =>
+    RustLib.instance.api
+        .crateApiSecurityRustSignMessage(message: message, secret: secret);
 
 /// فحص سلامة التطبيق (كشف الروت وأدوات الاختراق)
-Future<bool>  rustCheckAppIntegrity() => RustLib.instance.api.crateApiSecurityRustCheckAppIntegrity();
+Future<bool> rustCheckAppIntegrity() =>
+    RustLib.instance.api.crateApiSecurityRustCheckAppIntegrity();
 
-Future<String>  rustGenerateSecureToken({required String payload }) => RustLib.instance.api.crateApiSecurityRustGenerateSecureToken(payload: payload);
+Future<String> rustGenerateSecureToken({required String payload}) =>
+    RustLib.instance.api
+        .crateApiSecurityRustGenerateSecureToken(payload: payload);
 
 /// Encrypt a file and move it to the vault
-Future<void>  vaultEncryptFile({required String sourcePath , required String targetPath , required String password }) => RustLib.instance.api.crateApiSecurityVaultEncryptFile(sourcePath: sourcePath, targetPath: targetPath, password: password);
+Future<void> vaultEncryptFile(
+        {required String sourcePath,
+        required String targetPath,
+        required String password}) =>
+    RustLib.instance.api.crateApiSecurityVaultEncryptFile(
+        sourcePath: sourcePath, targetPath: targetPath, password: password);
 
 /// Decrypt a file from the vault back to a usable location
-Future<void>  vaultDecryptFile({required String vaultPath , required String outputPath , required String password }) => RustLib.instance.api.crateApiSecurityVaultDecryptFile(vaultPath: vaultPath, outputPath: outputPath, password: password);
+Future<void> vaultDecryptFile(
+        {required String vaultPath,
+        required String outputPath,
+        required String password}) =>
+    RustLib.instance.api.crateApiSecurityVaultDecryptFile(
+        vaultPath: vaultPath, outputPath: outputPath, password: password);
 
-            class SupabaseSecrets  {
-                final String url;
-final String anonKey;
+class SupabaseSecrets {
+  final String url;
+  final String anonKey;
 
-                const SupabaseSecrets({required this.url ,required this.anonKey ,});
+  const SupabaseSecrets({
+    required this.url,
+    required this.anonKey,
+  });
 
-                
-                
+  @override
+  int get hashCode => url.hashCode ^ anonKey.hashCode;
 
-                
-        @override
-        int get hashCode => url.hashCode^anonKey.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is SupabaseSecrets &&
-                runtimeType == other.runtimeType
-                && url == other.url&& anonKey == other.anonKey;
-        
-            }
-            
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SupabaseSecrets &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          anonKey == other.anonKey;
+}
