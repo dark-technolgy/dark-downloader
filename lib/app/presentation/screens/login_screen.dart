@@ -11,12 +11,15 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
+enum AuthFormState { signIn, signUp, verifySignUpOtp, forgotPassword, resetPasswordOtp }
+
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _otpController = TextEditingController();
   
-  bool _isSignUp = false;
+  AuthFormState _formState = AuthFormState.signIn;
   bool _isLoading = false;
 
   @override
@@ -24,6 +27,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
@@ -31,34 +35,84 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final name = _nameController.text.trim();
+    final otp = _otpController.text.trim();
     
-    if (email.isEmpty || password.isEmpty || (_isSignUp && name.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء تعبئة جميع الحقول')),
-      );
+    if (email.isEmpty) {
+      _showError('الرجاء إدخال البريد الإلكتروني');
+      return;
+    }
+
+    if (_formState == AuthFormState.signUp && (password.isEmpty || name.isEmpty)) {
+      _showError('الرجاء تعبئة جميع الحقول');
+      return;
+    }
+    
+    if (_formState == AuthFormState.signIn && password.isEmpty) {
+      _showError('الرجاء إدخال كلمة المرور');
+      return;
+    }
+    
+    if ((_formState == AuthFormState.verifySignUpOtp || _formState == AuthFormState.resetPasswordOtp) && otp.isEmpty) {
+      _showError('الرجاء إدخال رمز التحقق');
+      return;
+    }
+
+    if (_formState == AuthFormState.resetPasswordOtp && password.isEmpty) {
+      _showError('الرجاء إدخال كلمة المرور الجديدة');
       return;
     }
 
     setState(() => _isLoading = true);
+    final auth = ref.read(authProvider.notifier);
     
     try {
-      final auth = ref.read(authProvider.notifier);
-      if (_isSignUp) {
-        await auth.smartSignUp(email: email, password: password, name: name);
-      } else {
-        await auth.smartSignIn(email: email, password: password);
+      switch (_formState) {
+        case AuthFormState.signIn:
+          await auth.smartSignIn(email: email, password: password);
+          break;
+        case AuthFormState.signUp:
+          final requiresOtp = await auth.smartSignUp(email: email, password: password, name: name);
+          if (requiresOtp) {
+            setState(() {
+              _formState = AuthFormState.verifySignUpOtp;
+              _otpController.clear();
+            });
+            _showSuccess('تم إرسال رمز التحقق إلى بريدك الإلكتروني');
+          }
+          break;
+        case AuthFormState.verifySignUpOtp:
+          await auth.verifyOTP(email: email, token: otp);
+          break;
+        case AuthFormState.forgotPassword:
+          await auth.sendPasswordReset(email);
+          setState(() {
+            _formState = AuthFormState.resetPasswordOtp;
+            _otpController.clear();
+            _passwordController.clear();
+          });
+          _showSuccess('تم إرسال رمز الاستعادة إلى بريدك الإلكتروني');
+          break;
+        case AuthFormState.resetPasswordOtp:
+          await auth.verifyOTP(email: email, token: otp, isRecovery: true);
+          await auth.updatePassword(password);
+          _showSuccess('تم تغيير كلمة المرور بنجاح! جاري تسجيل الدخول...');
+          break;
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
+      _showError(e.toString());
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+  }
+
+  void _showSuccess(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
   }
 
   @override
@@ -66,11 +120,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final locale = ref.watch(localeProvider);
     final isAr = locale.languageCode == 'ar';
 
+    String title = '';
+    String btnText = '';
+
+    switch (_formState) {
+      case AuthFormState.signIn:
+        title = isAr ? 'تسجيل الدخول' : 'Welcome Back';
+        btnText = isAr ? 'دخول' : 'Sign In';
+        break;
+      case AuthFormState.signUp:
+        title = isAr ? 'إنشاء حساب جديد' : 'Create Account';
+        btnText = isAr ? 'تسجيل' : 'Sign Up';
+        break;
+      case AuthFormState.verifySignUpOtp:
+        title = isAr ? 'تأكيد البريد' : 'Verify Email';
+        btnText = isAr ? 'تأكيد' : 'Verify';
+        break;
+      case AuthFormState.forgotPassword:
+        title = isAr ? 'نسيت كلمة المرور' : 'Forgot Password';
+        btnText = isAr ? 'إرسال الرمز' : 'Send Code';
+        break;
+      case AuthFormState.resetPasswordOtp:
+        title = isAr ? 'تعيين كلمة مرور جديدة' : 'Reset Password';
+        btnText = isAr ? 'تحديث الدخول' : 'Update & Login';
+        break;
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // خلفية حركية
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -82,7 +161,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-          // دوائر متوهجة
           Positioned(
             top: -100,
             right: -50,
@@ -123,16 +201,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _isSignUp ? (isAr ? 'إنشاء حساب جديد' : 'Create Account') : (isAr ? 'تسجيل الدخول' : 'Welcome Back'),
+                          title,
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
                         
-                        if (_isSignUp) ...[
+                        if (_formState == AuthFormState.signUp) ...[
                           _buildTextField(
                             controller: _nameController,
                             icon: Icons.person_rounded,
@@ -141,21 +220,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 16),
                         ],
                         
-                        _buildTextField(
-                          controller: _emailController,
-                          icon: Icons.email_rounded,
-                          hint: isAr ? 'البريد أو رقم الهاتف' : 'Email or Phone',
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
+                        if (_formState != AuthFormState.verifySignUpOtp && _formState != AuthFormState.resetPasswordOtp) ...[
+                          _buildTextField(
+                            controller: _emailController,
+                            icon: Icons.email_rounded,
+                            hint: isAr ? 'البريد الإلكتروني' : 'Email Address',
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        if (_formState == AuthFormState.verifySignUpOtp || _formState == AuthFormState.resetPasswordOtp) ...[
+                          _buildTextField(
+                            controller: _otpController,
+                            icon: Icons.pin_rounded,
+                            hint: isAr ? 'رمز التحقق (6 أرقام)' : 'Verification Code (6 digits)',
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         
-                        _buildTextField(
-                          controller: _passwordController,
-                          icon: Icons.lock_rounded,
-                          hint: isAr ? 'كلمة المرور' : 'Password',
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 32),
+                        if (_formState == AuthFormState.signIn || _formState == AuthFormState.signUp) ...[
+                          _buildTextField(
+                            controller: _passwordController,
+                            icon: Icons.lock_rounded,
+                            hint: isAr ? 'كلمة المرور' : 'Password',
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 8),
+                          if (_formState == AuthFormState.signIn)
+                            Align(
+                              alignment: isAr ? Alignment.centerLeft : Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () => setState(() => _formState = AuthFormState.forgotPassword),
+                                child: Text(
+                                  isAr ? 'نسيت كلمة المرور؟' : 'Forgot Password?',
+                                  style: const TextStyle(color: Colors.blue),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        if (_formState == AuthFormState.resetPasswordOtp) ...[
+                          _buildTextField(
+                            controller: _passwordController,
+                            icon: Icons.lock_rounded,
+                            hint: isAr ? 'كلمة المرور الجديدة' : 'New Password',
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 32),
+                        ],
+                        
+                        if (_formState == AuthFormState.forgotPassword)
+                          const SizedBox(height: 16),
                         
                         SizedBox(
                           width: double.infinity,
@@ -173,22 +291,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: _isLoading
                                 ? const CircularProgressIndicator(color: Colors.white)
                                 : Text(
-                                    _isSignUp ? (isAr ? 'تسجيل' : 'Sign Up') : (isAr ? 'دخول' : 'Sign In'),
+                                    btnText,
                                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
                           ),
                         ),
                         const SizedBox(height: 16),
                         
-                        TextButton(
-                          onPressed: () => setState(() => _isSignUp = !_isSignUp),
-                          child: Text(
-                            _isSignUp 
-                              ? (isAr ? 'لديك حساب؟ سجل دخولك' : 'Already have an account? Sign in')
-                              : (isAr ? 'ليس لديك حساب؟ سجل الآن' : 'Need an account? Sign up'),
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+                        if (_formState == AuthFormState.signIn || _formState == AuthFormState.signUp)
+                          TextButton(
+                            onPressed: () => setState(() {
+                              _formState = _formState == AuthFormState.signIn ? AuthFormState.signUp : AuthFormState.signIn;
+                            }),
+                            child: Text(
+                              _formState == AuthFormState.signUp 
+                                ? (isAr ? 'لديك حساب؟ سجل دخولك' : 'Already have an account? Sign in')
+                                : (isAr ? 'ليس لديك حساب؟ سجل الآن' : 'Need an account? Sign up'),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+                            ),
                           ),
-                        ),
+
+                        if (_formState == AuthFormState.verifySignUpOtp || _formState == AuthFormState.forgotPassword || _formState == AuthFormState.resetPasswordOtp)
+                          TextButton(
+                            onPressed: () => setState(() => _formState = AuthFormState.signIn),
+                            child: Text(
+                              isAr ? 'العودة لتسجيل الدخول' : 'Back to Sign In',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -235,3 +365,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+

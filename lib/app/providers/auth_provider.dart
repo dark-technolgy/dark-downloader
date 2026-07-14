@@ -241,28 +241,17 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  String _formatEmailOrPhone(String input) {
-    input = input.trim();
-    // إذا كان الإدخال يحتوي على أرقام فقط (أو أرقام وعلامة +)، نعتبره رقم هاتف
-    if (RegExp(r'^[+0-9]+$').hasMatch(input)) {
-      return '$input@phone.dark.local';
-    }
-    return input;
-  }
-
-  Future<void> smartSignUp({
+  /// Returns true if OTP is required (session is null), false if automatically logged in.
+  Future<bool> smartSignUp({
     required String email,
     required String password,
     required String name,
   }) async {
     try {
-      final formattedEmail = _formatEmailOrPhone(email);
-
-      // Collect metadata BEFORE signup so the trigger gets it instantly!
       final meta = await DeviceMetadata.collect();
 
       final res = await supabase.auth.signUp(
-        email: formattedEmail,
+        email: email.trim(),
         password: password,
         data: {
           'full_name': name,
@@ -276,9 +265,11 @@ class AuthNotifier extends Notifier<AuthState> {
           'isp': meta.isp,
         },
       );
-      if (res.user != null) {
+      if (res.session != null && res.user != null) {
         await _loadAndEnrichProfile(res.user!);
+        return false; // Automatically logged in
       }
+      return true; // OTP required
     } on AuthException catch (e) {
       throw e.message;
     } catch (e) {
@@ -291,9 +282,8 @@ class AuthNotifier extends Notifier<AuthState> {
     required String password,
   }) async {
     try {
-      final formattedEmail = _formatEmailOrPhone(email);
       final res = await supabase.auth.signInWithPassword(
-        email: formattedEmail,
+        email: email.trim(),
         password: password,
       );
       if (res.user != null) {
@@ -303,6 +293,47 @@ class AuthNotifier extends Notifier<AuthState> {
       throw e.message;
     } catch (e) {
       throw 'حدث خطأ أثناء تسجيل الدخول';
+    }
+  }
+
+  Future<void> verifyOTP({
+    required String email,
+    required String token,
+    bool isRecovery = false,
+  }) async {
+    try {
+      final res = await supabase.auth.verifyOTP(
+        type: isRecovery ? OtpType.recovery : OtpType.signup,
+        email: email.trim(),
+        token: token.trim(),
+      );
+      if (res.user != null) {
+        await _loadAndEnrichProfile(res.user!);
+      }
+    } on AuthException catch (e) {
+      throw e.message;
+    } catch (e) {
+      throw 'رمز التحقق غير صحيح أو منتهي الصلاحية';
+    }
+  }
+
+  Future<void> sendPasswordReset(String email) async {
+    try {
+      await supabase.auth.resetPasswordForEmail(email.trim());
+    } on AuthException catch (e) {
+      throw e.message;
+    } catch (e) {
+      throw 'حدث خطأ أثناء إرسال رمز استعادة كلمة المرور';
+    }
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await supabase.auth.updateUser(UserAttributes(password: newPassword));
+    } on AuthException catch (e) {
+      throw e.message;
+    } catch (e) {
+      throw 'حدث خطأ أثناء تحديث كلمة المرور';
     }
   }
 
