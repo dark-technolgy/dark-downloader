@@ -141,7 +141,7 @@ jobs:
       - name: Update latest.json
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          BASE_URL="${{ secrets.R2_PUBLIC_BASE_URL }}"
+          BASE_URL="https://releases.keenx.net"
           
           # Get sizes
           AND_SIZE=$(stat -c%s "artifacts/android-artifact/Dark-Downloader-v${VERSION}-android-universal.apk")

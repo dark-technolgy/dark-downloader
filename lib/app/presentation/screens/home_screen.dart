@@ -178,6 +178,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onProgress: (p) =>
                         setDialogState(() => downloadProgress = p),
                   );
+                  
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00A3FF),

@@ -102,6 +102,7 @@ class UpdateService {
       
       // Prevent downloading mismatched extensions internally.
       // If the URL is just the website URL (e.g. keenx.net), fallback immediately.
+      url = url.replaceAll(RegExp(r'https?://pub-[a-zA-Z0-9]+\.r2\.dev'), 'https://releases.keenx.net');
       final lowerUrl = url.toLowerCase();
       final validWindows = isWindows && lowerUrl.endsWith('.exe');
       final validAndroid = isAndroid && lowerUrl.endsWith('.apk');
@@ -113,7 +114,12 @@ class UpdateService {
       final tempDir = await getTemporaryDirectory();
       final savePath = '${tempDir.path}/$fileName';
 
-      await _dio.download(
+      final dioWithTimeout = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 30),
+      ));
+
+      await dioWithTimeout.download(
         url,
         savePath,
         onReceiveProgress: (received, total) {
