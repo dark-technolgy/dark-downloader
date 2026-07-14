@@ -29,7 +29,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
   final _urlController = TextEditingController();
   final _scrollController = ScrollController();
   String? _suggestedUrl;
-  bool _bypassEnabled = false;
+
 
   static const _platforms = [
     {
@@ -144,7 +144,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
     FocusScope.of(context).unfocus();
     await ref
         .read(extractorProvider.notifier)
-        .extractVideo(url, bypassBlocks: _bypassEnabled);
+        .extractVideo(url);
 
     final state = ref.read(extractorProvider);
     if (state.playlist != null && mounted) {
@@ -179,7 +179,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
         setState(() {});
         await ref
             .read(extractorProvider.notifier)
-            .extractVideo(url, bypassBlocks: _bypassEnabled);
+            .extractVideo(url);
 
         if (!context.mounted) return;
         final state = ref.read(extractorProvider);
@@ -419,44 +419,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.vpn_lock_rounded,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  t('bypass_blocks_label', locale),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  t('bypass_blocks_hint', locale),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            Switch(
-                              value: _bypassEnabled,
-                              onChanged: (v) {
-                                setState(() => _bypassEnabled = v);
-                              },
-                              activeThumbColor: colorScheme.primary,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
+
                         Row(
                           children: [
                             Expanded(

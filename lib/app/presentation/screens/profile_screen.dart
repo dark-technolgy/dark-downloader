@@ -429,6 +429,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
           ),
+          if (state.isAuthenticated) ...[
+            const Divider(height: 1, indent: 56),
+            ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Colors.red,
+                  size: 20,
+                ),
+              ),
+              title: Text(locale.languageCode == 'ar' ? 'تسجيل الخروج' : 'Log Out', style: const TextStyle(color: Colors.red)),
+              onTap: () async {
+                await ref.read(authProvider.notifier).signOut();
+              },
+            ),
+          ],
         ],
       ),
     );
