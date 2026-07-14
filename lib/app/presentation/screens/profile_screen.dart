@@ -429,7 +429,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
           ),
-          if (state.isAuthenticated) ...[
+          if (ref.read(authProvider).isAuthenticated) ...[
             const Divider(height: 1, indent: 56),
             ListTile(
               leading: Container(

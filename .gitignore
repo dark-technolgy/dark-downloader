@@ -162,3 +162,5 @@ mingit/
 nuget.exe
 packages/
 git.bat
+
+jdk/
