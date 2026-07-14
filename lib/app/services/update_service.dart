@@ -132,10 +132,18 @@ class UpdateService {
         },
       );
 
-      // Open the file to start installation
-      final result = await OpenFile.open(savePath);
-      if (result.type != ResultType.done) {
-        throw Exception('Failed to open file: ${result.message}');
+      if (Platform.isWindows) {
+        await Process.start(
+          savePath,
+          ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/FORCECLOSEAPPLICATIONS', '/SP-'],
+          mode: ProcessStartMode.detached,
+        );
+      } else {
+        // Open the file to start installation
+        final result = await OpenFile.open(savePath);
+        if (result.type != ResultType.done) {
+          throw Exception('Failed to open file: ${result.message}');
+        }
       }
     } catch (e) {
       debugPrint('In-app update failed: $e');
