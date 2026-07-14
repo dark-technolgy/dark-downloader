@@ -248,6 +248,7 @@ class AppLocalization {
     'filter_all': 'الكل',
     'filter_video_with_audio': 'فيديو (صورة وصوت)',
     'show_more': 'إظهار المزيد',
+    'show_more_legacy': 'إظهار التنسيقات القديمة / الصوتية',
 
     'merge_banner_title': 'سيتم دمج الصوت مع الفيديو',
     'merge_banner_body':
@@ -862,6 +863,7 @@ class AppLocalization {
     'filter_all': 'All',
     'filter_video_with_audio': 'Video + audio',
     'show_more': 'Show More',
+    'show_more_legacy': 'Show Legacy / Audio Formats',
 
     'merge_banner_title': 'Audio will be merged with video',
     'merge_banner_body':

@@ -49,12 +49,16 @@ class _AdvancedDownloadScreenState
     _selected = pickBestDefault(widget.streams);
   }
 
-  List<StreamInfo> get _filteredStreams => applyFilters(
-    widget.streams,
-    kinds: _streamKindFilter.kinds,
-    resolutions: _resolutionFilter.isEmpty ? const {} : {_resolutionFilter},
-    containers: _containerFilter.isEmpty ? const {} : {_containerFilter},
-  );
+  List<StreamInfo> get _filteredStreams {
+    final filtered = applyFilters(
+      widget.streams,
+      kinds: _streamKindFilter.kinds,
+      resolutions: _resolutionFilter.isEmpty ? const {} : {_resolutionFilter},
+      containers: _containerFilter.isEmpty ? const {} : {_containerFilter},
+    );
+    filtered.sort((a, b) => b.sortScore.compareTo(a.sortScore));
+    return filtered;
+  }
 
   void _setStreamKindFilter(_StreamKindFilter f) {
     setState(() {
@@ -386,7 +390,7 @@ class _AdvancedDownloadScreenState
               onPressed: () => setState(() => _showAllStreams = true),
               icon: const Icon(Icons.expand_more_rounded, color: Colors.blue),
               label: Text(
-                t('show_more', locale),
+                t('show_more_legacy', locale),
                 style: const TextStyle(color: Colors.blue),
               ),
               style: TextButton.styleFrom(
