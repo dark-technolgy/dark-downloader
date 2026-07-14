@@ -314,7 +314,6 @@ pub async fn extract_with_options(
         "TikTok" => extract_tiktok(url).await,
         "Instagram" => extract_instagram(url).await,
         "Twitter/X" => extract_twitter(url).await,
-        "Facebook" => extract_facebook(url).await,
         "Dailymotion" => extract_dailymotion(url).await,
         "Reddit" => extract_reddit(url).await,
         "Rumble" => extract_rumble(url).await,
@@ -347,15 +346,9 @@ pub async fn extract_with_options(
         if let Ok(res) = generic_res {
             result = Ok(res);
         } else if !bypass_blocks {
-            // محاولة التحميل من الخوادم السحابية (Cobalt API) قبل وضع التجاوز الشامل
-            debug_log::log_debug("Generic failed, retrying via Cobalt API (Cloud Extract)...");
-            if let Ok(res) = extract_cobalt(url).await {
+            debug_log::log_debug("Generic failed, retrying WITH bypass automatically...");
+            if let Ok(res) = extract_generic_recursive(url, "Unknown", 0).await {
                 result = Ok(res);
-            } else {
-                debug_log::log_debug("Cobalt API failed, retrying WITH bypass automatically...");
-                if let Ok(res) = extract_generic_recursive(url, "Unknown", 0).await {
-                    result = Ok(res);
-                }
             }
         }
     }
@@ -2953,62 +2946,7 @@ async fn twitter_guest_token(client: &reqwest::Client) -> Result<String> {
 // Facebook
 // ─────────────────────────────────────────────────────────────────────────────
 
-async fn extract_facebook(url: &str) -> Result<VideoInfoResult> {
-    let client = browser_client()?;
-    let html = client
-        .get(url)
-        .header("Accept-Language", "en-US,en;q=0.9")
-        .send()
-        .await?
-        .text()
-        .await?;
-
-    let title =
-        extract_meta_property(&html, "og:title").unwrap_or_else(|| "Facebook Video".to_string());
-    let thumbnail = extract_meta_property(&html, "og:image");
-
-    // نبحث عن روابط الفيديو في الـ scripts
-    let hd = extract_json_value(&html, "hd_src");
-    let sd = extract_json_value(&html, "sd_src");
-
-    let mut streams = Vec::new();
-    if let Some(u) = hd {
-        let mut s = mk_muxed_stream(u, "HD (720p)".into(), "mp4", None);
-        s.height = Some(720);
-        s.width = infer_width(s.height);
-        s.video_codec = Some("avc1".into());
-        streams.push(s);
-    }
-    if let Some(u) = sd {
-        let mut s = mk_muxed_stream(u, "SD (480p)".into(), "mp4", None);
-        s.height = Some(480);
-        s.width = infer_width(s.height);
-        s.video_codec = Some("avc1".into());
-        streams.push(s);
-    }
-
-    if streams.is_empty() {
-        let video_url = extract_meta_property(&html, "og:video:secure_url")
-            .or_else(|| extract_meta_property(&html, "og:video"));
-        if let Some(vu) = video_url {
-            streams.push(mk_muxed_stream(vu, "HD".into(), "mp4", None));
-        }
-    }
-
-    if streams.is_empty() {
-        return Err(anyhow!("هذا المحتوى خاص أو يتطلب تسجيل دخول"));
-    }
-
-    final_sort(&mut streams);
-    Ok(VideoInfoResult {
-        title,
-        thumbnail_url: thumbnail,
-        platform: "Facebook".into(),
-        duration_seconds: None,
-        author: None,
-        streams,
-    })
-}
+// Facebook native extractor removed (broken upstream, delegates to yt-dlp)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dailymotion

@@ -75,7 +75,7 @@ pub async fn extract_via_ytdlp(url: &str) -> Result<VideoInfoResult> {
             .arg("--user-agent")
             .arg("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36")
             .arg("--extractor-args")
-            .arg("youtube:player_client=tv,mweb")
+            .arg("youtube:player_client=tv,mweb;facebook:skip_webpage")
             .arg("--restrict-filenames")
             .arg(&url_owned)
             .stdin(Stdio::null())
