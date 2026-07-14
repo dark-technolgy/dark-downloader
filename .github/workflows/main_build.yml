@@ -48,10 +48,15 @@ jobs:
         run: flutter pub get
       - name: Fetch Tools and Dependencies
         run: |
-          pwsh ./scripts/fetch_ytdlp_bundles.ps1
-          pwsh ./scripts/fetch_ffmpeg_bundles.ps1
-          if (Test-Path "./scripts/fetch_linux_ffmpeg.ps1") { pwsh ./scripts/fetch_linux_ffmpeg.ps1 }
-          if ("${{ matrix.target }}" -eq "android") { pwsh ./scripts/fetch_ffmpeg_kit_android_maven_repo.ps1 }
+          if ("${{ matrix.target }}" -ne "android") {
+            pwsh ./scripts/fetch_ytdlp_bundles.ps1
+            pwsh ./scripts/fetch_ffmpeg_bundles.ps1
+            if (Test-Path "./scripts/fetch_linux_ffmpeg.ps1") { pwsh ./scripts/fetch_linux_ffmpeg.ps1 }
+          } else {
+            New-Item -ItemType Directory -Force -Path "assets/bundled_ffmpeg/windows", "assets/bundled_ffmpeg/linux", "assets/bundled_ytdlp/windows", "assets/bundled_ytdlp/linux", "assets/bundled_ytdlp/macos", "assets/bundled_ffmpeg/macos" | Out-Null
+            New-Item -ItemType File -Force -Path "assets/bundled_ffmpeg/windows/.keep", "assets/bundled_ffmpeg/linux/.keep", "assets/bundled_ytdlp/windows/.keep", "assets/bundled_ytdlp/linux/.keep", "assets/bundled_ytdlp/macos/.keep", "assets/bundled_ffmpeg/macos/.keep" | Out-Null
+            pwsh ./scripts/fetch_ffmpeg_kit_android_maven_repo.ps1
+          }
         shell: pwsh
       - name: Setup Android Signing
         if: matrix.target == 'android'
