@@ -105,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                isDownloading ? "جارٍ التحديث..." : "تحديث جديد متاح! 🚀",
+                isDownloading ? 'جارٍ التحديث...' : 'تحديث جديد متاح! 🚀',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -127,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 12),
               if (!isDownloading)
                 Text(
-                  update['notes'] ?? "",
+                  update['notes'] ?? '',
                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
               if (isDownloading) ...[
@@ -142,8 +142,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(height: 8),
                 Text(
                   downloadProgress >= 0
-                      ? "${(downloadProgress * 100).toStringAsFixed(0)}%"
-                      : "جاري التحميل...",
+                      ? '${(downloadProgress * 100).toStringAsFixed(0)}%'
+                      : 'جاري التحميل...',
                   style: const TextStyle(
                     color: Color(0xFF00A3FF),
                     fontWeight: FontWeight.bold,
@@ -157,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text(
-                  "لاحقاً",
+                  'لاحقاً',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
@@ -183,7 +183,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   backgroundColor: const Color(0xFF00A3FF),
                   foregroundColor: Colors.white,
                 ),
-                child: const Text("تحديث الآن"),
+                child: const Text('تحديث الآن'),
               ),
           ],
         ),
@@ -234,7 +234,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     final locale = ref.watch(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
 
     return Scaffold(
       body: Column(
@@ -399,12 +399,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           NavigationDestination(
             icon: const Icon(Icons.build_circle_outlined),
             selectedIcon: const Icon(Icons.build_circle_rounded),
-            label: 'الأدوات',
+            label: t('toolkit', locale),
           ),
           NavigationDestination(
             icon: const Icon(Icons.security_outlined),
             selectedIcon: const Icon(Icons.security_rounded),
-            label: 'الخزنة',
+            label: t('vault', locale),
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline_rounded),

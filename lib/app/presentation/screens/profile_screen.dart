@@ -35,35 +35,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _formatDate(DateTime? dt, Locale locale) {
     if (dt == null) return '—';
     final local = dt.toLocal();
-    final months = locale.languageCode == 'ar'
-        ? [
-            'يناير',
-            'فبراير',
-            'مارس',
-            'أبريل',
-            'مايو',
-            'يونيو',
-            'يوليو',
-            'أغسطس',
-            'سبتمبر',
-            'أكتوبر',
-            'نوفمبر',
-            'ديسمبر',
-          ]
-        : [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ];
+    const t = AppLocalization.translate;
+    final months = [
+      t('month_jan', locale),
+      t('month_feb', locale),
+      t('month_mar', locale),
+      t('month_apr', locale),
+      t('month_may', locale),
+      t('month_jun', locale),
+      t('month_jul', locale),
+      t('month_aug', locale),
+      t('month_sep', locale),
+      t('month_oct', locale),
+      t('month_nov', locale),
+      t('month_dec', locale),
+    ];
     return '${local.day} ${months[local.month - 1]} ${local.year}';
   }
 
@@ -81,7 +67,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final state = ref.watch(authProvider);
     final locale = ref.watch(localeProvider);
     final themeState = ref.watch(themeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = themeState.mode == ThemeMode.dark;
@@ -382,7 +368,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ColorScheme colorScheme,
     ThemeData theme,
   ) {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -412,7 +398,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onSelectionChanged: (s) {
                 ref.read(localeProvider.notifier).setLocale(Locale(s.first));
               },
-              style: ButtonStyle(
+              style: const ButtonStyle(
                 visualDensity: VisualDensity.compact,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -502,7 +488,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     Locale locale,
     ColorScheme colorScheme,
   ) {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

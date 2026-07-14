@@ -78,6 +78,9 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   void _showTracksDialog() {
+    final locale = ref.read(localeProvider);
+    const t = AppLocalization.translate;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF0A0A0A),
@@ -88,11 +91,11 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const TabBar(
-                indicatorColor: Color(0xFF00A3FF),
+              TabBar(
+                indicatorColor: const Color(0xFF00A3FF),
                 tabs: [
-                  Tab(text: "الصوت (Audio)"),
-                  Tab(text: "الترجمة (Subtitles)"),
+                  Tab(text: t('player_audio_tab', locale)),
+                  Tab(text: t('player_subtitles_tab', locale)),
                 ],
               ),
               Flexible(
@@ -104,8 +107,8 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                       ListView(
                         children: player.state.tracks.audio.map((track) {
                           return ListTile(
-                            title: Text(track.title ?? track.language ?? "مسار صوتي", style: const TextStyle(color: Colors.white)),
-                            subtitle: Text(track.codec ?? "", style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                            title: Text(track.title ?? track.language ?? t('player_audio_track_fallback', locale), style: const TextStyle(color: Colors.white)),
+                            subtitle: Text(track.codec ?? '', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                             trailing: player.state.track.audio == track ? const Icon(Icons.check, color: Color(0xFF00A3FF)) : null,
                             onTap: () {
                               player.setAudioTrack(track);
@@ -118,7 +121,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                       ListView(
                         children: [
                           ListTile(
-                            title: const Text("بدون ترجمة", style: TextStyle(color: Colors.white)),
+                            title: Text(t('player_no_subtitles', locale), style: const TextStyle(color: Colors.white)),
                             onTap: () {
                               player.setSubtitleTrack(SubtitleTrack.no());
                               Navigator.pop(context);
@@ -126,7 +129,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                           ),
                           ...player.state.tracks.subtitle.map((track) {
                             return ListTile(
-                              title: Text(track.title ?? track.language ?? "ترجمة", style: const TextStyle(color: Colors.white)),
+                              title: Text(track.title ?? track.language ?? t('player_subtitle_fallback', locale), style: const TextStyle(color: Colors.white)),
                               trailing: player.state.track.subtitle == track ? const Icon(Icons.check, color: Color(0xFF00A3FF)) : null,
                               onTap: () {
                                 player.setSubtitleTrack(track);
@@ -149,7 +152,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final locale = ref.watch(localeProvider);
 
     return Scaffold(
@@ -209,7 +212,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
     if (_isLocked) {
       return Container(
         color: Colors.black26,
-        child: const Center(child: Text("")), // زر القفل وحده يظهر
+        child: const Center(child: Text('')), // زر القفل وحده يظهر
       );
     }
 
@@ -353,7 +356,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((speed) {
               return ListTile(
-                title: Text("${speed}x", style: const TextStyle(color: Colors.white)),
+                title: Text('${speed}x', style: const TextStyle(color: Colors.white)),
                 trailing: _playbackSpeed == speed ? Icon(Icons.check, color: Theme.of(context).primaryColor) : null,
                 onTap: () {
                   _setPlaybackSpeed(speed);
@@ -368,10 +371,10 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   String _formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
     String twoDigitMinutes = twoDigits(d.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
-    if (d.inHours > 0) return "${twoDigits(d.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
-    return "$twoDigitMinutes:$twoDigitSeconds";
+    if (d.inHours > 0) return '${twoDigits(d.inHours)}:$twoDigitMinutes:$twoDigitSeconds';
+    return '$twoDigitMinutes:$twoDigitSeconds';
   }
 }

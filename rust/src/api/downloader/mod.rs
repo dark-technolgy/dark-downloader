@@ -10,7 +10,7 @@ use reqwest::Client;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Job registry — لمتابعة التقدم والإلغاء لكل مهمة من Flutter
@@ -108,9 +108,7 @@ pub struct DownloadProgressSnapshot {
 // ─────────────────────────────────────────────────────────────────────────────
 
 fn user_agent_for(url: &str) -> String {
-    if url.contains("googlevideo.com") || url.contains("youtube.com") {
-        "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L) gzip".to_string()
-    } else if url.contains("tiktokcdn") || url.contains("tiktok.com") {
+    if url.contains("tiktokcdn") || url.contains("tiktok.com") {
         "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36".to_string()
     } else {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36".to_string()
@@ -278,10 +276,12 @@ async fn probe_url(client: &Client, url: &str) -> Result<(u64, bool)> {
 
     // استهلاك الجسم يجنّب ترك اتصالات معلّقة مع بعض خوادم CDN.
     let _ = r.bytes().await;
-    
+
     super::debug_log::log_download(&format!(
         "PROBE_URL URL={} STATUS={} PARSED={:?}",
-        url, status.as_u16(), parsed
+        url,
+        status.as_u16(),
+        parsed
     ));
 
     parsed
@@ -343,9 +343,12 @@ async fn download_chunked(
     let mut prefilled = 0u64;
     for slot in 0..connections {
         let part_path = output_path.with_extension(format!("part{}", slot));
-        prefilled += tokio::fs::metadata(&part_path).await.map(|m| m.len()).unwrap_or(0);
+        prefilled += tokio::fs::metadata(&part_path)
+            .await
+            .map(|m| m.len())
+            .unwrap_or(0);
     }
-    
+
     let mode = if chunks_done.is_empty() {
         "fresh"
     } else {
@@ -435,13 +438,17 @@ async fn download_chunked(
     if total_bytes > 0 && final_size + tolerance < total_bytes {
         super::debug_log::log_download(&format!(
             "ERROR: merged file {}B < expected {}B (diff={}B, tolerance={}B)",
-            final_size, total_bytes, total_bytes - final_size, tolerance
+            final_size,
+            total_bytes,
+            total_bytes - final_size,
+            tolerance
         ));
         // Delete only the incomplete merged file — keep part files for retry
         let _ = tokio::fs::remove_file(output_path).await;
         return Err(anyhow::anyhow!(
             "download incomplete: got {} of {} bytes",
-            final_size, total_bytes
+            final_size,
+            total_bytes
         ));
     } else if final_size < total_bytes {
         // Within tolerance — accept but log
@@ -473,10 +480,13 @@ async fn download_chunk(
 ) -> Result<()> {
     const MAX_ATTEMPTS: u32 = 6;
     let mut attempt = 0u32;
-    
-    let initial_len = tokio::fs::metadata(&part_path).await.map(|m| m.len()).unwrap_or(0);
+
+    let initial_len = tokio::fs::metadata(&part_path)
+        .await
+        .map(|m| m.len())
+        .unwrap_or(0);
     let mut offset = start + initial_len;
-    
+
     if offset > end {
         if let Some(ref c) = ckpt {
             let _ = c.mark_chunk_done(chunk_slot);
@@ -518,7 +528,12 @@ async fn download_chunk(
         if !resp.status().is_success() && resp.status() != reqwest::StatusCode::PARTIAL_CONTENT {
             attempt += 1;
             if attempt >= MAX_ATTEMPTS {
-                return Err(anyhow::anyhow!("chunk {}..={}: HTTP {}", start, end, resp.status()));
+                return Err(anyhow::anyhow!(
+                    "chunk {}..={}: HTTP {}",
+                    start,
+                    end,
+                    resp.status()
+                ));
             }
             let delay_ms = (500u64 * (1u64 << attempt.min(4))).min(15_000);
             tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
@@ -527,8 +542,14 @@ async fn download_chunk(
 
         let mut actual_end = end;
         if resp.status() == reqwest::StatusCode::PARTIAL_CONTENT {
-            if let Some(cr) = resp.headers().get(reqwest::header::CONTENT_RANGE).and_then(|h| h.to_str().ok()) {
-                if let Some(range_part) = cr.strip_prefix("bytes ").and_then(|s| s.split('/').next()) {
+            if let Some(cr) = resp
+                .headers()
+                .get(reqwest::header::CONTENT_RANGE)
+                .and_then(|h| h.to_str().ok())
+            {
+                if let Some(range_part) =
+                    cr.strip_prefix("bytes ").and_then(|s| s.split('/').next())
+                {
                     if let Some(dash) = range_part.find('-') {
                         if let Ok(e) = range_part[dash + 1..].parse::<u64>() {
                             actual_end = actual_end.min(e);
@@ -558,21 +579,23 @@ async fn download_chunk(
                     break;
                 }
                 Some(Err(e)) => {
-                    super::debug_log::log_download(&format!("stream error at {}: {}", write_offset, e));
+                    super::debug_log::log_download(&format!(
+                        "stream error at {}: {}",
+                        write_offset, e
+                    ));
                     attempt += 1;
                     if attempt >= MAX_ATTEMPTS {
                         return Err(anyhow::anyhow!("stream: {}", e));
                     }
                     let delay_ms = (300u64 * (1u64 << attempt.min(4))).min(10_000);
-                    tokio::time::sleep(std::time::Duration::from_millis(delay_ms))
-                        .await;
+                    tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
                     break;
                 }
                 Some(Ok(mut bytes)) => {
                     if bytes.is_empty() {
                         continue;
                     }
-                    
+
                     let mut is_last = false;
                     let len = bytes.len() as u64;
                     if write_offset + len > actual_end + 1 {
@@ -584,13 +607,14 @@ async fn download_chunk(
                         }
                         is_last = true;
                     }
-                    
+
                     tokio::io::AsyncWriteExt::write_all(&mut file, &bytes).await?;
                     let written_len = bytes.len() as u64;
                     write_offset += written_len;
-                    let current_total = state.downloaded.fetch_add(written_len, Ordering::SeqCst) + written_len;
+                    let current_total =
+                        state.downloaded.fetch_add(written_len, Ordering::SeqCst) + written_len;
                     update_speed(&state, current_total);
-                    
+
                     if is_last || write_offset > actual_end {
                         stream_ended_cleanly = true;
                         break;
@@ -656,14 +680,17 @@ async fn download_chunk(
             }
             return Err(anyhow::anyhow!(
                 "incomplete chunk {}..={}: got {}B of {}B after {} attempts",
-                start, end, part_len, expected_len, MAX_ATTEMPTS
+                start,
+                end,
+                part_len,
+                expected_len,
+                MAX_ATTEMPTS
             ));
         }
         let delay_ms = (500u64 * (1u64 << attempt.min(4))).min(15_000);
         tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
     }
 }
-
 
 fn update_speed(state: &JobState, total_bytes: u64) {
     let elapsed = state.start_time.elapsed().as_secs_f64().max(0.001);
@@ -690,7 +717,7 @@ async fn download_single(
 ) -> Result<u64> {
     const MAX_ATTEMPTS: u32 = 6;
     let mut attempt = 0;
-    
+
     loop {
         if let Some(parent) = output_path.parent() {
             tokio::fs::create_dir_all(parent).await?;
@@ -703,7 +730,9 @@ async fn download_single(
             Ok(r) => r,
             Err(e) => {
                 attempt += 1;
-                if attempt >= MAX_ATTEMPTS { return Err(anyhow::anyhow!("HTTP: {}", e)); }
+                if attempt >= MAX_ATTEMPTS {
+                    return Err(anyhow::anyhow!("HTTP: {}", e));
+                }
                 let delay_ms = (500u64 * (1u64 << attempt.min(4))).min(15_000);
                 tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
                 continue;
@@ -712,7 +741,9 @@ async fn download_single(
 
         if !resp.status().is_success() {
             attempt += 1;
-            if attempt >= MAX_ATTEMPTS { return Err(anyhow::anyhow!("HTTP {}", resp.status())); }
+            if attempt >= MAX_ATTEMPTS {
+                return Err(anyhow::anyhow!("HTTP {}", resp.status()));
+            }
             let delay_ms = (500u64 * (1u64 << attempt.min(4))).min(15_000);
             tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
             continue;
@@ -737,25 +768,31 @@ async fn download_single(
                     }
                 }
                 Err(e) => {
-                    super::debug_log::log_download(&format!("stream error in download_single: {}", e));
+                    super::debug_log::log_download(&format!(
+                        "stream error in download_single: {}",
+                        e
+                    ));
                     error_occurred = true;
                     break;
                 }
             }
         }
-        
+
         file.flush().await?;
-        
+
         if error_occurred {
             attempt += 1;
             if attempt >= MAX_ATTEMPTS {
-                return Err(anyhow::anyhow!("incomplete single stream after {} bytes", total));
+                return Err(anyhow::anyhow!(
+                    "incomplete single stream after {} bytes",
+                    total
+                ));
             }
             let delay_ms = (500u64 * (1u64 << attempt.min(4))).min(15_000);
             tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
             continue; // restart the download from 0
         }
-        
+
         return Ok(total);
     }
 }
@@ -1005,7 +1042,11 @@ fn mux_temp_path(output_path: &Path) -> PathBuf {
         .and_then(|s| s.to_str())
         .unwrap_or("mp4");
     // Use same container as output — webm stays webm, everything else uses mp4
-    let mux_ext = if ext.eq_ignore_ascii_case("webm") { "webm" } else { "mp4" };
+    let mux_ext = if ext.eq_ignore_ascii_case("webm") {
+        "webm"
+    } else {
+        "mp4"
+    };
     output_path.with_file_name(format!("{stem}.ffmpeg.muxing.{mux_ext}"))
 }
 
@@ -1019,7 +1060,11 @@ fn merged_final_path(output_path: &Path) -> PathBuf {
         .and_then(|s| s.to_str())
         .unwrap_or("mp4");
     // Preserve container: webm→webm, everything else→mp4
-    let final_ext = if ext.eq_ignore_ascii_case("webm") { "webm" } else { "mp4" };
+    let final_ext = if ext.eq_ignore_ascii_case("webm") {
+        "webm"
+    } else {
+        "mp4"
+    };
     output_path.with_file_name(format!("{stem}.{final_ext}"))
 }
 
@@ -1051,11 +1096,12 @@ async fn cleanup_download_artifacts(output_path: &Path, audio_url: Option<&str>)
         let prefix_ckpt = format!("{stem}.ckpt");
         while let Ok(Some(e)) = read.next_entry().await {
             if let Ok(name) = e.file_name().into_string() {
-                if name.starts_with(&prefix_audio) 
-                    || name.starts_with(&prefix_part) 
+                if name.starts_with(&prefix_audio)
+                    || name.starts_with(&prefix_part)
                     || name.starts_with(&prefix_ckpt)
                     || name.ends_with(".part")
-                    || name.contains(".part") // to catch {stem}.audio.part0
+                    || name.contains(".part")
+                // to catch {stem}.audio.part0
                 {
                     // Ensure we only delete files related to this specific stem
                     if name.starts_with(stem) {
@@ -1340,7 +1386,6 @@ async fn download_and_finalize(
         return Err(dl.unwrap_err());
     }
 
-
     if !job_id.is_empty() {
         unregister_job(&job_id);
     }
@@ -1400,7 +1445,9 @@ async fn download_and_finalize(
             }
             if !rename_ok {
                 let _ = tokio::fs::remove_file(&mux_tmp).await;
-                return Err(anyhow!("mux rename: Failed after 5 retries (file might be locked)"));
+                return Err(anyhow!(
+                    "mux rename: Failed after 5 retries (file might be locked)"
+                ));
             }
             if video_path != merged_final {
                 let _ = tokio::fs::remove_file(&video_path).await;
@@ -1456,6 +1503,123 @@ async fn spawn_cancel_watcher(output: PathBuf, state: JobState) {
     });
 }
 
+async fn download_via_ytdlp(url: &str, output_path: &Path, state: JobState) -> Result<u64> {
+    // format is YTDLP://<resolution>@<pageUrl>
+    let raw = url.trim_start_matches("YTDLP://");
+    let mut parts = raw.splitn(2, '@');
+    let res = parts.next().unwrap_or("720");
+    let page_url = parts.next().unwrap_or("");
+
+    let binary = crate::api::ytdlp_wrapper::current_path()
+        .ok_or_else(|| anyhow::anyhow!("yt-dlp binary not configured. Cannot download MP4."))?;
+
+    if !std::path::Path::new(&binary).exists() {
+        return Err(anyhow::anyhow!("yt-dlp binary not found. Cannot download MP4."));
+    }
+
+    if let Some(parent) = output_path.parent() {
+        tokio::fs::create_dir_all(parent).await?;
+    }
+
+    // Best MP4 video up to requested resolution + best M4A audio.
+    // If not available, fallback to best MP4.
+    let format_str = format!("bestvideo[height<={}][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best", res);
+    
+    // Create output template. yt-dlp might append .mp4 automatically, so we use exact path without extension if it adds it?
+    // Actually, passing exactly output_path using -o ensures it writes there.
+    let out_str = output_path.to_string_lossy().to_string();
+
+    let mut cmd = tokio::process::Command::new(&binary);
+    cmd.arg("-f").arg(&format_str)
+       .arg("-o").arg(&out_str)
+       .arg("--newline")
+       .arg("--no-warnings")
+       .arg("--no-playlist")
+       .arg("--extractor-args").arg("youtube:player_client=tv,mweb")
+       .arg(page_url)
+       .stdout(std::process::Stdio::piped())
+       .stderr(std::process::Stdio::piped());
+
+    // Use regular expressions to parse progress
+    // [download]  10.0% of ~50.00MiB at  1.50MiB/s ETA 00:30
+    // [download] 100.0% of   10.00MiB
+    let mut child = cmd.spawn()?;
+    
+    let stdout = child.stdout.take().unwrap();
+    let mut reader = tokio::io::BufReader::new(stdout).lines();
+
+    // Regexes to extract progress
+    // We will do simple string parsing to avoid regex crate dependency overhead if possible.
+    let _task = tokio::spawn(async move {
+        while let Ok(Some(line)) = reader.next_line().await {
+            if state.cancel.load(Ordering::SeqCst) {
+                // Not ideal since we can't kill child from here easily, but better than nothing.
+                // We will rely on child.wait() returning or being killed externally.
+                break;
+            }
+            if line.starts_with("[download]") && line.contains("%") {
+                // Very rudimentary parsing to provide feedback
+                // We'll just fake `downloaded` based on percentage if total size is unknown,
+                // or try to parse total size.
+                // Example: "[download]  45.0% of 100.00MiB"
+                
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                let mut pct = 0.0;
+                let mut size_bytes = 0u64;
+
+                for (i, part) in parts.iter().enumerate() {
+                    if part.ends_with('%') {
+                        if let Ok(p) = part.trim_end_matches('%').parse::<f64>() {
+                            pct = p;
+                        }
+                    } else if *part == "of" && i + 1 < parts.len() {
+                        let size_str = parts[i + 1].trim_start_matches('~');
+                        if size_str.ends_with("MiB") {
+                            if let Ok(m) = size_str.trim_end_matches("MiB").parse::<f64>() {
+                                size_bytes = (m * 1024.0 * 1024.0) as u64;
+                            }
+                        } else if size_str.ends_with("GiB") {
+                            if let Ok(g) = size_str.trim_end_matches("GiB").parse::<f64>() {
+                                size_bytes = (g * 1024.0 * 1024.0 * 1024.0) as u64;
+                            }
+                        } else if size_str.ends_with("KiB") {
+                            if let Ok(k) = size_str.trim_end_matches("KiB").parse::<f64>() {
+                                size_bytes = (k * 1024.0) as u64;
+                            }
+                        } else if size_str.ends_with("B") {
+                            if let Ok(b) = size_str.trim_end_matches('B').parse::<f64>() {
+                                size_bytes = b as u64;
+                            }
+                        }
+                    }
+                }
+
+                if size_bytes > 0 {
+                    state.total.store(size_bytes, Ordering::SeqCst);
+                    let dl = (size_bytes as f64 * (pct / 100.0)) as u64;
+                    state.downloaded.store(dl, Ordering::SeqCst);
+                } else {
+                    // Just bump it artificially to show it's active
+                    let current = state.downloaded.load(Ordering::SeqCst);
+                    state.downloaded.store(current + 1024 * 1024, Ordering::SeqCst);
+                }
+            }
+        }
+    });
+
+    let status = child.wait().await?;
+    if !status.success() {
+        return Err(anyhow::anyhow!("yt-dlp download failed with status {}", status));
+    }
+
+    // Get final file size
+    if let Ok(meta) = tokio::fs::metadata(output_path).await {
+        Ok(meta.len())
+    } else {
+        Ok(0)
+    }
+}
+
 async fn download_inner(
     url: &str,
     output_path: &Path,
@@ -1464,10 +1628,12 @@ async fn download_inner(
     state: JobState,
 ) -> Result<u64> {
     if url.contains("porngun.net") || url.contains("filev.php") {
-        super::debug_log::log_download("Force connections=1 for porngun.net to avoid anti-leech 404 limits");
+        super::debug_log::log_download(
+            "Force connections=1 for porngun.net to avoid anti-leech 404 limits",
+        );
         connections = 1;
     }
-    
+
     let connections = connections.clamp(1, 12);
     debug_log::log_download(&format!(
         "=== download start, host={}, audio={}",
@@ -1479,6 +1645,13 @@ async fn download_inner(
 
     state.set_phase("preparing");
     let client = shared_download_client()?;
+
+    if url.starts_with("YTDLP://") {
+        state.set_phase("downloading");
+        let total = download_via_ytdlp(url, output_path, state.clone()).await?;
+        state.set_phase("done");
+        return Ok(total);
+    }
 
     if is_hls_url(url) {
         state.set_phase("downloading");
@@ -1496,8 +1669,16 @@ async fn download_inner(
 
     let (audio_path, au_url, at, a_ranges) = if let Some(au) = audio_url {
         let mut p = output_path.to_path_buf();
-        let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or("audio").to_string();
-        let ext = p.extension().and_then(|s| s.to_str()).unwrap_or("mp4").to_string();
+        let stem = p
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("audio")
+            .to_string();
+        let ext = p
+            .extension()
+            .and_then(|s| s.to_str())
+            .unwrap_or("mp4")
+            .to_string();
         p.set_file_name(format!("{}.audio.{}", stem, audio_ext_from_url(au, &ext)));
         let (t, r) = probe_url(&client, au).await.unwrap_or((0, false));
         (Some(p), Some(au.to_string()), t, r)
@@ -1507,7 +1688,10 @@ async fn download_inner(
 
     state.total.store(vt + at, Ordering::SeqCst);
 
-    let v_existing = tokio::fs::metadata(&video_path).await.map(|m| m.len()).unwrap_or(0);
+    let v_existing = tokio::fs::metadata(&video_path)
+        .await
+        .map(|m| m.len())
+        .unwrap_or(0);
     let v_prefilled = if v_ranges && vt > 1024 * 512 {
         let chunks_done = ChunkCkptHandle::try_load(&video_path, url, vt, connections)
             .map(|h| h.chunks_done_set())
@@ -1521,14 +1705,21 @@ async fn download_inner(
         0
     };
 
-    let a_existing = if let Some(ref p) = audio_path { tokio::fs::metadata(p).await.map(|m| m.len()).unwrap_or(0) } else { 0 };
+    let a_existing = if let Some(ref p) = audio_path {
+        tokio::fs::metadata(p).await.map(|m| m.len()).unwrap_or(0)
+    } else {
+        0
+    };
     let a_prefilled = if a_ranges && at > 1024 * 256 {
         if let Some(ref p) = audio_path {
-            let chunks_done = ChunkCkptHandle::try_load(p, au_url.as_ref().unwrap(), at, connections)
-                .map(|h| h.chunks_done_set())
-                .unwrap_or_default();
+            let chunks_done =
+                ChunkCkptHandle::try_load(p, au_url.as_ref().unwrap(), at, connections)
+                    .map(|h| h.chunks_done_set())
+                    .unwrap_or_default();
             prefilled_bytes(connections, at, &chunks_done)
-        } else { 0 }
+        } else {
+            0
+        }
     } else if a_ranges && at > 0 && a_existing > 0 && a_existing < at {
         a_existing
     } else if a_existing == at && at > 0 {
@@ -1537,7 +1728,9 @@ async fn download_inner(
         0
     };
 
-    state.downloaded.store(v_prefilled + a_prefilled, Ordering::SeqCst);
+    state
+        .downloaded
+        .store(v_prefilled + a_prefilled, Ordering::SeqCst);
     state.set_phase("downloading");
 
     let client_v = client.clone();
@@ -1554,7 +1747,15 @@ async fn download_inner(
             download_chunked(&client_v, &url_v, &video_path_v, vt, connections, state_v).await
         } else if v_ranges && vt > 0 {
             if v_existing > 0 && v_existing < vt {
-                let v = download_single_resume(&client_v, &url_v, &video_path_v, &state_v, v_existing, vt).await?;
+                let v = download_single_resume(
+                    &client_v,
+                    &url_v,
+                    &video_path_v,
+                    &state_v,
+                    v_existing,
+                    vt,
+                )
+                .await?;
                 ensure_expected_total("video_single", v, vt)?;
                 Ok(v)
             } else {
@@ -1564,14 +1765,16 @@ async fn download_inner(
             }
         } else {
             let v = download_single(&client_v, &url_v, &video_path_v, state_v).await?;
-            if vt > 0 { ensure_expected_total("video_single", v, vt)?; }
+            if vt > 0 {
+                ensure_expected_total("video_single", v, vt)?;
+            }
             Ok(v)
         }
     });
 
     let client_a = client.clone();
     let state_a = state.clone();
-    
+
     let audio_fut = tokio::spawn(async move {
         if let Some(au) = au_url {
             let p = audio_path.unwrap();
@@ -1583,17 +1786,24 @@ async fn download_inner(
                 download_chunked(&client_a, &au, &p, at, connections, state_a).await
             } else if a_ranges && at > 0 {
                 if a_existing > 0 && a_existing < at {
-                    let a = download_single_resume(&client_a, &au, &p, &state_a, a_existing, at).await?;
-                    if a != at { debug_log::log_download("WARNING: audio_single_size_mismatch"); }
+                    let a = download_single_resume(&client_a, &au, &p, &state_a, a_existing, at)
+                        .await?;
+                    if a != at {
+                        debug_log::log_download("WARNING: audio_single_size_mismatch");
+                    }
                     Ok(a)
                 } else {
                     let a = download_single(&client_a, &au, &p, state_a).await?;
-                    if a != at { debug_log::log_download("WARNING: audio_single_size_mismatch"); }
+                    if a != at {
+                        debug_log::log_download("WARNING: audio_single_size_mismatch");
+                    }
                     Ok(a)
                 }
             } else {
                 let a = download_single(&client_a, &au, &p, state_a).await?;
-                if at > 0 && a != at { debug_log::log_download("WARNING: audio_single_size_mismatch"); }
+                if at > 0 && a != at {
+                    debug_log::log_download("WARNING: audio_single_size_mismatch");
+                }
                 Ok(a)
             }
         } else {
@@ -1606,7 +1816,9 @@ async fn download_inner(
     let audio_size = res_a?;
 
     state.set_phase("done");
-    state.downloaded.store(video_size + audio_size, Ordering::SeqCst);
+    state
+        .downloaded
+        .store(video_size + audio_size, Ordering::SeqCst);
     state.total.store(video_size + audio_size, Ordering::SeqCst);
 
     // The output file may not exist if it was renamed during chunked merge,
@@ -1624,7 +1836,11 @@ async fn download_inner(
         return Err(anyhow::anyhow!("الملف المحمّل فارغ"));
     }
 
-    Ok(if final_size > 0 { final_size } else { video_size + audio_size })
+    Ok(if final_size > 0 {
+        final_size
+    } else {
+        video_size + audio_size
+    })
 }
 
 /// استنتاج امتداد الصوت من رابط YouTube (m4a/webm/opus)

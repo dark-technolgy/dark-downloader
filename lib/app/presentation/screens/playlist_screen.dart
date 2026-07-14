@@ -33,7 +33,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     final manager = ref.read(downloadManagerProvider.notifier);
     final extractor = ref.read(extractorProvider.notifier);
     final locale = ref.read(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
 
     showDialog<void>(
       context: context,
@@ -93,7 +93,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
 
     return Scaffold(
       appBar: AppBar(

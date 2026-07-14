@@ -5,7 +5,7 @@ import '../config/localization.dart';
 /// Compact ETA for downloads / torrents (seconds through multi-day).
 String formatEtaSeconds(int etaSeconds, Locale locale) {
   if (etaSeconds <= 0) return '';
-  final t = AppLocalization.translate;
+  const t = AppLocalization.translate;
   if (etaSeconds < 60) {
     return t('eta_under_minute', locale).replaceAll('{n}', '$etaSeconds');
   }

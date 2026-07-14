@@ -180,8 +180,24 @@ class VaultNotifier extends Notifier<VaultState> {
         outputPath: outputPath,
         password: _cachedPin!,
       );
+      
+      _refreshFiles();
     } catch (e) {
       state = state.copyWith(errorMessage: 'فشل فك التشفير: رمز خاطئ');
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  Future<void> deleteFileFromVault(File vaultFile) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      if (vaultFile.existsSync()) {
+        vaultFile.deleteSync();
+      }
+      _refreshFiles();
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'فشل حذف الملف: $e');
     } finally {
       state = state.copyWith(isLoading: false);
     }

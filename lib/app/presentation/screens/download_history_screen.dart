@@ -14,6 +14,7 @@ import '../../utils/format_file_size.dart';
 import '../../utils/open_download_folder.dart';
 
 import '../../providers/vault_provider.dart';
+
 import '../widgets/responsive_scaffold.dart';
 import 'video_player_screen.dart';
 
@@ -24,7 +25,7 @@ class DownloadHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(downloadManagerProvider);
     final locale = ref.watch(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final failedRetryable = state.items
         .where(
           (i) =>
@@ -57,7 +58,7 @@ class DownloadHistoryScreen extends ConsumerWidget {
                   }
                 },
                 icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                label: const Text("استئناف الكل"),
+                label: const Text('استئناف الكل'),
               ),
             if (failedRetryable > 0)
               TextButton.icon(
@@ -155,7 +156,7 @@ class _DownloadList extends ConsumerWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) => _DownloadTile(item: items[index]),
     );
   }
@@ -192,7 +193,7 @@ class _DownloadTile extends ConsumerWidget {
   }
 
   Future<void> _share(BuildContext context, Locale locale) async {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final file = File(item.filePath);
     if (!await file.exists()) {
       if (!context.mounted) return;
@@ -206,7 +207,7 @@ class _DownloadTile extends ConsumerWidget {
   }
 
   Future<void> _openFolder(BuildContext context, Locale locale) async {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final ok = await openDownloadFolder(item.filePath);
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,6 +215,8 @@ class _DownloadTile extends ConsumerWidget {
       );
     }
   }
+
+
 
 
   String _statusLabel(String Function(String, Locale) t, Locale locale) {
@@ -251,7 +254,7 @@ class _DownloadTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final notifier = ref.read(downloadManagerProvider.notifier);
     final theme = Theme.of(context);
     final canPreview = item.status == DownloadStatus.completed;
@@ -277,7 +280,7 @@ class _DownloadTile extends ConsumerWidget {
                           ? Image.network(
                               item.thumbnailUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => ColoredBox(
+                              errorBuilder: (_, __, ___) => ColoredBox(
                                 color:
                                     theme.colorScheme.surfaceContainerHighest,
                                 child: Icon(
@@ -410,20 +413,21 @@ class _DownloadTile extends ConsumerWidget {
                         ),
 
                       if (canPreview)
-                        PopupMenuItem(
+                        const PopupMenuItem(
                           value: 'vault',
                           child: ListTile(
-                            leading: const Icon(
+                            leading: Icon(
                               Icons.security_rounded,
                               color: Color(0xFF00A3FF),
                             ),
-                            title: const Text(
+                            title: Text(
                               'تشفير ونقل للخزنة 🔒',
                               style: TextStyle(color: Color(0xFF00A3FF)),
                             ),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
+
                       if (item.status == DownloadStatus.failed &&
                           isRetryableDownloadError(item.error))
                         PopupMenuItem(
@@ -516,7 +520,7 @@ class _DownloadTile extends ConsumerWidget {
                         label: Text(t('dm_preview', locale)),
                       ),
                     ),
-                    const SizedBox(width: 8),
+
                     IconButton(
                       tooltip: t('dm_share', locale),
                       onPressed: () => _share(context, locale),

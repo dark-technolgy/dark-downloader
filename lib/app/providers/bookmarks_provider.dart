@@ -75,7 +75,7 @@ class BookmarksNotifier extends Notifier<AsyncValue<List<BookmarkItem>>> {
         'title': title,
         'url': url,
         'category': category,
-      }, onConflict: 'user_id, url');
+      }, onConflict: 'user_id, url',);
       _load();
     } catch (e) {
       // Error logging

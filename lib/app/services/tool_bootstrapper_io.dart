@@ -125,7 +125,7 @@ class ToolBootstrapper {
       await File(zipPath).delete();
     } catch (e, st) {
       debugPrint('Failed to delete temp zip: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
 
     final outDir = p.join(
@@ -177,7 +177,7 @@ class ToolBootstrapper {
       await File(txz).delete();
     } catch (e, st) {
       debugPrint('Failed to delete temp tar: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
 
     String? binPath;
@@ -206,7 +206,7 @@ class ToolBootstrapper {
       await Directory(exRoot).delete(recursive: true);
     } catch (e, st) {
       debugPrint('Failed to delete temp extraction root: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
   }
 

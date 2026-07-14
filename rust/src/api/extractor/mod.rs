@@ -1181,9 +1181,8 @@ async fn extract_via_piped(video_id: &str) -> Result<VideoInfoResult> {
                                     .map(|v| v as f32)
                                     .or_else(|| parse_fps_from_quality(&quality));
                                 let bitrate = s["bitrate"].as_u64().map(|v| (v / 1000) as u32);
-                                let is_video_only = s["videoOnly"]
-                                    .as_bool()
-                                    .unwrap_or(separate_audio_tracks);
+                                let is_video_only =
+                                    s["videoOnly"].as_bool().unwrap_or(separate_audio_tracks);
                                 streams.push(StreamResult {
                                     url: u.to_string(),
                                     quality,
@@ -1603,15 +1602,26 @@ async fn youtube_build_result(
                     continue;
                 }
 
+                // ── YouTube PoToken protection bypass ──
+                // YouTube enforces PoToken on ALL video/mp4 (H.264) streams.
+                // Without a valid PoToken, the server silently closes the
+                // connection after ~2 MB, producing a truncated 10-second file.
+                // WebM/VP9 and audio/mp4 (m4a) streams are NOT affected.
+                // Skip video/mp4 entirely so only VP9/AV1 video appears.
+                if mime.starts_with("video/mp4") {
+                    continue;
+                }
+                // Also skip legacy progressive muxed MP4 (formats key, itag 18/22)
+                if *key == "formats" && mime.starts_with("video/") {
+                    continue;
+                }
+
                 let url_str = match resolve_stream_url(f, pf) {
                     Some(u) => u,
                     None => continue,
                 };
 
-                // The top-level `formats` key contains legacy muxed (audio+video) entries.
-                // Force both flags there even if `codecs=...` parsing missed one side —
-                // itag tables guarantee these carry audio.
-                let mut s = mk_yt_stream(f, url_str);
+                let mut s = mk_yt_stream(f, url_str.clone());
                 if *key == "formats" && !s.is_audio_only {
                     s.has_audio = true;
                     if s.audio_codec.is_none() {
@@ -1624,7 +1634,30 @@ async fn youtube_build_result(
                     s.has_audio = false;
                     s.audio_codec = None;
                 }
+                
+                // If it's a WEBM video stream, we duplicate it and mark the duplicate as MP4.
+                // This tells the UI to offer an MP4 transcode option.
+                let mut mp4_transcode = None;
+                if s.has_video && !s.is_audio_only && s.format.to_uppercase() == "WEBM" {
+                    let mut mp4_s = mk_yt_stream(f, url_str.clone());
+                    mp4_s.format = "MP4".to_string();
+                    mp4_s.container = Some("mp4".to_string());
+                    mp4_s.video_codec = Some("h264".to_string());
+                    if *key == "formats" && !mp4_s.is_audio_only {
+                        mp4_s.has_audio = true;
+                        if mp4_s.audio_codec.is_none() { mp4_s.audio_codec = Some("aac".into()); }
+                    }
+                    if *key == "adaptiveFormats" && mime.starts_with("video/") && !mp4_s.is_audio_only {
+                        mp4_s.has_audio = false;
+                        mp4_s.audio_codec = None;
+                    }
+                    mp4_transcode = Some(mp4_s);
+                }
+
                 streams.push(s);
+                if let Some(mp4_s) = mp4_transcode {
+                    streams.push(mp4_s);
+                }
             }
         }
     }
@@ -3647,7 +3680,7 @@ async fn extract_cobalt(url: &str) -> Result<VideoInfoResult> {
         "vQuality": "max",
         "filenamePattern": "basic"
     });
-    
+
     let req = client
         .post("https://api.cobalt.tools/api/json")
         .header("Accept", "application/json")
@@ -3658,21 +3691,25 @@ async fn extract_cobalt(url: &str) -> Result<VideoInfoResult> {
     let resp = req.send().await?;
     let status_code = resp.status();
     let text = resp.text().await?;
-    
+
     if !status_code.is_success() {
-        return Err(anyhow!("Cobalt API returned status {}: {}", status_code, text));
+        return Err(anyhow!(
+            "Cobalt API returned status {}: {}",
+            status_code,
+            text
+        ));
     }
 
     let data: Value = serde_json::from_str(&text)?;
     let status = data["status"].as_str().unwrap_or("error");
-    
+
     if status == "error" {
         let text_err = data["text"].as_str().unwrap_or("Cobalt generic error");
-        return Err(anyhow!(text_err));
+        return Err(anyhow!("{}", text_err));
     }
 
     let mut streams = vec![];
-    
+
     if status == "stream" || status == "redirect" {
         if let Some(stream_url) = data["url"].as_str() {
             streams.push(mk_muxed_stream(

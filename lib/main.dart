@@ -17,7 +17,6 @@ import 'app/services/rule_pack_sync.dart';
 import 'app/widgets/incoming_links_binding.dart';
 import 'app/providers/locale_provider.dart';
 import 'app/providers/theme_provider.dart';
-import 'app/services/browser_bridge_service.dart';
 import 'app/config/supabase_config.dart';
 import 'app/presentation/screens/login_screen.dart';
 import 'app/providers/auth_provider.dart';
@@ -110,15 +109,12 @@ Future<void> _backgroundBootstrap() async {
     YtdlpBootstrap.ensure().ok();
     RulePackSync.ensure().ok();
 
-    final bridge = BrowserBridgeService(globalContainer);
-    unawaited(bridge.start());
-
     // E. SWITCH TO MAIN APP
     // Even if C failed, we launch the app. Providers will handle the "empty" state.
     runApp(
       UncontrolledProviderScope(
         container: globalContainer,
-        child: IncomingLinksBinding(child: const DarkDownloaderApp()),
+        child: const IncomingLinksBinding(child: DarkDownloaderApp()),
       ),
     );
   } catch (e) {
@@ -127,7 +123,7 @@ Future<void> _backgroundBootstrap() async {
     runApp(
       UncontrolledProviderScope(
         container: globalContainer,
-        child: IncomingLinksBinding(child: const DarkDownloaderApp()),
+        child: const IncomingLinksBinding(child: DarkDownloaderApp()),
       ),
     );
   }
@@ -214,7 +210,7 @@ class AuthGate extends ConsumerWidget {
       },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (_, _) => const LoginScreen(),
+      error: (_, __) => const LoginScreen(),
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/toolkit_provider.dart';
+import '../../providers/locale_provider.dart';
+import '../../config/localization.dart';
 import 'vault_screen.dart';
 
 class ToolkitScreen extends ConsumerStatefulWidget {
@@ -14,10 +16,12 @@ class _ToolkitScreenState extends ConsumerState<ToolkitScreen> {
   @override
   Widget build(BuildContext context) {
     final toolkitState = ref.watch(toolkitProvider);
+    final locale = ref.watch(localeProvider);
+    const t = AppLocalization.translate;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('أدوات المحترفين (Pro)', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(t('toolkit_title', locale), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
@@ -26,48 +30,35 @@ class _ToolkitScreenState extends ConsumerState<ToolkitScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (toolkitState.status == ToolkitTaskStatus.processing)
-              _buildProcessingIndicator(toolkitState.statusMessage ?? "جاري المعالجة..."),
+              _buildProcessingIndicator(toolkitState.statusMessage ?? t('toolkit_processing', locale)),
             
             if (toolkitState.status == ToolkitTaskStatus.success || toolkitState.status == ToolkitTaskStatus.error)
               _buildStatusAlert(toolkitState),
 
-            _buildSectionHeader('الأمن والخصوصية'),
+            _buildSectionHeader(t('toolkit_sec_security', locale)),
             const SizedBox(height: 16),
             _buildToolCard(
-              title: 'المخزن السري (Encrypted Vault)',
-              description: 'تشفير ملفاتك باستخدام AES-256-GCM. حماية مطلقة لا يمكن كسرها.',
+              title: t('toolkit_vault_title', locale),
+              description: t('toolkit_vault_desc', locale),
               icon: Icons.security_rounded,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VaultScreen())),
               accentColor: const Color(0xFF00A3FF),
             ),
 
-            const SizedBox(height: 32),
-            _buildSectionHeader('أدوات الذكاء الاصطناعي'),
-            const SizedBox(height: 16),
-            _buildToolCard(
-              title: 'التلخيص الذكي (AI Summary)',
-              description: 'احصل على ملخص شامل لأي فيديو قمت بتحميله في ثوانٍ.',
-              icon: Icons.auto_awesome_rounded,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("انتقل إلى تبويب 'التحميلات' واختر فيديو لبدء التلخيص."))
-                );
-              },
-              accentColor: Colors.amber,
-            ),
+
             
             const SizedBox(height: 32),
-            _buildSectionHeader('معالجة الوسائط (FFmpeg)'),
+            _buildSectionHeader(t('toolkit_sec_ffmpeg', locale)),
             const SizedBox(height: 16),
             _buildToolCard(
-              title: 'تحويل إلى MP3 (320kbps)',
-              description: 'استخراج الصوت بأعلى جودة ممكنة من أي فيديو محلي.',
+              title: t('toolkit_mp3_title', locale),
+              description: t('toolkit_mp3_desc', locale),
               icon: Icons.music_note,
               onTap: () => ref.read(toolkitProvider.notifier).convertToMp3(),
             ),
             _buildToolCard(
-              title: 'ضغط حجم الفيديو',
-              description: 'تقليل الحجم بشكل كبير مع الحفاظ على وضوح الصورة.',
+              title: t('toolkit_compress_title', locale),
+              description: t('toolkit_compress_desc', locale),
               icon: Icons.compress,
               onTap: () => ref.read(toolkitProvider.notifier).compressVideo(),
             ),
@@ -119,7 +110,7 @@ class _ToolkitScreenState extends ConsumerState<ToolkitScreen> {
             children: [
               Icon(isSuccess ? Icons.check_circle_rounded : Icons.error_rounded, color: isSuccess ? Colors.green : Colors.red),
               const SizedBox(width: 16),
-              Expanded(child: Text(state.statusMessage ?? "", style: const TextStyle(color: Colors.white, fontSize: 13))),
+              Expanded(child: Text(state.statusMessage ?? '', style: const TextStyle(color: Colors.white, fontSize: 13))),
               IconButton(onPressed: () => ref.read(toolkitProvider.notifier).reset(), icon: const Icon(Icons.close, size: 18, color: Colors.grey)),
             ],
           ),

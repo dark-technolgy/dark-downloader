@@ -17,13 +17,13 @@ class MaintenanceScreen extends StatelessWidget {
               const Icon(Icons.build_circle_outlined, size: 80, color: Color(0xFF00A3FF)),
               const SizedBox(height: 32),
               const Text(
-                "نحن بصدد تحسين تجربتكم",
+                'نحن بصدد تحسين تجربتكم',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Text(
-                message ?? "نحن نجري بعض التحديثات الأمنية الهامة. سنعود إليكم قريباً جداً.",
+                message ?? 'نحن نجري بعض التحديثات الأمنية الهامة. سنعود إليكم قريباً جداً.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey, fontSize: 16),
               ),

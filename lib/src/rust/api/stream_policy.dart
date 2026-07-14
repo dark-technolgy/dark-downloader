@@ -6,11 +6,11 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Returns `true` when a separate audio download + mux should be used.
-Future<bool> shouldPairSeparateAudio({
-  required bool isVideoOnly,
-  required bool separateAudioTracksAvailable,
-}) => RustLib.instance.api.crateApiStreamPolicyShouldPairSeparateAudio(
-  isVideoOnly: isVideoOnly,
-  separateAudioTracksAvailable: separateAudioTracksAvailable,
-);
+
+            
+
+            /// Returns `true` when a separate audio download + mux should be used.
+Future<bool>  shouldPairSeparateAudio({required bool isVideoOnly , required bool separateAudioTracksAvailable }) => RustLib.instance.api.crateApiStreamPolicyShouldPairSeparateAudio(isVideoOnly: isVideoOnly, separateAudioTracksAvailable: separateAudioTracksAvailable);
+
+            
+            

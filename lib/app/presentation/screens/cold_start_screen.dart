@@ -87,17 +87,17 @@ class ColdStartShell extends StatelessWidget {
               ),
               const SizedBox(height: 80),
               // Modern Loading
-              SizedBox(
+              const SizedBox(
                 width: 140,
                 child: Column(
                   children: [
-                    const LinearProgressIndicator(
+                    LinearProgressIndicator(
                       backgroundColor: Color(0xFF111111),
                       color: primary,
                       minHeight: 3,
                       borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       'SYSTEM READY',
                       style: TextStyle(

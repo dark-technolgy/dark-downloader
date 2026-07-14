@@ -1,15 +1,12 @@
-use std::fs::File;
-use std::io::{Read, Write};
-use anyhow::{Result, anyhow};
 use aes_gcm::{
     aead::{Aead, KeyInit},
-    Aes256Gcm, Nonce, Key
+    Aes256Gcm, Key, Nonce,
 };
-use argon2::{
-    password_hash::SaltString,
-    Argon2
-};
+use anyhow::{anyhow, Result};
+use argon2::{password_hash::SaltString, Argon2};
 use obfstr::obfstr;
+use std::fs::File;
+use std::io::{Read, Write};
 
 pub struct SupabaseSecrets {
     pub url: String,
@@ -85,7 +82,7 @@ pub fn rust_check_app_integrity() -> bool {
             }
         }
     }
-    
+
     true
 }
 
@@ -102,10 +99,12 @@ pub fn rust_generate_secure_token(payload: String) -> String {
 fn derive_vault_key(password: &str, salt: &[u8]) -> Result<[u8; 32]> {
     let mut key = [0u8; 32];
     let argon2 = Argon2::default();
-    let salt_obj = SaltString::encode_b64(salt).map_err(|e| anyhow!("Salt encoding error: {}", e))?;
+    let salt_obj =
+        SaltString::encode_b64(salt).map_err(|e| anyhow!("Salt encoding error: {}", e))?;
 
     // Simple derivation for vault key
-    argon2.hash_password_into(password.as_bytes(), salt_obj.as_str().as_bytes(), &mut key)
+    argon2
+        .hash_password_into(password.as_bytes(), salt_obj.as_str().as_bytes(), &mut key)
         .map_err(|e| anyhow!("Key derivation failed: {}", e))?;
 
     Ok(key)
@@ -133,7 +132,8 @@ pub fn vault_encrypt_file(
     let cipher = Aes256Gcm::new(key);
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let encrypted_data = cipher.encrypt(nonce, data.as_ref())
+    let encrypted_data = cipher
+        .encrypt(nonce, data.as_ref())
         .map_err(|e| anyhow!("Encryption error: {}", e))?;
 
     // Write: SALT (16) + NONCE (12) + ENCRYPTED_DATA
@@ -149,11 +149,7 @@ pub fn vault_encrypt_file(
 }
 
 /// Decrypt a file from the vault back to a usable location
-pub fn vault_decrypt_file(
-    vault_path: String,
-    output_path: String,
-    password: String,
-) -> Result<()> {
+pub fn vault_decrypt_file(vault_path: String, output_path: String, password: String) -> Result<()> {
     let mut file = File::open(&vault_path)?;
 
     let mut salt = [0u8; 16];
@@ -169,10 +165,18 @@ pub fn vault_decrypt_file(
     let cipher = Aes256Gcm::new(key);
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
+    let decrypted_data = cipher
+        .decrypt(nonce, encrypted_data.as_ref())
         .map_err(|_| anyhow!("Decryption error: Incorrect password or corrupted file"))?;
 
+    if let Some(parent) = std::path::Path::new(&output_path).parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
     File::create(output_path)?.write_all(&decrypted_data)?;
+
+    // Remove the encrypted file from the vault after successful decryption
+    let _ = std::fs::remove_file(vault_path);
 
     Ok(())
 }

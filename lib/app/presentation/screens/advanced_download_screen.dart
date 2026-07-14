@@ -41,6 +41,7 @@ class _AdvancedDownloadScreenState
   int _connections = 8;
   String _audioFormat = 'm4a';
   DateTime? _scheduledAt;
+  bool _showAllStreams = false;
 
   @override
   void initState() {
@@ -59,6 +60,7 @@ class _AdvancedDownloadScreenState
     setState(() {
       _streamKindFilter = f;
       if (f == _StreamKindFilter.audioOnly) _resolutionFilter = '';
+      _showAllStreams = false;
       _repickIfNeeded();
     });
   }
@@ -66,6 +68,7 @@ class _AdvancedDownloadScreenState
   void _setResolution(String r) {
     setState(() {
       _resolutionFilter = r;
+      _showAllStreams = false;
       _repickIfNeeded();
     });
   }
@@ -73,6 +76,7 @@ class _AdvancedDownloadScreenState
   void _setContainer(String c) {
     setState(() {
       _containerFilter = c;
+      _showAllStreams = false;
       _repickIfNeeded();
     });
   }
@@ -106,7 +110,7 @@ class _AdvancedDownloadScreenState
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
 
     return Scaffold(
       appBar: AppBar(title: Text(t('download_options', locale))),
@@ -161,7 +165,7 @@ class _AdvancedDownloadScreenState
               'video_with_audio' => _StreamKindFilter.videoWithAudio,
               'audio_only' => _StreamKindFilter.audioOnly,
               _ => _StreamKindFilter.all,
-            }),
+            },),
           ),
           const SizedBox(height: 14),
           if (!kindIsAudio)
@@ -190,7 +194,7 @@ class _AdvancedDownloadScreenState
   }
 
   Widget _buildSchedulingSettings(Locale locale) {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
 
     return ExpansionTile(
       title: Text(
@@ -256,7 +260,7 @@ class _AdvancedDownloadScreenState
   }
 
   Widget _buildAdvancedSettings(Locale locale) {
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final isAudio =
         _streamKindFilter == _StreamKindFilter.audioOnly ||
         _selected?.kind == StreamKind.audioOnly;
@@ -361,11 +365,14 @@ class _AdvancedDownloadScreenState
       );
     }
 
-    if (context.isMobile) {
+    final visibleStreams = _showAllStreams ? filtered : filtered.take(3).toList();
+    final hasMore = filtered.length > 3 && !_showAllStreams;
+
+    Widget buildList() {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final s in filtered) ...[
+          for (final s in visibleStreams) ...[
             StreamTile(
               stream: s,
               locale: locale,
@@ -374,32 +381,37 @@ class _AdvancedDownloadScreenState
             ),
             const SizedBox(height: 8),
           ],
+          if (hasMore)
+            TextButton.icon(
+              onPressed: () => setState(() => _showAllStreams = true),
+              icon: const Icon(Icons.expand_more_rounded, color: Colors.blue),
+              label: Text(
+                t('show_more', locale),
+                style: const TextStyle(color: Colors.blue),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
         ],
       );
     }
 
+    if (context.isMobile) {
+      return buildList();
+    }
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 640, minHeight: 320),
-      child: ListView.separated(
-        shrinkWrap: true,
-        itemCount: filtered.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemBuilder: (ctx, i) {
-          final s = filtered[i];
-          return StreamTile(
-            stream: s,
-            locale: locale,
-            selected: s == _selected,
-            onSelected: () => setState(() => _selected = s),
-          );
-        },
+      child: SingleChildScrollView(
+        child: buildList(),
       ),
     );
   }
 
   Future<void> _startDownload() async {
     final locale = ref.read(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final stream = _selected;
     if (stream == null) return;
 

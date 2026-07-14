@@ -8,198 +8,161 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'models.freezed.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TorrentAddOptions`, `TorrentEvent`, `TorrentFile`, `TorrentPeerInfo`, `TorrentSessionConfig`, `TorrentSummary`, `TorrentTrackerInfo`
+            // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TorrentAddOptions`, `TorrentEvent`, `TorrentFile`, `TorrentPeerInfo`, `TorrentSessionConfig`, `TorrentSummary`, `TorrentTrackerInfo`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
-class DownloadResult {
-  final String filePath;
-  final BigInt fileSizeBytes;
 
-  const DownloadResult({required this.filePath, required this.fileSizeBytes});
+            
 
-  @override
-  int get hashCode => filePath.hashCode ^ fileSizeBytes.hashCode;
+            class DownloadResult  {
+                final String filePath;
+final BigInt fileSizeBytes;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is DownloadResult &&
-          runtimeType == other.runtimeType &&
-          filePath == other.filePath &&
-          fileSizeBytes == other.fileSizeBytes;
-}
+                const DownloadResult({required this.filePath ,required this.fileSizeBytes ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => filePath.hashCode^fileSizeBytes.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is DownloadResult &&
+                runtimeType == other.runtimeType
+                && filePath == other.filePath&& fileSizeBytes == other.fileSizeBytes;
+        
+            }
 
 @freezed
-sealed class ExtractionResult with _$ExtractionResult {
-  const ExtractionResult._();
+                sealed class ExtractionResult with _$ExtractionResult  {
+                    const ExtractionResult._();
 
-  const factory ExtractionResult.video(VideoInfoResult field0) =
-      ExtractionResult_Video;
-  const factory ExtractionResult.playlist(PlaylistResult field0) =
-      ExtractionResult_Playlist;
-}
+                     const factory ExtractionResult.video(  VideoInfoResult field0,) = ExtractionResult_Video;
+ const factory ExtractionResult.playlist(  PlaylistResult field0,) = ExtractionResult_Playlist;
 
-class PlaylistItem {
-  final String url;
-  final String title;
-  final String? thumbnailUrl;
-  final int? durationSeconds;
+                    
 
-  const PlaylistItem({
-    required this.url,
-    required this.title,
-    this.thumbnailUrl,
-    this.durationSeconds,
-  });
+                    
+                }
 
-  @override
-  int get hashCode =>
-      url.hashCode ^
-      title.hashCode ^
-      thumbnailUrl.hashCode ^
-      durationSeconds.hashCode;
+class PlaylistItem  {
+                final String url;
+final String title;
+final String? thumbnailUrl;
+final int? durationSeconds;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PlaylistItem &&
-          runtimeType == other.runtimeType &&
-          url == other.url &&
-          title == other.title &&
-          thumbnailUrl == other.thumbnailUrl &&
-          durationSeconds == other.durationSeconds;
-}
+                const PlaylistItem({required this.url ,required this.title ,this.thumbnailUrl ,this.durationSeconds ,});
 
-class PlaylistResult {
-  final String title;
-  final String? author;
-  final List<PlaylistItem> items;
+                
+                
 
-  const PlaylistResult({required this.title, this.author, required this.items});
+                
+        @override
+        int get hashCode => url.hashCode^title.hashCode^thumbnailUrl.hashCode^durationSeconds.hashCode;
+        
 
-  @override
-  int get hashCode => title.hashCode ^ author.hashCode ^ items.hashCode;
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is PlaylistItem &&
+                runtimeType == other.runtimeType
+                && url == other.url&& title == other.title&& thumbnailUrl == other.thumbnailUrl&& durationSeconds == other.durationSeconds;
+        
+            }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PlaylistResult &&
-          runtimeType == other.runtimeType &&
-          title == other.title &&
-          author == other.author &&
-          items == other.items;
-}
+class PlaylistResult  {
+                final String title;
+final String? author;
+final List<PlaylistItem> items;
 
-class StreamResult {
-  final String url;
-  final String quality;
-  final String format;
-  final String? container;
-  final int? width;
-  final int? height;
-  final double? fps;
-  final String? videoCodec;
-  final String? audioCodec;
-  final int? bitrateKbps;
-  final BigInt? fileSizeBytes;
-  final bool hasVideo;
-  final bool hasAudio;
-  final bool isAudioOnly;
-  final bool isHdr;
+                const PlaylistResult({required this.title ,this.author ,required this.items ,});
 
-  const StreamResult({
-    required this.url,
-    required this.quality,
-    required this.format,
-    this.container,
-    this.width,
-    this.height,
-    this.fps,
-    this.videoCodec,
-    this.audioCodec,
-    this.bitrateKbps,
-    this.fileSizeBytes,
-    required this.hasVideo,
-    required this.hasAudio,
-    required this.isAudioOnly,
-    required this.isHdr,
-  });
+                
+                
 
-  @override
-  int get hashCode =>
-      url.hashCode ^
-      quality.hashCode ^
-      format.hashCode ^
-      container.hashCode ^
-      width.hashCode ^
-      height.hashCode ^
-      fps.hashCode ^
-      videoCodec.hashCode ^
-      audioCodec.hashCode ^
-      bitrateKbps.hashCode ^
-      fileSizeBytes.hashCode ^
-      hasVideo.hashCode ^
-      hasAudio.hashCode ^
-      isAudioOnly.hashCode ^
-      isHdr.hashCode;
+                
+        @override
+        int get hashCode => title.hashCode^author.hashCode^items.hashCode;
+        
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is StreamResult &&
-          runtimeType == other.runtimeType &&
-          url == other.url &&
-          quality == other.quality &&
-          format == other.format &&
-          container == other.container &&
-          width == other.width &&
-          height == other.height &&
-          fps == other.fps &&
-          videoCodec == other.videoCodec &&
-          audioCodec == other.audioCodec &&
-          bitrateKbps == other.bitrateKbps &&
-          fileSizeBytes == other.fileSizeBytes &&
-          hasVideo == other.hasVideo &&
-          hasAudio == other.hasAudio &&
-          isAudioOnly == other.isAudioOnly &&
-          isHdr == other.isHdr;
-}
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is PlaylistResult &&
+                runtimeType == other.runtimeType
+                && title == other.title&& author == other.author&& items == other.items;
+        
+            }
 
-class VideoInfoResult {
-  final String title;
-  final String? thumbnailUrl;
-  final String platform;
-  final int? durationSeconds;
-  final String? author;
-  final List<StreamResult> streams;
+class StreamResult  {
+                final String url;
+final String quality;
+final String format;
+final String? container;
+final int? width;
+final int? height;
+final double? fps;
+final String? videoCodec;
+final String? audioCodec;
+final int? bitrateKbps;
+final BigInt? fileSizeBytes;
+final bool hasVideo;
+final bool hasAudio;
+final bool isAudioOnly;
+final bool isHdr;
 
-  const VideoInfoResult({
-    required this.title,
-    this.thumbnailUrl,
-    required this.platform,
-    this.durationSeconds,
-    this.author,
-    required this.streams,
-  });
+                const StreamResult({required this.url ,required this.quality ,required this.format ,this.container ,this.width ,this.height ,this.fps ,this.videoCodec ,this.audioCodec ,this.bitrateKbps ,this.fileSizeBytes ,required this.hasVideo ,required this.hasAudio ,required this.isAudioOnly ,required this.isHdr ,});
 
-  @override
-  int get hashCode =>
-      title.hashCode ^
-      thumbnailUrl.hashCode ^
-      platform.hashCode ^
-      durationSeconds.hashCode ^
-      author.hashCode ^
-      streams.hashCode;
+                
+                
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is VideoInfoResult &&
-          runtimeType == other.runtimeType &&
-          title == other.title &&
-          thumbnailUrl == other.thumbnailUrl &&
-          platform == other.platform &&
-          durationSeconds == other.durationSeconds &&
-          author == other.author &&
-          streams == other.streams;
-}
+                
+        @override
+        int get hashCode => url.hashCode^quality.hashCode^format.hashCode^container.hashCode^width.hashCode^height.hashCode^fps.hashCode^videoCodec.hashCode^audioCodec.hashCode^bitrateKbps.hashCode^fileSizeBytes.hashCode^hasVideo.hashCode^hasAudio.hashCode^isAudioOnly.hashCode^isHdr.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is StreamResult &&
+                runtimeType == other.runtimeType
+                && url == other.url&& quality == other.quality&& format == other.format&& container == other.container&& width == other.width&& height == other.height&& fps == other.fps&& videoCodec == other.videoCodec&& audioCodec == other.audioCodec&& bitrateKbps == other.bitrateKbps&& fileSizeBytes == other.fileSizeBytes&& hasVideo == other.hasVideo&& hasAudio == other.hasAudio&& isAudioOnly == other.isAudioOnly&& isHdr == other.isHdr;
+        
+            }
+
+class VideoInfoResult  {
+                final String title;
+final String? thumbnailUrl;
+final String platform;
+final int? durationSeconds;
+final String? author;
+final List<StreamResult> streams;
+
+                const VideoInfoResult({required this.title ,this.thumbnailUrl ,required this.platform ,this.durationSeconds ,this.author ,required this.streams ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => title.hashCode^thumbnailUrl.hashCode^platform.hashCode^durationSeconds.hashCode^author.hashCode^streams.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is VideoInfoResult &&
+                runtimeType == other.runtimeType
+                && title == other.title&& thumbnailUrl == other.thumbnailUrl&& platform == other.platform&& durationSeconds == other.durationSeconds&& author == other.author&& streams == other.streams;
+        
+            }
+            

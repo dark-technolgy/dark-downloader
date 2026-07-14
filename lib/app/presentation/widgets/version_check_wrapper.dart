@@ -84,8 +84,8 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                   Expanded(
                     child: Text(
                       isDownloading
-                          ? "جاري التحميل..."
-                          : (force ? "تحديث إجباري" : "تحديث جديد متاح"),
+                          ? 'جاري التحميل...'
+                          : (force ? 'تحديث إجباري' : 'تحديث جديد متاح'),
                     ),
                   ),
                 ],
@@ -97,13 +97,13 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                   if (!isDownloading) ...[
                     Text(
                       force
-                          ? "يجب تحديث التطبيق للمتابعة لضمان الأمان والاستقرار."
-                          : "يتوفر إصدار جديد من التطبيق مع ميزات وتحسينات جديدة.",
+                          ? 'يجب تحديث التطبيق للمتابعة لضمان الأمان والاستقرار.'
+                          : 'يتوفر إصدار جديد من التطبيق مع ميزات وتحسينات جديدة.',
                     ),
                     if (widget.config.releaseNotes != null) ...[
                       const SizedBox(height: 16),
                       const Text(
-                        "ما الجديد:",
+                        'ما الجديد:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
@@ -116,7 +116,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                     ],
                   ] else ...[
                     const Text(
-                      "يتم الآن تحميل التحديث الجديد، يرجى الانتظار...",
+                      'يتم الآن تحميل التحديث الجديد، يرجى الانتظار...',
                     ),
                     const SizedBox(height: 20),
                     LinearProgressIndicator(
@@ -129,7 +129,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                     const SizedBox(height: 10),
                     Center(
                       child: Text(
-                        "${(downloadProgress * 100).toStringAsFixed(0)}%",
+                        '${(downloadProgress * 100).toStringAsFixed(0)}%',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF00A3FF),
@@ -148,7 +148,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                 if (!force && !isDownloading)
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("لاحقاً"),
+                    child: const Text('لاحقاً'),
                   ),
                 if (!isDownloading)
                   ElevatedButton.icon(
@@ -160,8 +160,8 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
 
                       try {
                         final fileName = Platform.isAndroid
-                            ? "DarkDownloader_v${widget.config.latestVersion}.apk"
-                            : "DarkDownloader_v${widget.config.latestVersion}.exe";
+                            ? 'DarkDownloader_v${widget.config.latestVersion}.apk'
+                            : 'DarkDownloader_v${widget.config.latestVersion}.exe';
 
                         await UpdateService.downloadAndInstallUpdate(
                           url: url,
@@ -180,7 +180,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
                       }
                     },
                     icon: const Icon(Icons.download, size: 18),
-                    label: const Text("تحديث الآن"),
+                    label: const Text('تحديث الآن'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF00A3FF),
                       foregroundColor: Colors.white,

@@ -1,12 +1,13 @@
-﻿use reqwest::{Client};
+use reqwest::Client;
 
 #[tokio::main]
 async fn main() {
     let url = "https://porngun.net/download/2118/4674/360p/";
     let client = Client::builder()
         .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-        .build().unwrap();
-    
+        .build()
+        .unwrap();
+
     let final_url = match client.get(url).send().await {
         Ok(resp) => resp.url().to_string(),
         Err(e) => return println!("Error: {}", e),

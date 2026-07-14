@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
 import '../../providers/vault_provider.dart';
+import '../../providers/locale_provider.dart';
+import '../../config/localization.dart';
 
 class VaultScreen extends ConsumerStatefulWidget {
   const VaultScreen({super.key});
@@ -24,13 +26,15 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
   @override
   Widget build(BuildContext context) {
     final vaultState = ref.watch(vaultProvider);
+    final locale = ref.watch(localeProvider);
+    const t = AppLocalization.translate;
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("المخزن السري | Hidden Vault", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(t('vault_title', locale), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           if (vaultState.status == VaultStatus.unlocked) ...[
             IconButton(
@@ -50,12 +54,12 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
         ],
       ),
       body: vaultState.status == VaultStatus.locked 
-          ? _buildPinEntry() 
-          : _buildVaultContent(vaultState),
+          ? _buildPinEntry(locale, t) 
+          : _buildVaultContent(vaultState, locale, t),
     );
   }
 
-  Widget _buildPinEntry() {
+  Widget _buildPinEntry(Locale locale, String Function(String, Locale) t) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
@@ -72,14 +76,14 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               child: const Icon(Icons.security_rounded, size: 80, color: Color(0xFF00A3FF)),
             ),
             const SizedBox(height: 32),
-            const Text(
-              "الخزنة مشفرة بـ AES-256",
-              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+            Text(
+              t('vault_encrypted_desc', locale),
+              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "أدخل رمز الحماية للوصول لملفاتك الخاصة",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            Text(
+              t('vault_enter_pin', locale),
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
@@ -94,8 +98,8 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 decoration: InputDecoration(
-                  counterText: "",
-                  hintText: "••••••",
+                  counterText: '',
+                  hintText: '••••••',
                   hintStyle: const TextStyle(color: Colors.white10),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
@@ -116,7 +120,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     );
   }
 
-  Widget _buildVaultContent(VaultState state) {
+  Widget _buildVaultContent(VaultState state, Locale locale, String Function(String, Locale) t) {
     if (state.encryptedFiles.isEmpty) {
       return Center(
         child: Column(
@@ -124,9 +128,9 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
           children: [
             Icon(Icons.folder_off_rounded, size: 100, color: Colors.white.withValues(alpha: 0.05)),
             const SizedBox(height: 24),
-            const Text("المخزن فارغ حالياً", style: TextStyle(color: Colors.grey, fontSize: 16)),
+            Text(t('vault_empty_title', locale), style: const TextStyle(color: Colors.grey, fontSize: 16)),
             const SizedBox(height: 8),
-            const Text("انقل الملفات من التحميلات لتشفيرها هنا", style: TextStyle(color: Colors.white24, fontSize: 12)),
+            Text(t('vault_empty_desc', locale), style: const TextStyle(color: Colors.white24, fontSize: 12)),
           ],
         ),
       );
@@ -152,10 +156,39 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               child: Icon(Icons.enhanced_encryption_rounded, color: Color(0xFF00A3FF), size: 20),
             ),
             title: Text(name, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
-            subtitle: const Text("محمي بتشفير عسكري", style: TextStyle(color: Colors.grey, fontSize: 11)),
-            trailing: IconButton(
-              icon: const Icon(Icons.unarchive_rounded, color: Colors.grey),
-              onPressed: () => _showRestoreDialog(file),
+            subtitle: Text(t('vault_protected_subtitle', locale), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.grey),
+              color: const Color(0xFF1E1E1E),
+              onSelected: (value) {
+                if (value == 'restore') {
+                  _showRestoreDialog(file, locale, t);
+                } else if (value == 'delete') {
+                  _showDeleteDialog(file, locale, t);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'restore',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.unarchive_rounded, color: Colors.white, size: 18),
+                      const SizedBox(width: 8),
+                      Text(t('vault_decrypt_now', locale), style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_rounded, color: Colors.redAccent, size: 18),
+                      const SizedBox(width: 8),
+                      Text(t('delete', locale), style: const TextStyle(color: Colors.redAccent)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -163,23 +196,45 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     );
   }
 
-  void _showRestoreDialog(dynamic file) {
+  void _showRestoreDialog(dynamic file, Locale locale, String Function(String, Locale) t) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF0A0A0A),
-        title: const Text("فك تشفير الملف؟", style: TextStyle(color: Colors.white)),
-        content: const Text("سيتم استعادة الملف إلى مجلد التحميلات الخاص بك.", style: TextStyle(color: Colors.grey)),
+        title: Text(t('vault_decrypt_title', locale), style: const TextStyle(color: Colors.white)),
+        content: Text(t('vault_decrypt_desc', locale), style: const TextStyle(color: Colors.grey)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("إلغاء", style: TextStyle(color: Colors.grey))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel', locale), style: const TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () {
               ref.read(vaultProvider.notifier).decryptFile(file);
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("جاري فك التشفير والاستعادة...")));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t('vault_decrypt_snack', locale))));
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00A3FF), foregroundColor: Colors.white),
-            child: const Text("استعادة الآن"),
+            child: Text(t('vault_decrypt_now', locale)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(dynamic file, Locale locale, String Function(String, Locale) t) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0A0A0A),
+        title: Text(t('delete', locale), style: const TextStyle(color: Colors.white)),
+        content: Text(t('delete_confirm_desc', locale), style: const TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel', locale), style: const TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            onPressed: () {
+              ref.read(vaultProvider.notifier).deleteFileFromVault(file);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            child: Text(t('delete', locale)),
           ),
         ],
       ),

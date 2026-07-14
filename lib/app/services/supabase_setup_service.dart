@@ -6,6 +6,6 @@ class SupabaseSetupService {
     // ملاحظة: تهيئة الجداول تتم يدوياً عبر SQL Editor حالياً لضمان الدقة.
     // البروفايلات يتم إنشاؤها تلقائياً عند أول دخول في AuthProvider.
     
-    debugPrint("Supabase: Auto-setup initialized.");
+    debugPrint('Supabase: Auto-setup initialized.');
   }
 }

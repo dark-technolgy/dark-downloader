@@ -81,7 +81,7 @@ class YtdlpBootstrap {
       }
     } catch (e, st) {
       debugPrint('Error searching adjacent yt-dlp: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
 
     // 2) Previously extracted from asset bundle
@@ -100,7 +100,7 @@ class YtdlpBootstrap {
       }
     } catch (e, st) {
       debugPrint('Error searching cached yt-dlp: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
 
     // 3) Materialize from asset bundle (offline install)
@@ -150,7 +150,7 @@ class YtdlpBootstrap {
       return outPath;
     } catch (e, st) {
       debugPrint('Error materializing yt-dlp from assets: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
       return null;
     }
   }
@@ -176,7 +176,7 @@ class YtdlpBootstrap {
       }
     } catch (e, st) {
       debugPrint('Error checking system yt-dlp: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
     return null;
   }
@@ -187,7 +187,7 @@ class YtdlpBootstrap {
       await Process.run('chmod', ['+x', path]);
     } catch (e, st) {
       debugPrint('Error ensuring yt-dlp is executable: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
   }
 }

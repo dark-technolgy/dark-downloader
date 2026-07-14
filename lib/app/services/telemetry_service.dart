@@ -13,7 +13,7 @@ class Telemetry {
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 5),
     receiveTimeout: const Duration(seconds: 5),
-  ));
+  ),);
 
   /// Queue for offline buffering (send when possible)
   final List<Map<String, dynamic>> _pendingQueue = [];

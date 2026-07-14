@@ -128,7 +128,7 @@ StreamInfo? pickBestDefault(List<StreamInfo> streams) {
 
 String localizedCodecLabel(StreamInfo stream, Locale locale) {
   final raw = stream.codecLabel;
-  final t = AppLocalization.translate;
+  const t = AppLocalization.translate;
   if (raw == 'Audio') return t('stream_codec_audio', locale);
   if (raw == 'Video') return t('stream_codec_video', locale);
   if (raw.isEmpty || raw == '—') return t('stream_codec_unknown', locale);

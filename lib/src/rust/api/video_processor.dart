@@ -6,27 +6,12 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-void muxVideoAudio({
-  required String videoPath,
-  required String audioPath,
-  required String outputPath,
-  required String ffmpegPath,
-}) => RustLib.instance.api.crateApiVideoProcessorMuxVideoAudio(
-  videoPath: videoPath,
-  audioPath: audioPath,
-  outputPath: outputPath,
-  ffmpegPath: ffmpegPath,
-);
 
-void extractAudio({
-  required String videoPath,
-  required String outputPath,
-  required String ffmpegPath,
-}) => RustLib.instance.api.crateApiVideoProcessorExtractAudio(
-  videoPath: videoPath,
-  outputPath: outputPath,
-  ffmpegPath: ffmpegPath,
-);
+            
+
+            Future<void>  muxVideoAudio({required String videoPath , required String audioPath , required String outputPath , required String ffmpegPath }) => RustLib.instance.api.crateApiVideoProcessorMuxVideoAudio(videoPath: videoPath, audioPath: audioPath, outputPath: outputPath, ffmpegPath: ffmpegPath);
+
+Future<void>  extractAudio({required String videoPath , required String outputPath , required String ffmpegPath }) => RustLib.instance.api.crateApiVideoProcessorExtractAudio(videoPath: videoPath, outputPath: outputPath, ffmpegPath: ffmpegPath);
 
 /// Hardened MP3 conversion.
 ///
@@ -35,60 +20,19 @@ void extractAudio({
 /// - Proper Xing/LAME header for accurate seeking in all players
 /// - id3v2 v3 tags (widest compatibility, incl. Windows Explorer)
 /// - Preserves source metadata when present
-void convertToMp3({
-  required String inputPath,
-  required String outputPath,
-  required String ffmpegPath,
-}) => RustLib.instance.api.crateApiVideoProcessorConvertToMp3(
-  inputPath: inputPath,
-  outputPath: outputPath,
-  ffmpegPath: ffmpegPath,
-);
+Future<void>  convertToMp3({required String inputPath , required String outputPath , required String ffmpegPath }) => RustLib.instance.api.crateApiVideoProcessorConvertToMp3(inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath);
 
 /// Rich MP3 conversion with optional metadata and embedded album art.
 ///
 /// Any `None` field is skipped. `cover_path`, when provided and readable,
 /// is embedded as the front-cover artwork.
-void convertToMp3Rich({
-  required String inputPath,
-  required String outputPath,
-  required String ffmpegPath,
-  String? title,
-  String? artist,
-  String? album,
-  String? date,
-  String? comment,
-  String? coverPath,
-}) => RustLib.instance.api.crateApiVideoProcessorConvertToMp3Rich(
-  inputPath: inputPath,
-  outputPath: outputPath,
-  ffmpegPath: ffmpegPath,
-  title: title,
-  artist: artist,
-  album: album,
-  date: date,
-  comment: comment,
-  coverPath: coverPath,
-);
+Future<void>  convertToMp3Rich({required String inputPath , required String outputPath , required String ffmpegPath , String? title , String? artist , String? album , String? date , String? comment , String? coverPath }) => RustLib.instance.api.crateApiVideoProcessorConvertToMp3Rich(inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath, title: title, artist: artist, album: album, date: date, comment: comment, coverPath: coverPath);
 
 /// Embed (or replace) the front-cover artwork on an existing MP3 file.
 /// Rewrites the file in-place via a temporary intermediate.
-void embedAlbumArt({
-  required String mp3Path,
-  required String coverPath,
-  required String ffmpegPath,
-}) => RustLib.instance.api.crateApiVideoProcessorEmbedAlbumArt(
-  mp3Path: mp3Path,
-  coverPath: coverPath,
-  ffmpegPath: ffmpegPath,
-);
+Future<void>  embedAlbumArt({required String mp3Path , required String coverPath , required String ffmpegPath }) => RustLib.instance.api.crateApiVideoProcessorEmbedAlbumArt(mp3Path: mp3Path, coverPath: coverPath, ffmpegPath: ffmpegPath);
 
-void compressVideo({
-  required String inputPath,
-  required String outputPath,
-  required String ffmpegPath,
-}) => RustLib.instance.api.crateApiVideoProcessorCompressVideo(
-  inputPath: inputPath,
-  outputPath: outputPath,
-  ffmpegPath: ffmpegPath,
-);
+Future<void>  compressVideo({required String inputPath , required String outputPath , required String ffmpegPath }) => RustLib.instance.api.crateApiVideoProcessorCompressVideo(inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath);
+
+            
+            

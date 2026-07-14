@@ -62,6 +62,8 @@ class AppLocalization {
     // تنقل
     'home': 'الرئيسية',
     'downloads': 'التحميلات',
+    'toolkit': 'الأدوات',
+    'vault': 'الخزنة',
     'profile': 'الملف الشخصي',
     'browser': 'المتصفح',
     'settings': 'الإعدادات',
@@ -245,6 +247,7 @@ class AppLocalization {
     'filter_kind': 'النوع',
     'filter_all': 'الكل',
     'filter_video_with_audio': 'فيديو (صورة وصوت)',
+    'show_more': 'إظهار المزيد',
 
     'merge_banner_title': 'سيتم دمج الصوت مع الفيديو',
     'merge_banner_body':
@@ -567,6 +570,54 @@ class AppLocalization {
     // FFmpeg سطح مكتب
     'ffmpeg_desktop_process_failed':
         'تعذّر تشغيل المحرك الأسطوري.\nيرجى التواصل مع الدعم الفني أو إعادة المحاولة.\n\n{detail}',
+
+    // المخزن السري
+    'vault_title': 'المخزن السري | Hidden Vault',
+    'vault_encrypted_desc': 'الخزنة مشفرة بـ AES-256',
+    'vault_enter_pin': 'أدخل رمز الحماية للوصول لملفاتك الخاصة',
+    'vault_empty_title': 'المخزن فارغ حالياً',
+    'vault_empty_desc': 'انقل الملفات من التحميلات لتشفيرها هنا',
+    'vault_protected_subtitle': 'محمي بتشفير عسكري',
+    'vault_decrypt_title': 'فك تشفير الملف؟',
+    'vault_decrypt_desc': 'سيتم استعادة الملف إلى مجلد التحميلات الخاص بك.',
+    'vault_decrypt_snack': 'جاري فك التشفير والاستعادة...',
+    'vault_decrypt_now': 'استعادة الآن',
+
+    // الأدوات
+    'toolkit_title': 'أدوات المحترفين (Pro)',
+    'toolkit_processing': 'جاري المعالجة...',
+    'toolkit_sec_security': 'الأمن والخصوصية',
+    'toolkit_vault_title': 'المخزن السري (Encrypted Vault)',
+    'toolkit_vault_desc': 'تشفير ملفاتك باستخدام AES-256-GCM. حماية مطلقة لا يمكن كسرها.',
+
+    'toolkit_sec_ffmpeg': 'معالجة الوسائط المتقدمة',
+    'toolkit_mp3_title': 'تحويل إلى MP3 (320kbps)',
+    'toolkit_mp3_desc': 'استخراج الصوت بأعلى جودة ممكنة من أي فيديو محلي.',
+    'toolkit_compress_title': 'ضغط حجم الفيديو',
+    'toolkit_compress_desc': 'تقليل الحجم بشكل كبير مع الحفاظ على وضوح الصورة.',
+
+    // مشغل الفيديو
+    'player_audio_tab': 'الصوت (Audio)',
+    'player_subtitles_tab': 'الترجمة (Subtitles)',
+    'player_audio_track_fallback': 'مسار صوتي',
+    'player_no_subtitles': 'بدون ترجمة',
+    'player_subtitle_fallback': 'ترجمة',
+
+    // الملف الشخصي - الأشهر
+    'month_jan': 'يناير',
+    'month_feb': 'فبراير',
+    'month_mar': 'مارس',
+    'month_apr': 'أبريل',
+    'month_may': 'مايو',
+    'month_jun': 'يونيو',
+    'month_jul': 'يوليو',
+    'month_aug': 'أغسطس',
+    'month_sep': 'سبتمبر',
+    'month_oct': 'أكتوبر',
+    'month_nov': 'نوفمبر',
+    'month_dec': 'ديسمبر',
+
+
   };
 
   static const Map<String, String> en = {
@@ -623,6 +674,8 @@ class AppLocalization {
     // Navigation
     'home': 'Home',
     'downloads': 'Downloads',
+    'toolkit': 'Toolkit',
+    'vault': 'Vault',
     'profile': 'Profile',
     'browser': 'Browser',
     'settings': 'Settings',
@@ -808,6 +861,7 @@ class AppLocalization {
     'filter_kind': 'Type',
     'filter_all': 'All',
     'filter_video_with_audio': 'Video + audio',
+    'show_more': 'Show More',
 
     'merge_banner_title': 'Audio will be merged with video',
     'merge_banner_body':
@@ -1130,9 +1184,55 @@ class AppLocalization {
 
     // Desktop FFmpeg
     'ffmpeg_desktop_process_failed':
-        'Could not run the Legendary Engine.\n'
-        'Please contact support or try again later.\n\n'
-        '{detail}',
+        'Native engine failed to start.\nPlease contact support or retry.\n\n{detail}',
+
+    // Hidden Vault
+    'vault_title': 'Hidden Vault',
+    'vault_encrypted_desc': 'Vault is encrypted with AES-256',
+    'vault_enter_pin': 'Enter your security PIN to access your private files',
+    'vault_empty_title': 'Vault is currently empty',
+    'vault_empty_desc': 'Move files from Downloads to encrypt them here',
+    'vault_protected_subtitle': 'Protected with military-grade encryption',
+    'vault_decrypt_title': 'Decrypt file?',
+    'vault_decrypt_desc': 'The file will be restored to your downloads folder.',
+    'vault_decrypt_snack': 'Decrypting and restoring...',
+    'vault_decrypt_now': 'Restore Now',
+
+    // Toolkit
+    'toolkit_title': 'Pro Tools',
+    'toolkit_processing': 'Processing...',
+    'toolkit_sec_security': 'Security & Privacy',
+    'toolkit_vault_title': 'Encrypted Vault',
+    'toolkit_vault_desc': 'Encrypt your files using AES-256-GCM. Unbreakable ultimate protection.',
+
+    'toolkit_sec_ffmpeg': 'Advanced Media Processing',
+    'toolkit_mp3_title': 'Convert to MP3 (320kbps)',
+    'toolkit_mp3_desc': 'Extract audio at the highest quality from any local video.',
+    'toolkit_compress_title': 'Compress Video Size',
+    'toolkit_compress_desc': 'Reduce size significantly while retaining image clarity.',
+
+    // Video Player
+    'player_audio_tab': 'Audio',
+    'player_subtitles_tab': 'Subtitles',
+    'player_audio_track_fallback': 'Audio Track',
+    'player_no_subtitles': 'No Subtitles',
+    'player_subtitle_fallback': 'Subtitle',
+
+    // Profile - Months
+    'month_jan': 'January',
+    'month_feb': 'February',
+    'month_mar': 'March',
+    'month_apr': 'April',
+    'month_may': 'May',
+    'month_jun': 'June',
+    'month_jul': 'July',
+    'month_aug': 'August',
+    'month_sep': 'September',
+    'month_oct': 'October',
+    'month_nov': 'November',
+    'month_dec': 'December',
+
+
   };
 
   static String translate(String key, Locale locale) {

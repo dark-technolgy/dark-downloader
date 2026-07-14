@@ -92,14 +92,26 @@ pub enum RuleStep {
         #[serde(default)]
         is_audio_only: bool,
     },
-    SetTitle { value: String },
-    SetThumbnail { value: String },
-    SetAuthor { value: String },
+    SetTitle {
+        value: String,
+    },
+    SetThumbnail {
+        value: String,
+    },
+    SetAuthor {
+        value: String,
+    },
 }
 
-fn default_body_var() -> String { "html".into() }
-fn default_quality() -> String { "Auto".into() }
-fn default_container() -> String { "mp4".into() }
+fn default_body_var() -> String {
+    "html".into()
+}
+fn default_quality() -> String {
+    "Auto".into()
+}
+fn default_container() -> String {
+    "mp4".into()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RulesRegistry {
@@ -117,7 +129,8 @@ fn registry() -> &'static Arc<Mutex<RulesRegistry>> {
 }
 
 fn get_cache_path() -> PathBuf {
-    let mut p = PathBuf::from(super::downloader::get_downloads_dir().unwrap_or_else(|_| ".".into()));
+    let mut p =
+        PathBuf::from(super::downloader::get_downloads_dir().unwrap_or_else(|_| ".".into()));
     p.push(".rules_cache.json");
     p
 }
@@ -330,7 +343,10 @@ async fn execute_rule(rule: &PlatformRule, url: &str) -> Result<VideoInfoResult,
 
     for step in rule.steps.iter() {
         match step {
-            RuleStep::Fetch { url: target, as_var } => {
+            RuleStep::Fetch {
+                url: target,
+                as_var,
+            } => {
                 let resolved = interpolate(target, &vars);
                 if resolved.is_empty() {
                     return Err(format!("fetch: url is empty (template: {})", target));
@@ -345,7 +361,11 @@ async fn execute_rule(rule: &PlatformRule, url: &str) -> Result<VideoInfoResult,
                     .map_err(|e| format!("fetch body {}: {}", resolved, e))?;
                 vars.insert(as_var.clone(), RuleValue::Text(body));
             }
-            RuleStep::RegexExtract { input, pattern, as_var } => {
+            RuleStep::RegexExtract {
+                input,
+                pattern,
+                as_var,
+            } => {
                 let re = regex::Regex::new(pattern)
                     .map_err(|e| format!("bad regex {:?}: {}", pattern, e))?;
                 let text = vars.get(input).map(|v| v.as_text()).unwrap_or_default();
@@ -355,7 +375,11 @@ async fn execute_rule(rule: &PlatformRule, url: &str) -> Result<VideoInfoResult,
                     }
                 }
             }
-            RuleStep::RegexFindAll { input, pattern, as_var } => {
+            RuleStep::RegexFindAll {
+                input,
+                pattern,
+                as_var,
+            } => {
                 let re = regex::Regex::new(pattern)
                     .map_err(|e| format!("bad regex {:?}: {}", pattern, e))?;
                 let text = vars.get(input).map(|v| v.as_text()).unwrap_or_default();
@@ -394,15 +418,21 @@ async fn execute_rule(rule: &PlatformRule, url: &str) -> Result<VideoInfoResult,
             }
             RuleStep::SetTitle { value } => {
                 let v = interpolate(value, &vars);
-                if !v.is_empty() { title = Some(v); }
+                if !v.is_empty() {
+                    title = Some(v);
+                }
             }
             RuleStep::SetThumbnail { value } => {
                 let v = interpolate(value, &vars);
-                if !v.is_empty() { thumbnail = Some(v); }
+                if !v.is_empty() {
+                    thumbnail = Some(v);
+                }
             }
             RuleStep::SetAuthor { value } => {
                 let v = interpolate(value, &vars);
-                if !v.is_empty() { author = Some(v); }
+                if !v.is_empty() {
+                    author = Some(v);
+                }
             }
         }
     }

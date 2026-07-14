@@ -198,7 +198,7 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
     });
 
     final locale = ref.watch(localeProvider);
-    final t = AppLocalization.translate;
+    const t = AppLocalization.translate;
     final extractState = ref.watch(extractorProvider);
     final downloadState = ref.watch(downloadManagerProvider);
     final theme = Theme.of(context);

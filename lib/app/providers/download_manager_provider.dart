@@ -410,17 +410,17 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
     try {
       final ffmpegPath = await resolveDesktopFfmpegPath();
-      // On mobile there is no FFmpeg binary for the Rust subprocess to spawn,
-      // so skip Rust's internal mux (it would always fail) and let
-      // MediaProcessor merge the sidecar via ffmpeg_kit below.
-      final rustMuxFfmpeg = (Platform.isAndroid || Platform.isIOS)
-          ? ''
-          : ffmpegPath;
+      // On all platforms, we skip Rust's internal muxing so that we can handle
+      // it in Dart via MediaProcessor, which allows us to parse stderr and show a progress bar.
+      final rustMuxFfmpeg = '';
+
+      var finalUrl = item.url;
+      var finalAudioUrl = item.audioStreamUrl;
 
       final result = await rust_downloader.downloadFileV2(
-        url: item.url,
+        url: finalUrl,
         outputPath: item.filePath,
-        audioUrl: item.audioStreamUrl,
+        audioUrl: finalAudioUrl,
         jobId: item.id,
         connections: item.connections,
         muxFfmpeg: rustMuxFfmpeg,
@@ -445,7 +445,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
         if (sidecarAudio != null) {
           state = state.copyWith(
             items: state.items
-                .map((i) => i.id == item.id ? i.copyWith(phase: 'merging') : i)
+                .map((i) => i.id == item.id ? i.copyWith(phase: 'converting') : i)
                 .toList(),
           );
 
@@ -461,9 +461,38 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
             audioPath: sidecarAudio.path,
             outputPath: mergedTmp,
             ffmpegPath: ffmpegPath,
+            onProgress: (percentage) {
+              state = state.copyWith(
+                items: state.items
+                    .map((i) => i.id == item.id
+                        ? i.copyWith(
+                            progress: percentage * 100.0,
+                            downloadedBytes: (percentage * 1000).toInt(),
+                            totalBytes: 1000,
+                          )
+                        : i)
+                    .toList(),
+              );
+            },
           );
-          await File(mergedTmp).rename(finalPath);
-          await sidecarAudio.delete();
+          // Robust delete & rename with retry loop for Windows file locking
+          bool renameSuccess = false;
+          for (var i = 0; i < 5; i++) {
+            try {
+              if (await File(finalPath).exists()) {
+                await File(finalPath).delete();
+              }
+              await File(mergedTmp).rename(finalPath);
+              await sidecarAudio.delete();
+              renameSuccess = true;
+              break;
+            } catch (e) {
+              await Future.delayed(const Duration(milliseconds: 500));
+            }
+          }
+          if (!renameSuccess) {
+            throw Exception('Failed to rename muxed file. File might be locked.');
+          }
         }
       }
 
@@ -564,7 +593,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
               await File(coverTmpPath).delete();
             } catch (e, st) {
               debugPrint('Error deleting cover temp file: $e');
-              Telemetry.instance.recordError(e, st);
+              Telemetry.instance.recordError('exception', e, stackTrace: st);
             }
           }
         } else {
@@ -591,7 +620,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
             await File(result.filePath).delete();
           } catch (e, st) {
             debugPrint('Error deleting source file during rename: $e');
-            Telemetry.instance.recordError(e, st);
+            Telemetry.instance.recordError('exception', e, stackTrace: st);
           }
           await File(scratchOut).rename(finalAudioPath);
         } else {
@@ -599,7 +628,7 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
             await File(result.filePath).delete();
           } catch (e, st) {
             debugPrint('Error deleting source file after audio extraction: $e');
-            Telemetry.instance.recordError(e, st);
+            Telemetry.instance.recordError('exception', e, stackTrace: st);
           }
         }
         finalPath = finalAudioPath;

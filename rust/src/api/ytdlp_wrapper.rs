@@ -49,7 +49,7 @@ pub fn is_ytdlp_available() -> bool {
     std::path::Path::new(path).exists()
 }
 
-fn current_path() -> Option<String> {
+pub(crate) fn current_path() -> Option<String> {
     YTDLP_PATH.read().ok().and_then(|g| g.clone())
 }
 
@@ -72,6 +72,10 @@ pub async fn extract_via_ytdlp(url: &str) -> Result<VideoInfoResult> {
             .arg("--no-check-certificate")
             .arg("--no-playlist")
             .arg("--skip-download")
+            .arg("--user-agent")
+            .arg("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36")
+            .arg("--extractor-args")
+            .arg("youtube:player_client=tv,mweb")
             .arg("--restrict-filenames")
             .arg(&url_owned)
             .stdin(Stdio::null())
@@ -154,6 +158,11 @@ fn parse_ytdlp_json(json: &Value) -> Result<VideoInfoResult> {
     if let Some(formats) = json.get("formats").and_then(|v| v.as_array()) {
         for f in formats {
             if let Some(s) = format_to_stream(f) {
+                // Ignore progressive MP4 formats for YouTube (often trigger bot verification videos)
+                let container_lower = s.container.as_deref().unwrap_or("").to_lowercase();
+                if platform.to_lowercase() == "youtube" && s.has_video && container_lower == "mp4" {
+                    continue;
+                }
                 streams.push(s);
             }
         }
@@ -189,7 +198,11 @@ fn parse_ytdlp_json(json: &Value) -> Result<VideoInfoResult> {
 fn stream_score(s: &StreamResult) -> i64 {
     let height = s.height.unwrap_or(0) as i64;
     let bitrate = s.bitrate_kbps.unwrap_or(0) as i64;
-    let muxed = if s.has_video && s.has_audio { 100_000 } else { 0 };
+    let muxed = if s.has_video && s.has_audio {
+        100_000
+    } else {
+        0
+    };
     let hdr = if s.is_hdr { 500 } else { 0 };
     height * 100 + bitrate + muxed + hdr
 }
@@ -206,20 +219,14 @@ fn format_to_stream(f: &Value) -> Option<StreamResult> {
     let vbr = f.get("vbr").and_then(|v| v.as_f64());
     let abr = f.get("abr").and_then(|v| v.as_f64());
     let tbr = f.get("tbr").and_then(|v| v.as_f64());
-    let bitrate_kbps = vbr
-        .or(tbr)
-        .or(abr)
-        .map(|b| b.round() as u32);
+    let bitrate_kbps = vbr.or(tbr).or(abr).map(|b| b.round() as u32);
 
     let file_size_bytes = f
         .get("filesize")
         .and_then(|v| v.as_u64())
         .or_else(|| f.get("filesize_approx").and_then(|v| v.as_u64()));
 
-    let container = f
-        .get("ext")
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
+    let container = f.get("ext").and_then(|v| v.as_str()).map(|s| s.to_string());
 
     let vcodec = f
         .get("vcodec")

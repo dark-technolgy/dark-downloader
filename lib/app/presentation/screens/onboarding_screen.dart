@@ -17,19 +17,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> _onboardingData = [
     {
-      "title": "مرحباً بك في Dark Downloader",
-      "description": "قم بتحميل أي فيديو، مقطع صوتي، أو قائمة تشغيل من أي موقع بسهولة وسرعة فائقة.",
-      "icon": "🚀"
+      'title': 'مرحباً بك في Dark Downloader',
+      'description': 'قم بتحميل أي فيديو، مقطع صوتي، أو قائمة تشغيل من أي موقع بسهولة وسرعة فائقة.',
+      'icon': '🚀',
     },
     {
-      "title": "جودة لا تضاهى",
-      "description": "استمتع بتحميل مقاطعك المفضلة بأعلى دقة ممكنة، مع معالجة ذكية خلف الكواليس لضمان تجربة مشاهدة متكاملة وسلسة.",
-      "icon": "✨"
+      'title': 'جودة لا تضاهى',
+      'description': 'استمتع بتحميل مقاطعك المفضلة بأعلى دقة ممكنة، مع معالجة ذكية خلف الكواليس لضمان تجربة مشاهدة متكاملة وسلسة.',
+      'icon': '✨',
     },
     {
-      "title": "إدارة متكاملة",
-      "description": "تحكم كامل في جميع تحميلاتك مع واجهة سهلة ومنظمة. هل أنت مستعد للبدء؟",
-      "icon": "⚙️"
+      'title': 'إدارة متكاملة',
+      'description': 'تحكم كامل في جميع تحميلاتك مع واجهة سهلة ومنظمة. هل أنت مستعد للبدء؟',
+      'icon': '⚙️',
     },
   ];
 
@@ -58,9 +58,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   itemCount: _onboardingData.length,
                   itemBuilder: (context, index) {
                     return _buildPageContent(
-                      title: _onboardingData[index]["title"]!,
-                      description: _onboardingData[index]["description"]!,
-                      icon: _onboardingData[index]["icon"]!,
+                      title: _onboardingData[index]['title']!,
+                      description: _onboardingData[index]['description']!,
+                      icon: _onboardingData[index]['icon']!,
                     );
                   },
                 ),
@@ -74,7 +74,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     if (_currentPage < _onboardingData.length - 1)
                       TextButton(
                         onPressed: _finishOnboarding,
-                        child: const Text("تخطي", style: TextStyle(color: Colors.white70)),
+                        child: const Text('تخطي', style: TextStyle(color: Colors.white70)),
                       )
                     else
                       const SizedBox(width: 60),
@@ -107,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           );
                         }
                       },
-                      child: Text(_currentPage == _onboardingData.length - 1 ? "ابدأ الآن" : "التالي"),
+                      child: Text(_currentPage == _onboardingData.length - 1 ? 'ابدأ الآن' : 'التالي'),
                     ),
                   ],
                 ),

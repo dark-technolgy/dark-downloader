@@ -1,9 +1,13 @@
-use std::process::Command;
+use anyhow::{Context, Result};
 use flutter_rust_bridge::frb;
-use anyhow::{Result, Context};
+use std::process::Command;
 
-#[frb(sync)]
-pub fn mux_video_audio(video_path: String, audio_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
+pub fn mux_video_audio(
+    video_path: String,
+    audio_path: String,
+    output_path: String,
+    ffmpeg_path: String,
+) -> Result<()> {
     // Choose the muxing strategy from the *output container*.
     //   - MP4  : video must be H.264, audio must be AAC.
     //   - WEBM : video must be VP8/VP9, audio must be Opus/Vorbis.
@@ -22,12 +26,18 @@ pub fn mux_video_audio(video_path: String, audio_path: String, output_path: Stri
 
     // Attempt 1: copy video, encode audio to match the container.
     let copy_status = Command::new(&ffmpeg_path)
-        .arg("-i").arg(&video_path)
-        .arg("-i").arg(&audio_path)
-        .arg("-c:v").arg("copy")
-        .arg("-c:a").arg(audio_codec)
-        .arg("-map").arg("0:v:0")
-        .arg("-map").arg("1:a:0")
+        .arg("-i")
+        .arg(&video_path)
+        .arg("-i")
+        .arg(&audio_path)
+        .arg("-c:v")
+        .arg("copy")
+        .arg("-c:a")
+        .arg(audio_codec)
+        .arg("-map")
+        .arg("0:v:0")
+        .arg("-map")
+        .arg("1:a:0")
         .arg("-shortest")
         .arg("-y")
         .arg(&output_path)
@@ -41,19 +51,29 @@ pub fn mux_video_audio(video_path: String, audio_path: String, output_path: Stri
     // Attempt 2: full transcode into a codec the container accepts.
     let video_codec = if is_webm { "libvpx-vp9" } else { "libx264" };
     let mut cmd = Command::new(&ffmpeg_path);
-    cmd.arg("-i").arg(&video_path)
-        .arg("-i").arg(&audio_path)
-        .arg("-c:v").arg(video_codec)
-        .arg("-c:a").arg(audio_codec)
-        .arg("-map").arg("0:v:0")
-        .arg("-map").arg("1:a:0")
+    cmd.arg("-i")
+        .arg(&video_path)
+        .arg("-i")
+        .arg(&audio_path)
+        .arg("-c:v")
+        .arg(video_codec)
+        .arg("-c:a")
+        .arg(audio_codec)
+        .arg("-map")
+        .arg("0:v:0")
+        .arg("-map")
+        .arg("1:a:0")
         .arg("-shortest");
     if !is_webm {
         // Broadest MP4 playback compatibility (phones, browsers, TVs).
-        cmd.arg("-preset").arg("veryfast")
-            .arg("-crf").arg("20")
-            .arg("-pix_fmt").arg("yuv420p")
-            .arg("-movflags").arg("+faststart");
+        cmd.arg("-preset")
+            .arg("veryfast")
+            .arg("-crf")
+            .arg("20")
+            .arg("-pix_fmt")
+            .arg("yuv420p")
+            .arg("-movflags")
+            .arg("+faststart");
     } else {
         cmd.arg("-b:v").arg("0").arg("-crf").arg("32");
     }
@@ -72,7 +92,6 @@ pub fn mux_video_audio(video_path: String, audio_path: String, output_path: Stri
     Ok(())
 }
 
-#[frb(sync)]
 pub fn extract_audio(video_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
     // Attempt 1: stream-copy — fastest, lossless, keeps original codec.
     // Works when target container supports the source codec
@@ -142,7 +161,6 @@ pub fn extract_audio(video_path: String, output_path: String, ffmpeg_path: Strin
 /// - Proper Xing/LAME header for accurate seeking in all players
 /// - id3v2 v3 tags (widest compatibility, incl. Windows Explorer)
 /// - Preserves source metadata when present
-#[frb(sync)]
 pub fn convert_to_mp3(input_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
     let status = Command::new(&ffmpeg_path)
         .arg("-i")
@@ -174,7 +192,6 @@ pub fn convert_to_mp3(input_path: String, output_path: String, ffmpeg_path: Stri
 ///
 /// Any `None` field is skipped. `cover_path`, when provided and readable,
 /// is embedded as the front-cover artwork.
-#[frb(sync)]
 pub fn convert_to_mp3_rich(
     input_path: String,
     output_path: String,
@@ -245,7 +262,6 @@ pub fn convert_to_mp3_rich(
 
 /// Embed (or replace) the front-cover artwork on an existing MP3 file.
 /// Rewrites the file in-place via a temporary intermediate.
-#[frb(sync)]
 pub fn embed_album_art(mp3_path: String, cover_path: String, ffmpeg_path: String) -> Result<()> {
     if !std::path::Path::new(&cover_path).exists() {
         return Err(anyhow::anyhow!("Cover file not found: {}", cover_path));
@@ -254,16 +270,26 @@ pub fn embed_album_art(mp3_path: String, cover_path: String, ffmpeg_path: String
     let tmp_path = format!("{}.cover.tmp.mp3", mp3_path);
 
     let status = Command::new(&ffmpeg_path)
-        .arg("-i").arg(&mp3_path)
-        .arg("-i").arg(&cover_path)
-        .arg("-map").arg("0:a")
-        .arg("-map").arg("1:v")
-        .arg("-c:a").arg("copy")
-        .arg("-c:v").arg("mjpeg")
-        .arg("-disposition:v:0").arg("attached_pic")
-        .arg("-id3v2_version").arg("3")
-        .arg("-metadata:s:v:0").arg("title=Album cover")
-        .arg("-metadata:s:v:0").arg("comment=Cover (front)")
+        .arg("-i")
+        .arg(&mp3_path)
+        .arg("-i")
+        .arg(&cover_path)
+        .arg("-map")
+        .arg("0:a")
+        .arg("-map")
+        .arg("1:v")
+        .arg("-c:a")
+        .arg("copy")
+        .arg("-c:v")
+        .arg("mjpeg")
+        .arg("-disposition:v:0")
+        .arg("attached_pic")
+        .arg("-id3v2_version")
+        .arg("3")
+        .arg("-metadata:s:v:0")
+        .arg("title=Album cover")
+        .arg("-metadata:s:v:0")
+        .arg("comment=Cover (front)")
         .arg("-y")
         .arg(&tmp_path)
         .status()
@@ -278,7 +304,6 @@ pub fn embed_album_art(mp3_path: String, cover_path: String, ffmpeg_path: String
     Ok(())
 }
 
-#[frb(sync)]
 pub fn compress_video(input_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
     let status = Command::new(&ffmpeg_path)
         .arg("-i")

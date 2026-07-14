@@ -27,7 +27,7 @@ Future<String> resolveDesktopFfmpegPath() async {
       if (await File(c).exists()) return c;
     } catch (e, st) {
       debugPrint('Error checking cached ffmpeg path: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
     _cachedFfmpegPath = null;
   }
@@ -118,7 +118,7 @@ Future<String?> _resolveMobileFfmpegPath() async {
       }
     } catch (e, st) {
       debugPrint('Error searching app support for ffmpeg on Android: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
 
     // Try to find ffmpeg in the native libs directory
@@ -141,7 +141,7 @@ Future<String?> _resolveMobileFfmpegPath() async {
       }
     } catch (e, st) {
       debugPrint('Error searching native lib dir for ffmpeg on Android: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
   }
 
@@ -155,7 +155,7 @@ Future<String?> _resolveMobileFfmpegPath() async {
       }
     } catch (e, st) {
       debugPrint('Error searching app support for ffmpeg on iOS: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
   }
 
@@ -194,7 +194,7 @@ String? _pathBesideExecutable() {
     return p.join(dir, 'ffmpeg', 'ffmpeg');
   } catch (e, st) {
     debugPrint('Error resolving ffmpeg beside executable: $e');
-    Telemetry.instance.recordError(e, st);
+    Telemetry.instance.recordError('exception', e, stackTrace: st);
     return null;
   }
 }
@@ -242,7 +242,7 @@ Future<String?> _materializeFromEmbeddedZip() async {
     return main;
   } catch (e, st) {
     debugPrint('Error materializing ffmpeg from embedded zip: $e');
-    Telemetry.instance.recordError(e, st);
+    Telemetry.instance.recordError('exception', e, stackTrace: st);
     return null;
   }
 }
@@ -300,7 +300,7 @@ Future<String?> _tryExtract(String assetKey, String outName) async {
     return out.path;
   } catch (e, st) {
     debugPrint('Error extracting ffmpeg from assets: $e');
-    Telemetry.instance.recordError(e, st);
+    Telemetry.instance.recordError('exception', e, stackTrace: st);
     return null;
   }
 }
@@ -317,7 +317,7 @@ Future<void> _ensureExecutable(String filePath) async {
     await Process.run('chmod', ['+x', filePath]);
   } catch (e, st) {
     debugPrint('Error ensuring executable permissions for ffmpeg: $e');
-    Telemetry.instance.recordError(e, st);
+    Telemetry.instance.recordError('exception', e, stackTrace: st);
   }
 }
 
@@ -331,7 +331,7 @@ Future<String?> _whichSystemFfmpeg() async {
       }
     } catch (e, st) {
       debugPrint('Error whiching system ffmpeg on Windows: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
   } else {
     try {
@@ -341,7 +341,7 @@ Future<String?> _whichSystemFfmpeg() async {
       }
     } catch (e, st) {
       debugPrint('Error whiching system ffmpeg on Linux/Mac: $e');
-      Telemetry.instance.recordError(e, st);
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
     }
   }
   return null;

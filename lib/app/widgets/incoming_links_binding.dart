@@ -113,7 +113,7 @@ class _IncomingLinksBindingState extends ConsumerState<IncomingLinksBinding>
         files,
       ) {
         _emitFromSharedMedia(files);
-      }, onError: (_) {});
+      }, onError: (_) {},);
     } catch (_) {
       /* non-fatal */
     }

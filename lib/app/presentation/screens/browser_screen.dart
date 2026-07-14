@@ -109,7 +109,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
     if (_mobileController == null) return;
     try {
       final hasVideo = await _mobileController!.runJavaScriptReturningResult(
-        "document.getElementsByTagName('video').length > 0"
+        "document.getElementsByTagName('video').length > 0",
       );
       if (hasVideo == true && mounted) {
         setState(() => _canDownload = true);
@@ -120,7 +120,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   Future<void> _winSniffer() async {
     try {
       final hasVideo = await _winController.executeScript(
-        "document.getElementsByTagName('video').length > 0"
+        "document.getElementsByTagName('video').length > 0",
       );
       if (hasVideo == true && mounted) {
         setState(() => _canDownload = true);

@@ -12,23 +12,23 @@ class SecurityService {
 
   Future<String> getDeviceFingerprint() async {
     try {
-      if (kIsWeb) return "web_client";
+      if (kIsWeb) return 'web_client';
       
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
-        return "android_${androidInfo.id}_${androidInfo.model}";
+        return 'android_${androidInfo.id}_${androidInfo.model}';
       } else if (Platform.isIOS) {
         final iosInfo = await _deviceInfo.iosInfo;
-        return "ios_${iosInfo.identifierForVendor}_${iosInfo.model}";
+        return 'ios_${iosInfo.identifierForVendor}_${iosInfo.model}';
       } else if (Platform.isWindows) {
         final windowsInfo = await _deviceInfo.windowsInfo;
-        return "windows_${windowsInfo.deviceId}_${windowsInfo.computerName}";
+        return 'windows_${windowsInfo.deviceId}_${windowsInfo.computerName}';
       }
       
       return rust_sec.rustGetDeviceFingerprint();
     } catch (e) {
-      debugPrint("SecurityService: Failed to get fingerprint: $e");
-      return "fallback_id_${DateTime.now().millisecondsSinceEpoch}";
+      debugPrint('SecurityService: Failed to get fingerprint: $e');
+      return 'fallback_id_${DateTime.now().millisecondsSinceEpoch}';
     }
   }
 
@@ -102,7 +102,7 @@ class SecurityService {
     try {
       return await rust_sec.rustSignMessage(message: message, secret: secret);
     } catch (e) {
-      return "";
+      return '';
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:ffmpeg_kit_16kb/ffmpeg_kit.dart';
@@ -42,6 +43,62 @@ class MediaProcessor {
     return ReturnCode.isSuccess(rc);
   }
 
+  static Future<bool> _runWithProgress(
+    List<String> args,
+    String ffmpegPath,
+    int? totalDurationSec,
+    void Function(double)? onProgress,
+  ) async {
+    if (_useKit) {
+      if (onProgress == null || totalDurationSec == null || totalDurationSec <= 0) {
+        return await _run(args);
+      }
+      final session = await FFmpegKit.executeAsync(
+        args.join(' '),
+        (session) async {},
+        (log) {},
+        (statistics) {
+          final timeMs = statistics.getTime();
+          final percentage = timeMs / (totalDurationSec * 1000);
+          onProgress(percentage.clamp(0.0, 1.0));
+        },
+      );
+      final rc = await session.getReturnCode();
+      return ReturnCode.isSuccess(rc);
+    } else {
+      final process = await Process.start(ffmpegPath, args);
+      final durationRegex = RegExp(r'Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})');
+      final timeRegex = RegExp(r'time=(\d{2}):(\d{2}):(\d{2})\.(\d{2})');
+      int? parsedDurationSec = totalDurationSec;
+
+      process.stderr.transform(utf8.decoder).listen((line) {
+        if (onProgress != null) {
+          if (parsedDurationSec == null || parsedDurationSec! <= 0) {
+            final durMatch = durationRegex.firstMatch(line);
+            if (durMatch != null) {
+              final h = int.parse(durMatch.group(1)!);
+              final m = int.parse(durMatch.group(2)!);
+              final s = int.parse(durMatch.group(3)!);
+              parsedDurationSec = h * 3600 + m * 60 + s;
+            }
+          }
+          final timeMatch = timeRegex.firstMatch(line);
+          if (timeMatch != null && parsedDurationSec != null && parsedDurationSec! > 0) {
+            final h = int.parse(timeMatch.group(1)!);
+            final m = int.parse(timeMatch.group(2)!);
+            final s = int.parse(timeMatch.group(3)!);
+            final currentSec = h * 3600 + m * 60 + s;
+            final percentage = currentSec / parsedDurationSec!;
+            onProgress(percentage.clamp(0.0, 1.0));
+          }
+        }
+      });
+
+      final exitCode = await process.exitCode;
+      return exitCode == 0;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Mux video + audio
   // ---------------------------------------------------------------------------
@@ -50,38 +107,28 @@ class MediaProcessor {
     required String audioPath,
     required String outputPath,
     required String ffmpegPath,
+    int? durationSeconds,
+    void Function(double)? onProgress,
   }) async {
-    if (!_useKit) {
-      rust_vp.muxVideoAudio(
-        videoPath: videoPath,
-        audioPath: audioPath,
-        outputPath: outputPath,
-        ffmpegPath: ffmpegPath,
-      );
-      return;
-    }
-
     final isWebm = _isWebmContainer(outputPath);
     final audioCodec = isWebm ? 'libopus' : 'aac';
 
-    // Attempt 1: copy video, encode audio to match the container.
-    final copyOk = await _run([
+    // Attempt 1: copy video and audio (fast, lossless).
+    final copyOk = await _runWithProgress([
       '-y',
       '-i',
       videoPath,
       '-i',
       audioPath,
-      '-c:v',
+      '-c',
       'copy',
-      '-c:a',
-      audioCodec,
       '-map',
       '0:v:0',
       '-map',
       '1:a:0',
       '-shortest',
       outputPath,
-    ]);
+    ], ffmpegPath, durationSeconds, null); // Copy is fast, no progress needed
     if (copyOk) return;
 
     // Attempt 2: full transcode into a codec the container accepts.
@@ -118,7 +165,7 @@ class MediaProcessor {
     }
     args.add(outputPath);
 
-    final transcodeOk = await _run(args);
+    final transcodeOk = await _runWithProgress(args, ffmpegPath, durationSeconds, onProgress);
     if (!transcodeOk) {
       throw Exception('FFmpeg mux failed (copy and transcode both failed)');
     }
@@ -133,7 +180,7 @@ class MediaProcessor {
     required String ffmpegPath,
   }) async {
     if (!_useKit) {
-      rust_vp.extractAudio(
+      await rust_vp.extractAudio(
         videoPath: videoPath,
         outputPath: outputPath,
         ffmpegPath: ffmpegPath,
@@ -217,7 +264,7 @@ class MediaProcessor {
     required String ffmpegPath,
   }) async {
     if (!_useKit) {
-      rust_vp.convertToMp3(
+      await rust_vp.convertToMp3(
         inputPath: inputPath,
         outputPath: outputPath,
         ffmpegPath: ffmpegPath,
@@ -262,7 +309,7 @@ class MediaProcessor {
     String? coverPath,
   }) async {
     if (!_useKit) {
-      rust_vp.convertToMp3Rich(
+      await rust_vp.convertToMp3Rich(
         inputPath: inputPath,
         outputPath: outputPath,
         ffmpegPath: ffmpegPath,
@@ -346,7 +393,7 @@ class MediaProcessor {
     required String ffmpegPath,
   }) async {
     if (!_useKit) {
-      rust_vp.embedAlbumArt(
+      await rust_vp.embedAlbumArt(
         mp3Path: mp3Path,
         coverPath: coverPath,
         ffmpegPath: ffmpegPath,
@@ -401,7 +448,7 @@ class MediaProcessor {
     required String ffmpegPath,
   }) async {
     if (!_useKit) {
-      rust_vp.compressVideo(
+      await rust_vp.compressVideo(
         inputPath: inputPath,
         outputPath: outputPath,
         ffmpegPath: ffmpegPath,
