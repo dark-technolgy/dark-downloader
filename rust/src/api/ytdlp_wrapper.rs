@@ -14,6 +14,7 @@
 
 use std::process::{Command, Stdio};
 use std::sync::RwLock;
+use crate::api::process_helper::CommandNoWindow;
 
 use anyhow::{anyhow, Context, Result};
 use once_cell::sync::Lazy;
@@ -66,7 +67,8 @@ pub async fn extract_via_ytdlp(url: &str) -> Result<VideoInfoResult> {
     // Run yt-dlp on a blocking thread so we don't block the tokio reactor with
     // a synchronous process spawn (yt-dlp can take several seconds).
     let output = tokio::task::spawn_blocking(move || {
-        Command::new(&binary)
+        let mut cmd = Command::new(&binary);
+        cmd.no_window()
             .arg("--dump-single-json")
             .arg("--no-warnings")
             .arg("--no-check-certificate")

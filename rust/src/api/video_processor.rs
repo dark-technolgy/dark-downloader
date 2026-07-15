@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use flutter_rust_bridge::frb;
 use std::process::Command;
+use crate::api::process_helper::CommandNoWindow;
 
 pub fn mux_video_audio(
     video_path: String,
@@ -25,7 +26,7 @@ pub fn mux_video_audio(
     let audio_codec = if is_webm { "libopus" } else { "aac" };
 
     // Attempt 1: copy video, encode audio to match the container.
-    let copy_status = Command::new(&ffmpeg_path)
+    let copy_status = Command::new(&ffmpeg_path).no_window()
         .arg("-i")
         .arg(&video_path)
         .arg("-i")
@@ -50,7 +51,7 @@ pub fn mux_video_audio(
 
     // Attempt 2: full transcode into a codec the container accepts.
     let video_codec = if is_webm { "libvpx-vp9" } else { "libx264" };
-    let mut cmd = Command::new(&ffmpeg_path);
+    let mut cmd = Command::new(&ffmpeg_path).no_window();
     cmd.arg("-i")
         .arg(&video_path)
         .arg("-i")
@@ -96,7 +97,7 @@ pub fn extract_audio(video_path: String, output_path: String, ffmpeg_path: Strin
     // Attempt 1: stream-copy — fastest, lossless, keeps original codec.
     // Works when target container supports the source codec
     // (e.g. AAC → .m4a, Opus → .opus / .webm / .mka).
-    let copy_status = Command::new(&ffmpeg_path)
+    let copy_status = Command::new(&ffmpeg_path).no_window()
         .arg("-i")
         .arg(&video_path)
         .arg("-vn")
@@ -130,7 +131,7 @@ pub fn extract_audio(video_path: String, output_path: String, ffmpeg_path: Strin
         _ => ("aac", &["-b:a", "192k"]),
     };
 
-    let mut cmd = Command::new(&ffmpeg_path);
+    let mut cmd = Command::new(&ffmpeg_path).no_window();
     cmd.arg("-i")
         .arg(&video_path)
         .arg("-vn")
@@ -162,7 +163,7 @@ pub fn extract_audio(video_path: String, output_path: String, ffmpeg_path: Strin
 /// - id3v2 v3 tags (widest compatibility, incl. Windows Explorer)
 /// - Preserves source metadata when present
 pub fn convert_to_mp3(input_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
-    let status = Command::new(&ffmpeg_path)
+    let status = Command::new(&ffmpeg_path).no_window()
         .arg("-i")
         .arg(&input_path)
         .arg("-vn")
@@ -203,7 +204,7 @@ pub fn convert_to_mp3_rich(
     comment: Option<String>,
     cover_path: Option<String>,
 ) -> Result<()> {
-    let mut cmd = Command::new(&ffmpeg_path);
+    let mut cmd = Command::new(&ffmpeg_path).no_window();
     cmd.arg("-i").arg(&input_path);
 
     let has_cover = cover_path
@@ -269,7 +270,7 @@ pub fn embed_album_art(mp3_path: String, cover_path: String, ffmpeg_path: String
 
     let tmp_path = format!("{}.cover.tmp.mp3", mp3_path);
 
-    let status = Command::new(&ffmpeg_path)
+    let status = Command::new(&ffmpeg_path).no_window()
         .arg("-i")
         .arg(&mp3_path)
         .arg("-i")
@@ -305,7 +306,7 @@ pub fn embed_album_art(mp3_path: String, cover_path: String, ffmpeg_path: String
 }
 
 pub fn compress_video(input_path: String, output_path: String, ffmpeg_path: String) -> Result<()> {
-    let status = Command::new(&ffmpeg_path)
+    let status = Command::new(&ffmpeg_path).no_window()
         .arg("-i")
         .arg(&input_path)
         .arg("-vcodec")

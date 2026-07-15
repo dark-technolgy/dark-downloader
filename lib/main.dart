@@ -48,8 +48,6 @@ Future<void> main() async {
   // 2. Preserve native splash until we are ready to show ColdStartShell
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  MediaKit.ensureInitialized();
-
   // 3. Show Splash immediately - THIS MUST RUN TO UNFREEZE UI
   runApp(const ColdStartShell());
 
@@ -74,6 +72,13 @@ Future<void> _backgroundBootstrap() async {
         'build_mode': kReleaseMode ? 'release' : 'debug',
       },
     );
+    
+    // Initialize MediaKit without blocking the first frame render
+    try {
+      MediaKit.ensureInitialized();
+    } catch (e) {
+      debugPrint('MediaKit init error: $e');
+    }
 
     // B. Desktop Specific (Non-blocking for Android)
     if (!kIsWeb &&

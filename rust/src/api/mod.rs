@@ -13,3 +13,4 @@ pub mod stream_policy;
 pub mod universal_extractor;
 pub mod video_processor;
 pub mod ytdlp_wrapper;
+pub mod process_helper;

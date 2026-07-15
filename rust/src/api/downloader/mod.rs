@@ -1,3 +1,4 @@
+use crate::api::process_helper::CommandNoWindow;
 use super::debug_log;
 use super::download_checkpoint::{invalidate_ckpt, prefilled_bytes, ChunkCkptHandle};
 use super::models::DownloadResult;
@@ -1115,7 +1116,7 @@ async fn cleanup_download_artifacts(output_path: &Path, audio_url: Option<&str>)
 }
 
 fn run_ffmpeg_once(ffmpeg: &str, args: &[&str]) -> std::result::Result<(), String> {
-    let out = std::process::Command::new(ffmpeg)
+    let out = std::process::Command::new(ffmpeg).no_window()
         .args(args)
         .output()
         .map_err(|e| e.to_string())?;
@@ -1529,7 +1530,7 @@ async fn download_via_ytdlp(url: &str, output_path: &Path, state: JobState) -> R
     // Actually, passing exactly output_path using -o ensures it writes there.
     let out_str = output_path.to_string_lossy().to_string();
 
-    let mut cmd = tokio::process::Command::new(&binary);
+    let mut cmd = tokio::process::Command::new(&binary).no_window();
     cmd.arg("-f").arg(&format_str)
        .arg("-o").arg(&out_str)
        .arg("--newline")
