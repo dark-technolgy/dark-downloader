@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   connectivity_plus
+  flutter_inappwebview_windows
   flutter_secure_storage_windows
   gal
   local_notifier
@@ -17,7 +18,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   speech_to_text_windows
   tray_manager
   url_launcher_windows
-  webview_windows
   window_manager
 )
 

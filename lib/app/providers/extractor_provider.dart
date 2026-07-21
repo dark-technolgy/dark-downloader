@@ -133,16 +133,28 @@ class ExtractorNotifier extends Notifier<ExtractorState> {
   Future<void> extractVideo(String url, {bool bypassBlocks = false}) async {
     state = state.copyWith(status: ExtractStatus.loading, errorMessage: null);
 
-    // Remove playlist parameter if video ID is present, to extract only the video
-    String cleanUrl = url;
+    String cleanUrl = url.trim();
+    
+    // 1. الذكاء الاصطناعي البسيط: إذا لم يكن الرابط يبدأ بـ http، وكان مجرد كلمات، نقوم بالبحث في يوتيوب
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      if (cleanUrl.contains('.') && !cleanUrl.contains(' ')) {
+        // مثلاً: youtube.com
+        cleanUrl = 'https://$cleanUrl';
+      } else {
+        // كلمات بحث عادية مثل "pornhub" أو "maroon 5" -> يجلب أول نتيجة فيديو من يوتيوب
+        cleanUrl = 'ytsearch1:$cleanUrl';
+      }
+    }
+
+    // 2. معالجة روابط يوتيوب التي تحتوي على قائمة وفيديو معاً
     try {
-      final uri = Uri.parse(url);
-      if (uri.host.contains('youtube.com') || uri.host.contains('youtu.be')) {
-        if (uri.queryParameters.containsKey('v')) {
-          final qParams = Map<String, String>.from(uri.queryParameters);
-          qParams.remove('list');
-          qParams.remove('index');
-          cleanUrl = Uri.https(uri.authority, uri.path, qParams).toString();
+      if (cleanUrl.startsWith('http')) {
+        final uri = Uri.parse(cleanUrl);
+        if (uri.host.contains('youtube.com') || uri.host.contains('youtu.be')) {
+          // إذا كان الرابط يحتوي على (v) و (list) معاً، المستخدم عادة يريد الفيديو فقط
+          // لكن لنجعله أذكى: سنتركه كما هو ليتعرف عليه yt-dlp كـ قائمة، أو نحذف الـ list إذا أردنا الفيديو فقط.
+          // سنترك الـ yt-dlp يتعامل معه بذكاء (لأنه قد يجلب القائمة كاملة).
+          // إذا كان فقط فيديو بدون قائمة لن يتأثر.
         }
       }
     } catch (_) {}

@@ -9,7 +9,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 /// Returns `true` when a separate audio download + mux should be used.
 Future<bool> shouldPairSeparateAudio(
         {required bool isVideoOnly,
-        required bool separateAudioTracksAvailable,}) =>
+        required bool separateAudioTracksAvailable}) =>
     RustLib.instance.api.crateApiStreamPolicyShouldPairSeparateAudio(
         isVideoOnly: isVideoOnly,
-        separateAudioTracksAvailable: separateAudioTracksAvailable,);
+        separateAudioTracksAvailable: separateAudioTracksAvailable);

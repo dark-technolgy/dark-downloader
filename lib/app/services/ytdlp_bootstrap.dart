@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 
 import 'telemetry_service.dart';
 
@@ -114,7 +115,46 @@ class YtdlpBootstrap {
     final onPath = await _whichSystemYtdlp();
     if (onPath != null) return onPath;
 
+    // 5) Remote fallback
+    final fromRemote = await _downloadFromRemote();
+    if (fromRemote != null) return fromRemote;
+
     return null;
+  }
+
+  static final _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(minutes: 2),
+      receiveTimeout: const Duration(minutes: 10),
+    ),
+  );
+
+  static Future<String?> _downloadFromRemote() async {
+    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) return null;
+    
+    final binName = Platform.isWindows ? 'yt-dlp.exe' : (Platform.isMacOS ? 'yt-dlp_macos' : 'yt-dlp');
+    final url = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/$binName';
+    
+    try {
+      final outDir = p.join(
+        (await getApplicationSupportDirectory()).path,
+        'dark_downloader',
+        'tools',
+        'ytdlp',
+      );
+      await Directory(outDir).create(recursive: true);
+      
+      final realBinName = Platform.isWindows ? 'yt-dlp.exe' : 'yt-dlp';
+      final outPath = p.join(outDir, realBinName);
+      
+      await _dio.download(url, outPath);
+      await _ensureExecutable(outPath);
+      return outPath;
+    } catch (e, st) {
+      debugPrint('Error downloading yt-dlp from remote: $e');
+      Telemetry.instance.recordError('exception', e, stackTrace: st);
+      return null;
+    }
   }
 
   static Future<String?> _materializeFromAssets() async {

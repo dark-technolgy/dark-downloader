@@ -7,6 +7,7 @@ import 'api/adblock_engine.dart';
 import 'api/downloader.dart';
 import 'api/extractor.dart';
 import 'api/models.dart';
+import 'api/process_helper.dart';
 import 'api/remote_rules.dart';
 import 'api/security.dart';
 import 'api/simple.dart';
@@ -36,6 +37,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String dco_decode_String(dynamic raw);
+
+  @protected
+  CommandNoWindow dco_decode_TraitDef_CommandNoWindow(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);

@@ -15,7 +15,7 @@ Future<String> rustGetDeviceFingerprint() =>
     RustLib.instance.api.crateApiSecurityRustGetDeviceFingerprint();
 
 Future<String> rustSignMessage(
-        {required String message, required String secret,}) =>
+        {required String message, required String secret}) =>
     RustLib.instance.api
         .crateApiSecurityRustSignMessage(message: message, secret: secret);
 
@@ -31,17 +31,17 @@ Future<String> rustGenerateSecureToken({required String payload}) =>
 Future<void> vaultEncryptFile(
         {required String sourcePath,
         required String targetPath,
-        required String password,}) =>
+        required String password}) =>
     RustLib.instance.api.crateApiSecurityVaultEncryptFile(
-        sourcePath: sourcePath, targetPath: targetPath, password: password,);
+        sourcePath: sourcePath, targetPath: targetPath, password: password);
 
 /// Decrypt a file from the vault back to a usable location
 Future<void> vaultDecryptFile(
         {required String vaultPath,
         required String outputPath,
-        required String password,}) =>
+        required String password}) =>
     RustLib.instance.api.crateApiSecurityVaultDecryptFile(
-        vaultPath: vaultPath, outputPath: outputPath, password: password,);
+        vaultPath: vaultPath, outputPath: outputPath, password: password);
 
 class SupabaseSecrets {
   final String url;

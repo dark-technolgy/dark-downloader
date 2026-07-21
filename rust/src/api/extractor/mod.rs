@@ -201,6 +201,13 @@ pub async fn extract(url: String) -> Result<ExtractionResult, String> {
         if let Ok(playlist) = extract_playlist(&url).await {
             return Ok(ExtractionResult::Playlist(playlist));
         }
+        
+        // Fallback to yt-dlp for complex playlists
+        if super::ytdlp_wrapper::is_ytdlp_available() {
+            if let Ok(playlist) = super::ytdlp_wrapper::extract_playlist_via_ytdlp(&url).await {
+                return Ok(ExtractionResult::Playlist(playlist));
+            }
+        }
     }
 
     match extract_with_options(&url, bypass_blocks).await {

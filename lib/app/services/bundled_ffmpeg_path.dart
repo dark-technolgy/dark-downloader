@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:archive/archive.dart';
+
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -64,14 +64,14 @@ Future<String> resolveDesktopFfmpegPath() async {
     }
   }
 
-  // 2) اختياري: أرشيف BtbN كامل داخل الـ assets (وضع أوفلاين 100٪)
-  final fromEmbZip = await _materializeFromEmbeddedZip();
-  if (fromEmbZip != null) {
-    if (Platform.isLinux) {
-      await _ensureExecutable(fromEmbZip);
+  // 2) أرشيف مفكوك مسبقاً من الأصول
+  final fromAsset = await _materializeFromAssetBundle();
+  if (fromAsset != null) {
+    if (Platform.isLinux || Platform.isMacOS) {
+      await _ensureExecutable(fromAsset);
     }
-    _cachedFfmpegPath = fromEmbZip;
-    return fromEmbZip;
+    _cachedFfmpegPath = fromAsset;
+    return fromAsset;
   }
 
   // 3) نسخ مُفكوكة مسبقاً (أو باتش قديم) في مجلد الدعم
@@ -199,53 +199,7 @@ String? _pathBesideExecutable() {
   }
 }
 
-/// أرشيف جاهز داخل [assets/bundled_ffmpeg]: يفك مرة لمجلد دائم (أوفلاين).
-/// ويندوز: أنشئ من مجلد `bin` لبناء BtbN (نفس `scripts/fetch_ffmpeg_bundles`) ثم
-/// `Compress-Archive` كـ [embed_windows.zip]. لينُكس: `ffmpeg` داخل `bin/` أو جذر الأرشيف.
-Future<String?> _materializeFromEmbeddedZip() async {
-  if (!Platform.isWindows && !Platform.isLinux) return null;
-  final key = Platform.isWindows
-      ? 'assets/bundled_ffmpeg/embed_windows.zip'
-      : 'assets/bundled_ffmpeg/embed_linux.zip';
-  try {
-    final data = await rootBundle.load(key);
-    if (data.lengthInBytes < 5000) return null;
-    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-    final outDir = p.join(
-      (await getApplicationSupportDirectory()).path,
-      'dark_downloader',
-      'tools',
-      'ffmpeg',
-    );
-    await Directory(outDir).create(recursive: true);
-    final arch = ZipDecoder().decodeBytes(bytes);
-    for (final f in arch) {
-      if (!f.isFile) continue;
-      final n = f.name.replaceAll(r'\', '/');
-      final base = p.basename(n);
-      if (base.isEmpty) continue;
-      final inBin = n.contains('/bin/');
-      final isDll = base.toLowerCase().endsWith('.dll');
-      final isSo = base.contains('.so');
-      final isFfmpeg = base == 'ffmpeg' || base == 'ffmpeg.exe';
-      if (!inBin && !isDll && !isSo && !isFfmpeg) continue;
-      await File(p.join(outDir, base)).writeAsBytes(f.content, flush: true);
-    }
-    final main = p.join(
-      outDir,
-      Platform.isWindows ? 'ffmpeg.exe' : 'ffmpeg',
-    );
-    if (!await File(main).exists()) return null;
-    if (Platform.isLinux) {
-      await _ensureExecutable(main);
-    }
-    return main;
-  } catch (e, st) {
-    debugPrint('Error materializing ffmpeg from embedded zip: $e');
-    Telemetry.instance.recordError('exception', e, stackTrace: st);
-    return null;
-  }
-}
+// Removed _materializeFromEmbeddedZip as we now use direct asset bundle extraction
 
 Future<String?> _materializeFromAssetBundle() async {
   if (Platform.isWindows) {

@@ -1,0 +1,49 @@
+Expanding downloaded archive with PowerShell...
+Resolving dependencies...
+Downloading packages...
+Got dependencies.
+[1/10] Material Fonts                                              897ms
+[2/10] Gradle Wrapper                                              438ms
+[3/10] Flutter SDK
+  ├─ [1/5] sky_engine                                              482ms
+  ├─ [2/5] flutter_gpu                                             451ms
+  ├─ [3/5] flutter_patched_sdk                                     981ms
+  ├─ [4/5] flutter_patched_sdk_product                             878ms
+  └─ [5/5] windows-x64                                              6.0s
+[10/10] windows-x64/font-subset                                    535ms
+[√] Flutter (Channel stable, 3.44.6, on Microsoft Windows [Version 10.0.26200.8875], locale en-US) [362ms]
+    • Flutter version 3.44.6 on channel stable at C:\flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision ee80f08bbf (11 days ago), 2026-07-08 15:02:06 -0700
+    • Engine revision 83675ed276
+    • Dart version 3.12.2
+    • DevTools version 2.57.0
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, enable-swift-package-manager, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+
+[√] Windows Version (Windows 11 or higher, 25H2, 2009) [705ms]
+
+[X] Android toolchain - develop for Android devices [565ms]
+    • Android SDK at C:\Users\Dark Technology\AppData\Local\Android\sdk
+    • Emulator version 36.6.11.0 (build_id 15507667) (CL:N/A)
+    X cmdline-tools component is missing.
+      Try installing or updating Android Studio.
+      Alternatively, download the tools from https://developer.android.com/studio#command-line-tools-only and make sure to set the ANDROID_HOME environment variable.
+      See https://developer.android.com/studio/command-line for more details.
+
+[√] Chrome - develop for the web [94ms]
+    • Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[√] Visual Studio - develop Windows apps (Visual Studio Community 2026 18.7.3) [93ms]
+    • Visual Studio at C:\Program Files\Microsoft Visual Studio\18\Community
+    • Visual Studio Community 2026 version 18.7.11925.98
+    • Windows 10 SDK version 10.0.28000.0
+
+[√] Connected device (3 available) [2.3s]
+    • Windows (desktop) • windows • windows-x64    • Microsoft Windows [Version 10.0.26200.8875]
+    • Chrome (web)      • chrome  • web-javascript • Google Chrome 150.0.7871.125
+    • Edge (web)        • edge    • web-javascript • Microsoft Edge 150.0.4078.83
+
+[√] Network resources [680ms]
+    • All expected network resources are available.
+
+! Doctor found issues in 1 category.

@@ -23,6 +23,7 @@ use serde_json::Value;
 use super::models::{StreamResult, VideoInfoResult};
 
 static YTDLP_PATH: Lazy<RwLock<Option<String>>> = Lazy::new(|| RwLock::new(None));
+pub static COOKIES_PATH: Lazy<RwLock<Option<String>>> = Lazy::new(|| RwLock::new(None));
 
 /// FRB entry — Dart passes the resolved path to the yt-dlp binary on startup.
 /// Passing an empty string clears the configured path.
@@ -30,6 +31,32 @@ static YTDLP_PATH: Lazy<RwLock<Option<String>>> = Lazy::new(|| RwLock::new(None)
 pub fn set_ytdlp_binary_path(path: String) {
     let trimmed = path.trim();
     let mut w = YTDLP_PATH.write().expect("YTDLP_PATH poisoned");
+    if trimmed.is_empty() {
+        *w = None;
+    } else {
+        *w = Some(trimmed.to_string());
+    }
+}
+
+/// FRB entry — configure the cookies.txt path to be used by yt-dlp.
+#[flutter_rust_bridge::frb(sync)]
+pub fn set_cookies_path(path: String) {
+    let trimmed = path.trim();
+    let mut w = COOKIES_PATH.write().expect("COOKIES_PATH poisoned");
+    if trimmed.is_empty() {
+        *w = None;
+    } else {
+        *w = Some(trimmed.to_string());
+    }
+}
+
+pub static PROXY_URL: Lazy<RwLock<Option<String>>> = Lazy::new(|| RwLock::new(None));
+
+/// FRB entry — configure the proxy URL to be used by yt-dlp and reqwest.
+#[flutter_rust_bridge::frb(sync)]
+pub fn set_proxy_url(url: String) {
+    let trimmed = url.trim();
+    let mut w = PROXY_URL.write().expect("PROXY_URL poisoned");
     if trimmed.is_empty() {
         *w = None;
     } else {
@@ -67,14 +94,26 @@ pub async fn extract_via_ytdlp(url: &str) -> Result<VideoInfoResult> {
     // Run yt-dlp on a blocking thread so we don't block the tokio reactor with
     // a synchronous process spawn (yt-dlp can take several seconds).
     let output = tokio::task::spawn_blocking(move || {
-        let mut cmd = Command::new(&binary);
-        cmd.no_window()
-            .arg("--dump-single-json")
+        let mut cmd = Command::new(&binary).no_window();
+        cmd.arg("--dump-single-json")
             .arg("--no-warnings")
             .arg("--no-check-certificate")
             .arg("--no-playlist")
-            .arg("--skip-download")
-            .arg("--user-agent")
+            .arg("--skip-download");
+
+        if let Ok(guard) = COOKIES_PATH.read() {
+            if let Some(ref cookie_file) = *guard {
+                cmd.arg("--cookies").arg(cookie_file);
+            }
+        }
+
+        if let Ok(guard) = PROXY_URL.read() {
+            if let Some(ref proxy) = *guard {
+                cmd.arg("--proxy").arg(proxy);
+            }
+        }
+
+        cmd.arg("--user-agent")
             .arg("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36")
             .arg("--extractor-args")
             .arg("youtube:player_client=tv,mweb;facebook:skip_webpage")
@@ -112,6 +151,118 @@ pub async fn extract_audio_via_ytdlp(url: &str) -> Result<VideoInfoResult> {
         return Err(anyhow!("yt-dlp returned no audio streams"));
     }
     Ok(info)
+}
+
+pub async fn extract_playlist_via_ytdlp(url: &str) -> Result<super::models::PlaylistResult> {
+    let binary = current_path().ok_or_else(|| anyhow!("yt-dlp binary path not configured"))?;
+    if !std::path::Path::new(&binary).exists() {
+        return Err(anyhow!("yt-dlp binary not found at {}", binary));
+    }
+
+    let url_owned = url.to_string();
+
+    let output = tokio::task::spawn_blocking(move || {
+        let mut cmd = Command::new(&binary).no_window();
+        cmd.arg("--dump-single-json")
+            .arg("--no-warnings")
+            .arg("--no-check-certificate")
+            .arg("--yes-playlist")
+            .arg("--flat-playlist")
+            .arg("--skip-download");
+
+        if let Ok(guard) = COOKIES_PATH.read() {
+            if let Some(ref cookie_file) = *guard {
+                cmd.arg("--cookies").arg(cookie_file);
+            }
+        }
+
+        if let Ok(guard) = PROXY_URL.read() {
+            if let Some(ref proxy) = *guard {
+                cmd.arg("--proxy").arg(proxy);
+            }
+        }
+
+        cmd.arg(&url_owned)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .context("Failed to spawn yt-dlp process")
+    })
+    .await
+    .context("yt-dlp blocking task join failed")??;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(anyhow!(
+            "yt-dlp exited with status {} — stderr: {}",
+            output.status,
+            stderr.chars().take(400).collect::<String>()
+        ));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let json: Value = serde_json::from_str(&stdout).context("yt-dlp JSON parse failed")?;
+
+    parse_ytdlp_playlist_json(&json)
+}
+
+fn parse_ytdlp_playlist_json(json: &Value) -> Result<super::models::PlaylistResult> {
+    let _type = json.get("_type").and_then(|v| v.as_str());
+    if _type != Some("playlist") && _type != Some("multi_video") {
+        return Err(anyhow!("URL is not a playlist"));
+    }
+
+    let title = json
+        .get("title")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Unknown Playlist")
+        .to_string();
+
+    let author = json
+        .get("uploader")
+        .or_else(|| json.get("channel"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    let mut items = Vec::new();
+    if let Some(entries) = json.get("entries").and_then(|v| v.as_array()) {
+        for entry in entries {
+            // In flat-playlist, the URL might be in "url" or we might need to construct it from "id" and "url" depending on the extractor. 
+            // yt-dlp usually provides "url". If missing, we fallback to id for youtube.
+            let v_url = entry.get("url").and_then(|v| v.as_str()).map(|s| s.to_string()).or_else(|| {
+                entry.get("id").and_then(|v| v.as_str()).map(|id| format!("https://www.youtube.com/watch?v={}", id))
+            });
+
+            if let Some(url) = v_url {
+                let v_title = entry
+                    .get("title")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Untitled")
+                    .to_string();
+                
+                let thumbnail_url = entry.get("thumbnails").and_then(|v| v.as_array()).and_then(|arr| arr.last()).and_then(|t| t.get("url")).and_then(|u| u.as_str()).map(|s| s.to_string());
+                let duration = entry.get("duration").and_then(|v| v.as_f64()).map(|d| d.round() as u32);
+
+                items.push(super::models::PlaylistItem {
+                    url,
+                    title: v_title,
+                    thumbnail_url,
+                    duration_seconds: duration,
+                });
+            }
+        }
+    }
+
+    if items.is_empty() {
+        return Err(anyhow!("Playlist is empty"));
+    }
+
+    Ok(super::models::PlaylistResult {
+        title,
+        author,
+        items,
+    })
 }
 
 fn parse_ytdlp_json(json: &Value) -> Result<VideoInfoResult> {

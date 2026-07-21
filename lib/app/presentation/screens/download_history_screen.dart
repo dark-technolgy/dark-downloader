@@ -103,12 +103,11 @@ class DownloadHistoryScreen extends ConsumerWidget {
                           .where((i) => i.status != DownloadStatus.completed)
                           .toList(),
                     ),
-                    _DownloadList(
+                    _CompletedDownloadsView(
                       emptyMessage: t('dm_empty_completed', locale),
                       items: state.items
                           .where((i) => i.status == DownloadStatus.completed)
                           .toList(),
-                      completedTab: true,
                     ),
                   ],
                 ),
@@ -117,6 +116,67 @@ class DownloadHistoryScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CompletedDownloadsView extends StatefulWidget {
+  final List<DownloadItem> items;
+  final String emptyMessage;
+
+  const _CompletedDownloadsView({required this.items, required this.emptyMessage});
+
+  @override
+  State<_CompletedDownloadsView> createState() => _CompletedDownloadsViewState();
+}
+
+class _CompletedDownloadsViewState extends State<_CompletedDownloadsView> {
+  String _filter = 'All';
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredItems = widget.items.where((i) {
+      if (_filter == 'All') return true;
+      if (_filter == 'Video') return i.audioOutputFormat == null;
+      if (_filter == 'Audio') return i.audioOutputFormat != null;
+      return true;
+    }).toList();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FilterChip(
+                label: const Text('الكل'),
+                selected: _filter == 'All',
+                onSelected: (_) => setState(() => _filter = 'All'),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: const Text('فيديو'),
+                selected: _filter == 'Video',
+                onSelected: (_) => setState(() => _filter = 'Video'),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: const Text('صوت'),
+                selected: _filter == 'Audio',
+                onSelected: (_) => setState(() => _filter = 'Audio'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _DownloadList(
+            items: filteredItems,
+            emptyMessage: widget.emptyMessage,
+            completedTab: true,
+          ),
+        ),
+      ],
     );
   }
 }

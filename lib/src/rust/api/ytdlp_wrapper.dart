@@ -7,12 +7,20 @@ import '../frb_generated.dart';
 import 'models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `current_path`, `format_to_stream`, `parse_ytdlp_json`, `stream_score`
+// These functions are ignored because they are not marked as `pub`: `current_path`, `format_to_stream`, `parse_ytdlp_json`, `parse_ytdlp_playlist_json`, `stream_score`
 
 /// FRB entry — Dart passes the resolved path to the yt-dlp binary on startup.
 /// Passing an empty string clears the configured path.
 void setYtdlpBinaryPath({required String path}) =>
     RustLib.instance.api.crateApiYtdlpWrapperSetYtdlpBinaryPath(path: path);
+
+/// FRB entry — configure the cookies.txt path to be used by yt-dlp.
+void setCookiesPath({required String path}) =>
+    RustLib.instance.api.crateApiYtdlpWrapperSetCookiesPath(path: path);
+
+/// FRB entry — configure the proxy URL to be used by yt-dlp and reqwest.
+void setProxyUrl({required String url}) =>
+    RustLib.instance.api.crateApiYtdlpWrapperSetProxyUrl(url: url);
 
 /// FRB entry — quick health check (is a binary configured and executable?).
 bool isYtdlpAvailable() =>
@@ -26,3 +34,6 @@ Future<VideoInfoResult> extractViaYtdlp({required String url}) =>
 /// Public helper so Dart can request an audio-only stream URL cleanly.
 Future<VideoInfoResult> extractAudioViaYtdlp({required String url}) =>
     RustLib.instance.api.crateApiYtdlpWrapperExtractAudioViaYtdlp(url: url);
+
+Future<PlaylistResult> extractPlaylistViaYtdlp({required String url}) =>
+    RustLib.instance.api.crateApiYtdlpWrapperExtractPlaylistViaYtdlp(url: url);

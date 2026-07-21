@@ -114,8 +114,7 @@ dependencies:
   local_notifier: ^0.1.6
   window_manager: ^0.5.1
   tray_manager: ^0.5.3
-  webview_flutter: ^4.10.0
-  webview_windows: ^0.4.0
+  flutter_inappwebview: ^6.1.5
 
   # FFmpeg for mobile (Android/iOS) — Full GPL build (libmp3lame, libx264, libvpx)
   # with 16 KB page-size support for modern Android. This package does NOT
@@ -124,6 +123,9 @@ dependencies:
   # and MediaProcessor only routes to ffmpeg_kit on mobile.
   ffmpeg_kit_16kb: ^1.0.4
   gal: ^2.3.2
+  sqflite: ^2.4.3
+  sqflite_common_ffi: ^2.4.2
+  flutter_foreground_task: ^10.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

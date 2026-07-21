@@ -28,7 +28,7 @@ class AuthState {
   });
 
   bool get isAuthenticated =>
-      status == AuthStatus.authenticated && user != null;
+      status == AuthStatus.authenticated && user != null && user?.emailConfirmedAt != null;
 
   bool get isLoading => status == AuthStatus.loading;
 
@@ -241,7 +241,7 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  /// Returns true if OTP is required (session is null), false if automatically logged in.
+  /// Returns true if OTP is required (session is null or not confirmed), false if automatically logged in.
   Future<bool> smartSignUp({
     required String email,
     required String password,
@@ -265,10 +265,27 @@ class AuthNotifier extends Notifier<AuthState> {
           'isp': meta.isp,
         },
       );
+
+      // Force OTP if not confirmed, even if session exists
+      if (res.user != null && res.user!.emailConfirmedAt == null) {
+        if (res.session != null) {
+          await supabase.auth.signOut();
+        }
+        try {
+          await supabase.auth.resend(type: OtpType.signup, email: email.trim());
+        } catch (_) {}
+        return true;
+      }
+
       if (res.session != null && res.user != null) {
         await _loadAndEnrichProfile(res.user!);
         return false; // Automatically logged in
       }
+
+      try {
+        await supabase.auth.resend(type: OtpType.signup, email: email.trim());
+      } catch (_) {}
+
       return true; // OTP required
     } on AuthException catch (e) {
       throw e.message;
@@ -287,11 +304,20 @@ class AuthNotifier extends Notifier<AuthState> {
         password: password,
       );
       if (res.user != null) {
+        // Enforce strict authentication: MUST be confirmed
+        if (res.user!.emailConfirmedAt == null) {
+          await supabase.auth.signOut();
+          try {
+            await supabase.auth.resend(type: OtpType.signup, email: email.trim());
+          } catch (_) {}
+          throw 'unverified';
+        }
         await _loadAndEnrichProfile(res.user!);
       }
     } on AuthException catch (e) {
       throw e.message;
     } catch (e) {
+      if (e == 'unverified') rethrow;
       throw 'حدث خطأ أثناء تسجيل الدخول';
     }
   }

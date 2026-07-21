@@ -144,26 +144,23 @@ fn build_client(timeout_secs: u64) -> Result<Client> {
         .pool_max_idle_per_host(8)
         .tcp_keepalive(std::time::Duration::from_secs(30));
 
-    // إضافة دعم البروكسي العالمي إذا كان مفعلاً للتحميل
-    if let Some(Some(proxy)) = DOWNLOAD_PROXY.get() {
-        if let Ok(p) = reqwest::Proxy::all(proxy) {
-            builder = builder.proxy(p);
+    if let Ok(guard) = crate::api::ytdlp_wrapper::PROXY_URL.read() {
+        if let Some(ref proxy) = *guard {
+            if let Ok(p) = reqwest::Proxy::all(proxy) {
+                builder = builder.proxy(p);
+            }
         }
     }
 
     Ok(builder.build()?)
 }
 
-// قائمة وكلاء للتحميل (Chunks) — اختيارية وتحتاج أن تكون سريعة
-static DOWNLOAD_PROXY: OnceLock<Option<String>> = OnceLock::new();
-
-pub fn set_download_proxy(proxy_url: Option<String>) {
-    let _ = DOWNLOAD_PROXY.set(proxy_url);
-    *SHARED_DOWNLOAD_CLIENT.write() = None;
-}
-
 fn download_proxy_key() -> Option<String> {
-    DOWNLOAD_PROXY.get().and_then(|o| o.clone())
+    if let Ok(guard) = crate::api::ytdlp_wrapper::PROXY_URL.read() {
+        guard.clone()
+    } else {
+        None
+    }
 }
 
 struct SharedDlClient {
@@ -1530,14 +1527,29 @@ async fn download_via_ytdlp(url: &str, output_path: &Path, state: JobState) -> R
     // Actually, passing exactly output_path using -o ensures it writes there.
     let out_str = output_path.to_string_lossy().to_string();
 
+    use crate::api::process_helper::CommandNoWindow;
     let mut cmd = tokio::process::Command::new(&binary).no_window();
+
     cmd.arg("-f").arg(&format_str)
        .arg("-o").arg(&out_str)
        .arg("--newline")
        .arg("--no-warnings")
        .arg("--no-playlist")
-       .arg("--extractor-args").arg("youtube:player_client=tv,mweb")
-       .arg(page_url)
+       .arg("--extractor-args").arg("youtube:player_client=tv,mweb");
+
+    if let Ok(guard) = crate::api::ytdlp_wrapper::COOKIES_PATH.read() {
+        if let Some(ref cookie_file) = *guard {
+            cmd.arg("--cookies").arg(cookie_file);
+        }
+    }
+
+    if let Ok(guard) = crate::api::ytdlp_wrapper::PROXY_URL.read() {
+        if let Some(ref proxy) = *guard {
+            cmd.arg("--proxy").arg(proxy);
+        }
+    }
+
+    cmd.arg(page_url)
        .stdout(std::process::Stdio::piped())
        .stderr(std::process::Stdio::piped());
 
@@ -1635,7 +1647,7 @@ async fn download_inner(
         connections = 1;
     }
 
-    let connections = connections.clamp(1, 12);
+    connections = connections.clamp(1, 12);
     debug_log::log_download(&format!(
         "=== download start, host={}, audio={}",
         url.split('/').nth(2).unwrap_or("?"),

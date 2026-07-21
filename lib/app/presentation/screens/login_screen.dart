@@ -14,6 +14,11 @@ class LoginScreen extends ConsumerStatefulWidget {
 enum AuthFormState { signIn, signUp, verifySignUpOtp, forgotPassword, resetPasswordOtp }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  bool _isValidEmail(String email) {
+    final regex = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    return regex.hasMatch(email);
+  }
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
@@ -41,10 +46,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _showError('الرجاء إدخال البريد الإلكتروني');
       return;
     }
-
-    if (_formState == AuthFormState.signUp && (password.isEmpty || name.isEmpty)) {
-      _showError('الرجاء تعبئة جميع الحقول');
+    
+    if (!_isValidEmail(email)) {
+      _showError('الرجاء إدخال بريد إلكتروني صحيح');
       return;
+    }
+
+    if (_formState == AuthFormState.signUp) {
+      if (password.isEmpty || name.isEmpty) {
+        _showError('الرجاء تعبئة جميع الحقول');
+        return;
+      }
+      if (password.length < 6) {
+        _showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+        return;
+      }
     }
     
     if (_formState == AuthFormState.signIn && password.isEmpty) {
@@ -57,9 +73,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    if (_formState == AuthFormState.resetPasswordOtp && password.isEmpty) {
-      _showError('الرجاء إدخال كلمة المرور الجديدة');
-      return;
+    if (_formState == AuthFormState.resetPasswordOtp) {
+      if (password.isEmpty) {
+        _showError('الرجاء إدخال كلمة المرور الجديدة');
+        return;
+      }
+      if (password.length < 6) {
+        _showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+        return;
+      }
     }
 
     setState(() => _isLoading = true);
@@ -68,7 +90,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       switch (_formState) {
         case AuthFormState.signIn:
-          await auth.smartSignIn(email: email, password: password);
+          try {
+            await auth.smartSignIn(email: email, password: password);
+          } catch (e) {
+            if (e.toString() == 'unverified') {
+              setState(() {
+                _formState = AuthFormState.verifySignUpOtp;
+                _otpController.clear();
+              });
+              _showError('حسابك غير مفعل. تم إرسال رمز تحقق لبريدك الإلكتروني.');
+              return;
+            }
+            rethrow;
+          }
           break;
         case AuthFormState.signUp:
           final requiresOtp = await auth.smartSignUp(email: email, password: password, name: name);

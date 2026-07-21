@@ -13,10 +13,8 @@ import '../../providers/locale_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/incoming_link_utils.dart';
 import '../widgets/responsive_scaffold.dart';
-
 import 'advanced_download_screen.dart';
 import 'playlist_screen.dart';
-import 'browser_screen.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   const HomeTab({super.key});
@@ -458,13 +456,11 @@ class HomeTabState extends ConsumerState<HomeTab> with WidgetsBindingObserver {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const BrowserScreen(),
-                                    ),
-                                  );
+                                onPressed: () async {
+                                  final uri = Uri.parse('https://youtube.com');
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  }
                                 },
                                 icon: const Icon(
                                   Icons.explore_rounded,

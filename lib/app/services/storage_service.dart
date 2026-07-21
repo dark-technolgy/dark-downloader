@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart' as path_provider;
 
@@ -32,7 +33,7 @@ class StorageService {
   ///   only when a legacy-storage manifest allows it.
   /// - iOS: Documents/DarkDownloader
   /// - Windows/Linux/MacOS: Downloads/DarkDownloader
-  static Future<Directory> getDownloadsDirectory() async {
+  static Future<Directory> getDownloadsDirectory({String? category}) async {
     Directory? baseDir;
 
     if (Platform.isAndroid) {
@@ -81,7 +82,11 @@ class StorageService {
     // Default fallback to application documents if everything else fails
     baseDir ??= await path_provider.getApplicationDocumentsDirectory();
 
-    final finalDir = Directory(p.join(baseDir.path, _rootFolderName));
+    var finalDir = Directory(p.join(baseDir.path, _rootFolderName));
+    if (category != null && category.isNotEmpty) {
+      finalDir = Directory(p.join(finalDir.path, category));
+    }
+    
     if (!await finalDir.exists()) {
       await finalDir.create(recursive: true);
     }
@@ -96,4 +101,36 @@ class StorageService {
 
   /// Safely joins directory and filename based on platform separators.
   static String join(String part1, String part2) => p.join(part1, part2);
+
+  /// Cleans up orphaned temporary files (e.g., failed muxing parts)
+  /// that are left behind if the app crashes during post-processing.
+  /// Should be called on application startup.
+  static Future<void> cleanupOrphanedTempFiles() async {
+    try {
+      final downloadsDir = await getDownloadsDirectory();
+      if (!await downloadsDir.exists()) return;
+
+      final now = DateTime.now();
+      final entities = downloadsDir.listSync(recursive: true);
+      for (final entity in entities) {
+        if (entity is File) {
+          final basename = p.basename(entity.path);
+          // Only cleanup post-processing temp files, not download parts.
+          if (basename.contains('.ffmpeg.muxing.') ||
+              basename.contains('__tmp__') ||
+              basename.endsWith('.cover.jpg')) {
+            final stat = await entity.stat();
+            // If the file is older than 2 hours, consider it orphaned
+            if (now.difference(stat.modified) > const Duration(hours: 2)) {
+              try {
+                await entity.delete();
+              } catch (_) {}
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Cleanup error: $e');
+    }
+  }
 }

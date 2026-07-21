@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:gal/gal.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../src/rust/api/downloader.dart' as rust_downloader;
@@ -14,8 +12,10 @@ import '../providers/extractor_provider.dart';
 import '../services/bundled_ffmpeg_path.dart';
 import '../services/media_processor.dart';
 import '../services/notification_service.dart';
+import '../services/background_service.dart';
 import '../services/permission_service.dart';
 import '../services/storage_service.dart';
+import '../services/database_service.dart';
 import '../utils/download_error_utils.dart';
 import 'locale_provider.dart';
 import 'dart:io';
@@ -185,8 +185,13 @@ class DownloadItem {
 class DownloadManagerState {
   final List<DownloadItem> items;
   final bool queuePaused;
+  final int maxConcurrentDownloads;
 
-  DownloadManagerState({this.items = const [], this.queuePaused = false});
+  DownloadManagerState({
+    this.items = const [],
+    this.queuePaused = false,
+    this.maxConcurrentDownloads = 3,
+  });
 
   int get activeCount =>
       items.where((i) => i.status == DownloadStatus.downloading).length;
@@ -197,10 +202,12 @@ class DownloadManagerState {
   DownloadManagerState copyWith({
     List<DownloadItem>? items,
     bool? queuePaused,
+    int? maxConcurrentDownloads,
   }) {
     return DownloadManagerState(
       items: items ?? this.items,
       queuePaused: queuePaused ?? this.queuePaused,
+      maxConcurrentDownloads: maxConcurrentDownloads ?? this.maxConcurrentDownloads,
     );
   }
 }
@@ -270,7 +277,19 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     final active = state.items
         .where((i) => i.status == DownloadStatus.downloading)
         .toList();
-    if (active.isEmpty) return;
+
+    if (active.isEmpty) {
+      unawaited(BackgroundService.stop());
+      return;
+    }
+
+    unawaited(BackgroundService.start());
+    unawaited(
+      BackgroundService.update(
+        'Dark Downloader',
+        'Downloading ${active.length} file(s)...',
+      ),
+    );
 
     var updated = false;
     final newItems = List<DownloadItem>.from(state.items);
@@ -296,31 +315,35 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     }
   }
 
+  Future<void> _updateStateAndDB(DownloadItem item) async {
+    state = state.copyWith(
+      items: state.items.map((i) => i.id == item.id ? item : i).toList(),
+    );
+    await DatabaseService.instance.insertOrUpdateDownload(item);
+  }
+
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('download_items');
-    if (raw == null) return;
-    final list = jsonDecode(raw) as List<dynamic>;
-    final items = list
-        .map((e) => DownloadItem.fromJson(e as Map<String, dynamic>))
-        .map((item) {
+    // 1. Cleanup old orphaned temp files
+    unawaited(StorageService.cleanupOrphanedTempFiles());
+
+    // 2. Load DB
+    final list = await DatabaseService.instance.getAllDownloads();
+    
+    // 3. Smart Auto-Resume: Convert previously 'downloading' to 'queued' so they restart
+    final items = list.map((item) {
       if (item.status == DownloadStatus.downloading) {
         return item.copyWith(
-          status: DownloadStatus.paused,
+          status: DownloadStatus.queued,
           clearPhase: true,
         );
       }
       return item;
     }).toList();
+    
     state = state.copyWith(items: items);
-  }
 
-  Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'download_items',
-      jsonEncode(state.items.map((e) => e.toJson()).toList()),
-    );
+    // 4. Start queued items
+    _processQueue();
   }
 
   Future<void> addToQueue(
@@ -344,7 +367,8 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     // Android 10+ without MANAGE_EXTERNAL_STORAGE, so downloads silently fail.
     // StorageService picks the correct app-scoped path on Android and the
     // native Downloads folder on desktop.
-    final downloadsDir = (await StorageService.getDownloadsDirectory()).path;
+    final category = audioOutputFormat != null ? 'Audio' : 'Video';
+    final downloadsDir = (await StorageService.getDownloadsDirectory(category: category)).path;
     final ext = stream?.format ?? 'mp4';
 
     // Final container rules — كل الصيغ عالمية تعمل على كل المنصات:
@@ -362,7 +386,8 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
       title: video.title,
       format: finalExt,
     );
-    final outputPath = p.join(downloadsDir, safeName);
+    var outputPath = p.join(downloadsDir, safeName);
+    outputPath = await _getUniqueFilePath(outputPath);
 
     final item = DownloadItem(
       id: id,
@@ -382,30 +407,36 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     );
 
     state = state.copyWith(items: [...state.items, item]);
-    await _save();
+    await DatabaseService.instance.insertOrUpdateDownload(item);
 
     if (!state.queuePaused && scheduledAt == null) {
-      unawaited(_startDownload(item));
+      _processQueue();
     }
+  }
+
+  Future<String> _getUniqueFilePath(String basePath) async {
+    final dir = p.dirname(basePath);
+    final ext = p.extension(basePath);
+    final name = p.basenameWithoutExtension(basePath);
+    var targetPath = basePath;
+    var counter = 1;
+
+    while (await File(targetPath).exists() || state.items.any((i) => i.filePath == targetPath)) {
+      targetPath = p.join(dir, '$name ($counter)$ext');
+      counter++;
+    }
+    return targetPath;
   }
 
   Future<void> _startDownload(DownloadItem item) async {
     // Removed mandatory auth check to allow anonymous downloads
 
-    state = state.copyWith(
-      items: state.items
-          .map(
-            (i) => i.id == item.id
-                ? i.copyWith(
-                    status: DownloadStatus.downloading,
-                    clearError: true,
-                    clearPhase: true,
-                  )
-                : i,
-          )
-          .toList(),
+    final updatedItem = item.copyWith(
+      status: DownloadStatus.downloading,
+      clearError: true,
+      clearPhase: true,
     );
-    await _save();
+    await _updateStateAndDB(updatedItem);
 
     try {
       final ffmpegPath = await resolveDesktopFfmpegPath();
@@ -706,27 +737,19 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     }
 
     _retryScheduled.remove(id);
-    state = state.copyWith(
-      items: state.items
-          .map(
-            (i) => i.id == id
-                ? i.copyWith(
-                    status: DownloadStatus.completed,
-                    progress: 1.0,
-                    filePath: finalPath,
-                    clearPhase: true,
-                    clearError: true,
-                    downloadedBytes: finalSize,
-                    totalBytes: finalSize,
-                    speedBytesSec: 0,
-                    etaSeconds: 0,
-                    completedAt: DateTime.now(),
-                  )
-                : i,
-          )
-          .toList(),
+    final updatedItem = state.items[index].copyWith(
+      status: DownloadStatus.completed,
+      progress: 1.0,
+      filePath: finalPath,
+      clearPhase: true,
+      clearError: true,
+      downloadedBytes: finalSize,
+      totalBytes: finalSize,
+      speedBytesSec: 0,
+      etaSeconds: 0,
+      completedAt: DateTime.now(),
     );
-    await _save();
+    await _updateStateAndDB(updatedItem);
 
     unawaited(NotificationService.showComplete(
       id: id.hashCode,
@@ -734,33 +757,33 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
       filePath: finalPath,
       locale: ref.read(localeProvider),
     ),);
+
+    _processQueue();
   }
 
   void _onFailed(String id, String error) {
     final key = downloadErrorL10nKey(error);
     _retryScheduled.remove(id);
-    state = state.copyWith(
-      items: state.items
-          .map(
-            (i) => i.id == id
-                ? i.copyWith(
-                    status: DownloadStatus.failed,
-                    error: key,
-                    clearPhase: true,
-                  )
-                : i,
-          )
-          .toList(),
-    );
-    _save();
-
     final idx = state.items.indexWhere((i) => i.id == id);
     if (idx != -1) {
-      final item = state.items[idx];
+      final updatedItem = state.items[idx].copyWith(
+        status: DownloadStatus.failed,
+        error: key,
+        clearPhase: true,
+      );
+      // Synchronous wait not ideal in a fire-and-forget _onFailed, but it's safe enough.
+      DatabaseService.instance.insertOrUpdateDownload(updatedItem).then((_) {
+        state = state.copyWith(
+          items: state.items.map((i) => i.id == id ? updatedItem : i).toList(),
+        );
+      });
+      
+      final item = updatedItem;
       if (isRetryableDownloadError(error) &&
           item.retryCount < _maxAutoRetries) {
         _scheduleAutoRetry(id);
       }
+      _processQueue();
     }
   }
 
@@ -802,10 +825,19 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
   }
 
   void _processQueue() {
-    for (final item in state.items.where(
+    if (state.queuePaused) return;
+
+    final queuedItems = state.items.where(
       (i) => i.status == DownloadStatus.queued,
-    )) {
-      unawaited(_startDownload(item));
+    ).toList();
+    if (queuedItems.isEmpty) return;
+
+    final availableSlots = state.maxConcurrentDownloads - state.activeCount;
+    if (availableSlots > 0) {
+      final itemsToStart = queuedItems.take(availableSlots);
+      for (final item in itemsToStart) {
+        unawaited(_startDownload(item));
+      }
     }
   }
 
@@ -819,22 +851,27 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
 
   Future<void> pauseDownload(String id) async {
     await rust_downloader.cancelJob(jobId: id);
-    state = state.copyWith(
-      items: state.items
-          .map(
-            (i) => i.id == id
-                ? i.copyWith(status: DownloadStatus.paused, clearPhase: true)
-                : i,
-          )
-          .toList(),
-    );
-    await _save();
+    final index = state.items.indexWhere((i) => i.id == id);
+    if (index != -1) {
+      final updatedItem = state.items[index].copyWith(status: DownloadStatus.paused, clearPhase: true);
+      await _updateStateAndDB(updatedItem);
+      _processQueue();
+    }
   }
 
   Future<void> resumeDownload(String id) async {
     final index = state.items.indexWhere((i) => i.id == id);
     if (index == -1) return;
-    await _startDownload(state.items[index]);
+    
+    final updatedItem = state.items[index].copyWith(
+      status: DownloadStatus.queued,
+      clearError: true,
+    );
+    await _updateStateAndDB(updatedItem);
+    
+    if (!state.queuePaused) {
+      _processQueue();
+    }
   }
 
   Future<void> retryDownload(String id, {bool automatic = false}) async {
@@ -852,12 +889,9 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
       clearPhase: true,
       retryCount: nextCount,
     );
-    state = state.copyWith(
-      items: state.items.map((i) => i.id == id ? item : i).toList(),
-    );
-    await _save();
+    await _updateStateAndDB(item);
     if (!state.queuePaused) {
-      await _startDownload(item);
+      _processQueue();
     }
   }
 
@@ -877,16 +911,20 @@ class DownloadManagerNotifier extends Notifier<DownloadManagerState> {
     state = state.copyWith(
       items: state.items.where((i) => i.id != id).toList(),
     );
-    await _save();
+    await DatabaseService.instance.deleteDownload(id);
+    _processQueue();
   }
 
   Future<void> removeCompleted() async {
+    final completed = state.items.where((i) => i.status == DownloadStatus.completed).toList();
+    for (final item in completed) {
+      await DatabaseService.instance.deleteDownload(item.id);
+    }
     state = state.copyWith(
       items: state.items
           .where((i) => i.status != DownloadStatus.completed)
           .toList(),
     );
-    await _save();
   }
 }
 

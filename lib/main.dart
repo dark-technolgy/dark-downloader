@@ -23,6 +23,7 @@ import 'app/providers/auth_provider.dart';
 import 'app/services/telemetry_service.dart';
 import 'app/bootstrap/rust_lib_init.dart';
 import 'app/services/notification_service.dart';
+import 'app/services/background_service.dart';
 import 'app/services/tray_service.dart';
 import 'app/providers/remote_config_provider.dart';
 import 'app/presentation/screens/cold_start_screen.dart';
@@ -97,7 +98,7 @@ Future<void> _backgroundBootstrap() async {
     // C. Core Engine - With ultra-safe try/catch and timeouts
     // We try to init Rust, but we DON'T block if it takes too long
     try {
-      await initRustLibBundledFirst().timeout(const Duration(seconds: 5));
+      await initRustLibBundledFirst().timeout(const Duration(seconds: 15));
     } catch (e) {
       debugPrint('Bootstrap: Rust engine delayed or failed: $e');
     }
@@ -110,6 +111,7 @@ Future<void> _backgroundBootstrap() async {
 
     // D. Finalizing Services
     NotificationService.init().ok();
+    BackgroundService.init().ok();
     ToolBootstrapper.ensure().ok();
     YtdlpBootstrap.ensure().ok();
     RulePackSync.ensure().ok();

@@ -15,6 +15,7 @@ import 'profile_screen.dart';
 import 'toolkit_screen.dart';
 import 'vault_screen.dart';
 import 'home_tab.dart';
+import 'browser_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -368,6 +369,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: IndexedStack(
               index: _currentIndex,
               children: [
+                const BrowserScreen(),
                 const HomeTab(),
                 _historySlot(),
                 _toolkitSlot(),
@@ -382,16 +384,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() {
           _currentIndex = i;
-          if (i == 1) _historyUiEverOpened = true;
-          if (i == 2) _toolkitUiEverOpened = true;
-          if (i == 3) _vaultUiEverOpened = true;
-          if (i == 4) _profileUiEverOpened = true;
+          if (i == 2) _historyUiEverOpened = true;
+          if (i == 3) _toolkitUiEverOpened = true;
+          if (i == 4) _vaultUiEverOpened = true;
+          if (i == 5) _profileUiEverOpened = true;
         }),
         elevation: 8,
         destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore_rounded),
+            label: 'تصفح',
+          ),
           NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home_rounded),
+            icon: const Icon(Icons.download_outlined),
+            selectedIcon: const Icon(Icons.download_rounded),
             label: t('home', locale),
           ),
           NavigationDestination(

@@ -10,19 +10,19 @@ Future<void> muxVideoAudio(
         {required String videoPath,
         required String audioPath,
         required String outputPath,
-        required String ffmpegPath,}) =>
+        required String ffmpegPath}) =>
     RustLib.instance.api.crateApiVideoProcessorMuxVideoAudio(
         videoPath: videoPath,
         audioPath: audioPath,
         outputPath: outputPath,
-        ffmpegPath: ffmpegPath,);
+        ffmpegPath: ffmpegPath);
 
 Future<void> extractAudio(
         {required String videoPath,
         required String outputPath,
-        required String ffmpegPath,}) =>
+        required String ffmpegPath}) =>
     RustLib.instance.api.crateApiVideoProcessorExtractAudio(
-        videoPath: videoPath, outputPath: outputPath, ffmpegPath: ffmpegPath,);
+        videoPath: videoPath, outputPath: outputPath, ffmpegPath: ffmpegPath);
 
 /// Hardened MP3 conversion.
 ///
@@ -34,9 +34,9 @@ Future<void> extractAudio(
 Future<void> convertToMp3(
         {required String inputPath,
         required String outputPath,
-        required String ffmpegPath,}) =>
+        required String ffmpegPath}) =>
     RustLib.instance.api.crateApiVideoProcessorConvertToMp3(
-        inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath,);
+        inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath);
 
 /// Rich MP3 conversion with optional metadata and embedded album art.
 ///
@@ -51,7 +51,7 @@ Future<void> convertToMp3Rich(
         String? album,
         String? date,
         String? comment,
-        String? coverPath,}) =>
+        String? coverPath}) =>
     RustLib.instance.api.crateApiVideoProcessorConvertToMp3Rich(
         inputPath: inputPath,
         outputPath: outputPath,
@@ -61,20 +61,20 @@ Future<void> convertToMp3Rich(
         album: album,
         date: date,
         comment: comment,
-        coverPath: coverPath,);
+        coverPath: coverPath);
 
 /// Embed (or replace) the front-cover artwork on an existing MP3 file.
 /// Rewrites the file in-place via a temporary intermediate.
 Future<void> embedAlbumArt(
         {required String mp3Path,
         required String coverPath,
-        required String ffmpegPath,}) =>
+        required String ffmpegPath}) =>
     RustLib.instance.api.crateApiVideoProcessorEmbedAlbumArt(
-        mp3Path: mp3Path, coverPath: coverPath, ffmpegPath: ffmpegPath,);
+        mp3Path: mp3Path, coverPath: coverPath, ffmpegPath: ffmpegPath);
 
 Future<void> compressVideo(
         {required String inputPath,
         required String outputPath,
-        required String ffmpegPath,}) =>
+        required String ffmpegPath}) =>
     RustLib.instance.api.crateApiVideoProcessorCompressVideo(
-        inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath,);
+        inputPath: inputPath, outputPath: outputPath, ffmpegPath: ffmpegPath);

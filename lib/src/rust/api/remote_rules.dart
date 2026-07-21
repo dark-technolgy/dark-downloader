@@ -24,7 +24,7 @@ Future<void> rustSyncRemoteRules({required String url}) =>
 
 /// Legacy lookup, kept for callers that just want a raw pattern string.
 Future<String?> getRemotePattern(
-        {required String platform, required String key,}) =>
+        {required String platform, required String key}) =>
     RustLib.instance.api
         .crateApiRemoteRulesGetRemotePattern(platform: platform, key: key);
 
