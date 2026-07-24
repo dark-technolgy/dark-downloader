@@ -26,17 +26,18 @@ if (-not $env:SUPABASE_ACCESS_TOKEN) {
 function Read-Template([string]$name) {
   $path = Join-Path $templatesDir $name
   if (-not (Test-Path $path)) { throw "Missing template: $path" }
-  return (Get-Content -Path $path -Raw -Encoding UTF8)
+  $content = Get-Content -Path $path -Raw -Encoding UTF8
+  return [string]$content
 }
 
 $body = @{
-  mailer_subjects_confirmation = "أكد حسابك في دارك | Confirm your Dark account"
+  mailer_subjects_confirmation = "Confirm your Dark account"
   mailer_templates_confirmation_content = (Read-Template "confirmation.html")
-  mailer_subjects_recovery = "إعادة تعيين كلمة المرور — دارك | Reset your Dark password"
+  mailer_subjects_recovery = "Reset your Dark password"
   mailer_templates_recovery_content = (Read-Template "recovery.html")
-  mailer_subjects_magic_link = "رابط الدخول — دارك | Sign in to Dark"
+  mailer_subjects_magic_link = "Sign in to Dark"
   mailer_templates_magic_link_content = (Read-Template "magic_link.html")
-  mailer_subjects_email_change = "تأكيد البريد الجديد — دارك | Confirm your new email"
+  mailer_subjects_email_change = "Confirm your new email"
   mailer_templates_email_change_content = (Read-Template "email_change.html")
 }
 
@@ -49,4 +50,4 @@ $headers = @{
 
 Write-Host "Updating auth email templates on project $ProjectRef ..."
 Invoke-RestMethod -Method Patch -Uri $uri -Headers $headers -Body $json | Out-Null
-Write-Host "Done. Configure SMTP in Dashboard (Sender name: دارك — Dark Technology)."
+Write-Host "Done. Configure SMTP in Dashboard (Sender name: Dark Technology)."

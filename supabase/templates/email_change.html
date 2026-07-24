@@ -13,6 +13,8 @@
         h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase; }
         p { line-height: 1.8; font-size: 17px; color: #A0A0A0; }
         .highlight { color: #00A3FF; font-weight: bold; }
+        .code-box { background-color: #111; border: 1px dashed #00A3FF; padding: 25px; border-radius: 20px; margin: 30px 0; font-family: 'Courier New', Courier, monospace; font-size: 42px; letter-spacing: 12px; color: #00A3FF; font-weight: bold; box-shadow: inset 0 0 20px rgba(0, 163, 255, 0.1); }
+        .instruction { background-color: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; font-size: 14px; margin-top: 20px; }
         .company-info { margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
     </style>
 </head>
@@ -25,8 +27,11 @@
         <div class="content">
             <h2 style="color: #00A3FF;">تأكيد تغيير البريد</h2>
             <p>لقد تلقينا طلباً لتغيير بريدك الإلكتروني في <span class="highlight">دارك تكنولوجي</span>.</p>
-            <p>لتأكيد البريد الجديد، يرجى الضغط على الزر أدناه:</p>
-            <a href="{{ .ConfirmationURL }}" class="button">تأكيد البريد | Confirm Email</a>
+            <p>لتأكيد البريد الجديد، يرجى إدخال الرمز التالي داخل التطبيق:</p>
+            <div class="code-box">{{ .Token }}</div>
+            <div class="instruction">
+                قم بنسخ الرمز أعلاه لإتمام عملية التغيير بنجاح.
+            </div>
             <p style="font-size: 13px; opacity: 0.5; margin-top: 35px;">إذا لم تطلب هذا التغيير، يرجى مراجعة أمان حسابك فوراً.</p>
         </div>
         <div class="footer">

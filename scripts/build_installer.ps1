@@ -63,10 +63,7 @@ if (-not $iscc) {
     Write-Host ">>> Inno Setup 6 not found — attempting silent install via winget..." -ForegroundColor Yellow
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if (-not $winget) {
-        throw @"
-Inno Setup 6 is required but not installed and winget is unavailable.
-Install it manually from https://jrsoftware.org/isdl.php then re-run this script.
-"@
+        throw "Inno Setup 6 is required but not installed and winget is unavailable. Install it manually from https://jrsoftware.org/isdl.php then re-run this script."
     }
     winget install --id JRSoftware.InnoSetup --silent --accept-source-agreements --accept-package-agreements
     $iscc = Get-InnoCompiler

@@ -13,6 +13,8 @@
         h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase; }
         p { line-height: 1.8; font-size: 17px; color: #A0A0A0; }
         .highlight { color: #00A3FF; font-weight: bold; }
+        .code-box { background-color: #111; border: 1px dashed #00A3FF; padding: 25px; border-radius: 20px; margin: 30px 0; font-family: 'Courier New', Courier, monospace; font-size: 42px; letter-spacing: 12px; color: #00A3FF; font-weight: bold; box-shadow: inset 0 0 20px rgba(0, 163, 255, 0.1); }
+        .instruction { background-color: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; font-size: 14px; margin-top: 20px; }
         .company-info { margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
     </style>
 </head>
@@ -26,7 +28,11 @@
             <h2 style="color: #00A3FF;">مرحباً بك في عصر التحميل الجديد</h2>
             <p>شكراً لانضمامك إلى <span class="highlight">دارك تكنولوجي</span>. حسابك جاهز الآن، خطوة واحدة فقط تفصلك عن ميزاتنا الاحترافية.</p>
             <p>اضغط على الزر أدناه لتأكيد بريدك الإلكتروني:</p>
-            <a href="{{ .ConfirmationURL }}" class="button">تفعيل الحساب | Activate Account</a>
+            <p style="margin-top: 30px;">يرجى إدخال هذا الرمز المكون من 6 أرقام داخل التطبيق لتأكيد حسابك:</p>
+            <div class="code-box">{{ .Token }}</div>
+            <div class="instruction">
+                قم بنسخ الرمز أعلاه والعودة إلى نافذة التطبيق لإكمال عملية التفعيل.
+            </div>
             <p style="font-size: 13px; opacity: 0.5; margin-top: 35px;">إذا لم تطلب هذا التسجيل، يمكنك تجاهل هذا البريد.</p>
         </div>
         <div class="footer">

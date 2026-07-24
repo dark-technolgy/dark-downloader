@@ -21,9 +21,12 @@
   <div class="container">
     <div class="header"><h1>Dark Downloader</h1></div>
     <div class="content">
-      <h2>الرابط السحري للدخول ✨</h2>
-      <p>مرحباً بك مجدداً! لقد طلبت تسجيل الدخول السريع إلى Dark Downloader بدون كتابة كلمة المرور. اضغط على الزر أدناه للدخول فوراً إلى حسابك:</p>
-      <a href="{{ .ConfirmationURL }}" class="btn">دخول إلى التطبيق</a>
+      <h2>رمز الدخول السحري ✨</h2>
+      <p>مرحباً بك مجدداً! لقد طلبت تسجيل الدخول السريع إلى Dark Downloader بدون كتابة كلمة المرور. يرجى إدخال الرمز التالي في التطبيق:</p>
+      <div style="background-color: #111; border: 1px dashed #a371f7; padding: 20px; border-radius: 12px; margin: 30px 0; font-family: monospace; font-size: 38px; letter-spacing: 10px; color: #a371f7; font-weight: bold;">{{ .Token }}</div>
+      <div style="background-color: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; font-size: 14px;">
+        انسخ الرمز أعلاه وألصقه في نافذة التطبيق للدخول فوراً.
+      </div>
     </div>
     <div class="footer">&copy; 2026 Dark Downloader. رابط الدخول صالح لمرة واحدة فقط.</div>
   </div>
